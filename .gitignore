@@ -1,68 +1,68 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-*.so.*
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Build directories
-build/
-Build/
-build-*/
-
-# CMake generated files
+# CMake and other build output
+/build/
+/build_*/
+/bin/
+/lib/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 install_manifest.txt
+Makefile
+build.ninja
+rules.ninja
+Testing/
+
+# Generated build metadata
 compile_commands.json
 
-# Temporary files
+# Compiled objects, libraries, and executables
+*.o
+*.obj
+*.lo
+*.slo
+*.a
+*.la
+*.lai
+*.so
+*.so.*
+*.dylib
+*.dll
+*.lib
+*.out
+*.exe
+
+# Compiler and debugger intermediates
+*.d
+*.gch
+*.pch
+*.ilk
+*.pdb
+*.dwo
+
+# Clangd and test caches
+/.cache/
+**/.cache/
+
+# VS Code workspace caches and user-specific files.
+# Keep shared project configurations visible and trackable.
+/.vscode/**
+!/.vscode/
+!/.vscode/tasks.json
+!/.vscode/launch.json
+!/.vscode/settings.json
+
+# OS metadata and editor temporary/swap files
+.DS_Store
+Thumbs.db
+desktop.ini
 *.tmp
+*.temp
 *.log
 *.bak
 *.swp
+*.swo
+*~
+.#*
 
-# vcpkg
-vcpkg_installed/
-
-# debug information files
-*.dwo
-
-# test output & cache
-Testing/
-.cache/
+# Local dependency installations
+/vcpkg_installed/
