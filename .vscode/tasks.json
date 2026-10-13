@@ -110,6 +110,23 @@
                 "showReuseMessage": false,
                 "clear": true
             }
+        },
+        {
+            "label": "CMake: Hard Reset Cache",
+            "type": "shell",
+            "command": "rm -rf build build_release",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            }
         }
     ]
 }
