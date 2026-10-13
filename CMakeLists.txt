@@ -16,6 +16,7 @@ add_library(cfd_toolkit STATIC
     src/geometry/domain/domain2d.cpp
     src/geometry/domain/domain3d.cpp
     src/mesh/mesh1d/uniform_mesh1d.cpp
+    src/mesh/mesh2d/uniform_mesh2d.cpp
 )
 
 # Consumers use the same namespaced target in add_subdirectory, FetchContent,
