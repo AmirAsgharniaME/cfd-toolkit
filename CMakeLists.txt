@@ -1,0 +1,86 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(cfd-toolkit
+    VERSION 0.1.0
+    DESCRIPTION "Foundational C++20 infrastructure for computational fluid dynamics"
+    LANGUAGES CXX
+)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Keep this source list explicit so new modules are added intentionally and
+# source discovery remains deterministic across generators and platforms.
+add_library(cfd_toolkit STATIC
+    src/geometry/domain/domain1d.cpp
+    src/geometry/domain/domain2d.cpp
+    src/geometry/domain/domain3d.cpp
+    src/mesh/mesh1d/uniform_mesh1d.cpp
+)
+
+# Consumers use the same namespaced target in add_subdirectory, FetchContent,
+# and after find_package(cfd-toolkit CONFIG).
+add_library(cfd::toolkit ALIAS cfd_toolkit)
+set_target_properties(cfd_toolkit PROPERTIES
+    EXPORT_NAME toolkit
+)
+
+# Publish the language requirement to consumers, while leaving the global
+# CMAKE_CXX_STANDARD setting untouched for sibling projects.
+target_compile_features(cfd_toolkit PUBLIC cxx_std_20)
+
+# Keep source-tree paths out of installed interfaces and downstream targets.
+target_include_directories(cfd_toolkit
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+# Apply diagnostics only when compiling this library with GNU or Clang.
+target_compile_options(cfd_toolkit
+    PRIVATE
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall>
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wextra>
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wpedantic>
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wconversion>
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-Wshadow>
+)
+
+set(cfd_toolkit_cmake_dir "${CMAKE_INSTALL_LIBDIR}/cmake/cfd-toolkit")
+
+# Install the library and its public headers, and export an imported target
+# named cfd::toolkit for package consumers.
+install(TARGETS cfd_toolkit
+    EXPORT cfd-toolkitTargets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+install(EXPORT cfd-toolkitTargets
+    FILE cfd-toolkitTargets.cmake
+    NAMESPACE cfd::
+    DESTINATION "${cfd_toolkit_cmake_dir}"
+)
+
+# Generate the config and version files required by find_package(CONFIG).
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cfd-toolkitConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cfd-toolkitConfig.cmake"
+    INSTALL_DESTINATION "${cfd_toolkit_cmake_dir}"
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/cfd-toolkitConfigVersion.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/cfd-toolkitConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/cfd-toolkitConfigVersion.cmake"
+    DESTINATION "${cfd_toolkit_cmake_dir}"
+)
