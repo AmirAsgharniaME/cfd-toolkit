@@ -25,8 +25,8 @@ public:
     [[nodiscard]] std::size_t node_count() const noexcept { return nodes_.size(); }
     [[nodiscard]] std::size_t cell_count() const noexcept { return nodes_.size() - 1; }
 
-    [[nodiscard]] double interval_start() const noexcept { return x_start_; }
-    [[nodiscard]] double interval_end() const noexcept { return x_end_; }
+    [[nodiscard]] double x_start() const noexcept { return x_start_; }
+    [[nodiscard]] double x_end() const noexcept { return x_end_; }
     [[nodiscard]] double spacing() const noexcept { return spacing_; }
 
     /// Return a node position, throwing std::out_of_range for an invalid index.
