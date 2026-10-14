@@ -3,6 +3,7 @@
 #include "cfd/geometry/domain/domain1d.hpp"
 
 #include <cstddef>
+#include <iosfwd>
 #include <vector>
 
 namespace cfd::mesh
@@ -43,6 +44,9 @@ public:
 
     /// Change the number of nodes while preserving the interval.
     void set_node_count(std::size_t node_count);
+
+    /// Print mesh properties and all node coordinates.
+    void print_details(std::ostream& output) const;
 
 private:
     double x_start_;

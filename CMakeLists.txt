@@ -6,6 +6,8 @@ project(cfd-toolkit
     LANGUAGES CXX
 )
 
+option(BUILD_EXAMPLES "Build cfd-toolkit example/sanity executables" ON)
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -13,10 +15,7 @@ include(CMakePackageConfigHelpers)
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
     src/geometry/domain/domain1d.cpp
-    src/geometry/domain/domain2d.cpp
-    src/geometry/domain/domain3d.cpp
     src/mesh/mesh1d/uniform_mesh1d.cpp
-    src/mesh/mesh2d/uniform_mesh2d.cpp
 )
 
 # Consumers use the same namespaced target in add_subdirectory, FetchContent,
@@ -85,3 +84,13 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/cfd-toolkitConfigVersion.cmake"
     DESTINATION "${cfd_toolkit_cmake_dir}"
 )
+
+if(BUILD_EXAMPLES)
+    add_executable(test_uniform_mesh1d
+        examples/test_uniform_mesh1d.cpp
+    )
+    target_link_libraries(test_uniform_mesh1d PRIVATE cfd_toolkit)
+    set_target_properties(test_uniform_mesh1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+endif()

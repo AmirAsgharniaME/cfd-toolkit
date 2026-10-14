@@ -1,6 +1,8 @@
 #include "cfd/mesh/mesh1d/uniform_mesh1d.hpp"
 
 #include <cmath>
+#include <iomanip>
+#include <iostream>
 #include <stdexcept>
 
 namespace cfd::mesh
@@ -83,6 +85,33 @@ void UniformMesh1D::set_node_count(std::size_t node_count)
     // Commit the new state only after validation and allocation have succeeded.
     nodes_.swap(new_nodes);
     spacing_ = new_spacing;
+}
+
+void UniformMesh1D::print_details(std::ostream& output) const
+{
+    const std::ios::fmtflags original_flags = output.flags();
+    const std::streamsize original_precision = output.precision();
+
+    output << std::fixed << std::setprecision(4)
+           << "UniformMesh1D details\n"
+           << "---------------------\n"
+           << "Start:  " << x_start_ << '\n'
+           << "End:    " << x_end_ << '\n'
+           << "Length: " << x_end_ - x_start_ << '\n'
+           << "Nodes:  " << node_count() << '\n'
+           << "Cells:  " << cell_count() << '\n'
+           << "dx:     " << spacing_ << "\n\n"
+           << "Node coordinates\n"
+           << "----------------\n"
+           << "Index    x\n";
+
+    for (std::size_t index = 0; index < node_count(); ++index)
+    {
+        output << std::setw(5) << index << "    " << nodes_[index] << '\n';
+    }
+
+    output.flags(original_flags);
+    output.precision(original_precision);
 }
 
 }  // namespace cfd::mesh
