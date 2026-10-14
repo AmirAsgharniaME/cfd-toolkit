@@ -15,7 +15,9 @@ include(CMakePackageConfigHelpers)
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
     src/geometry/domain/domain1d.cpp
+    src/geometry/domain/domain2d.cpp
     src/mesh/mesh1d/uniform_mesh1d.cpp
+    src/mesh/mesh2d/uniform_mesh2d.cpp
 )
 
 # Consumers use the same namespaced target in add_subdirectory, FetchContent,
@@ -91,6 +93,14 @@ if(BUILD_EXAMPLES)
     )
     target_link_libraries(test_uniform_mesh1d PRIVATE cfd_toolkit)
     set_target_properties(test_uniform_mesh1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
+    add_executable(test_uniform_mesh2d
+        examples/test_uniform_mesh2d.cpp
+    )
+    target_link_libraries(test_uniform_mesh2d PRIVATE cfd_toolkit)
+    set_target_properties(test_uniform_mesh2d PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 endif()

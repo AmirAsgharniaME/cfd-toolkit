@@ -12,6 +12,18 @@
             "externalConsole": true,
             "MIMode": "gdb",
             "preLaunchTask": "CMake: Build (Debug)"
+        },
+        {
+            "name": "Run test_uniform_mesh2d",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/test_uniform_mesh2d",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "CMake: Build (Debug)"
         }
     ]
 }

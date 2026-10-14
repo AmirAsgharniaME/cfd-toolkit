@@ -3,6 +3,7 @@
 #include "cfd/geometry/domain/domain2d.hpp"
 
 #include <cstddef>
+#include <iosfwd>
 #include <vector>
 
 namespace cfd::mesh
@@ -65,6 +66,9 @@ public:
 
     /// Change both node counts while preserving the rectangular domain.
     void set_node_counts(std::size_t node_count_x, std::size_t node_count_y);
+
+    /// Print mesh dimensions, spacings, and a grid of indexed nodes.
+    void print_details(std::ostream& output) const;
 
 private:
     double x_start_;

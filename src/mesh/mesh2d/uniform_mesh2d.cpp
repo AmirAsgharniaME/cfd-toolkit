@@ -1,6 +1,8 @@
 #include "cfd/mesh/mesh2d/uniform_mesh2d.hpp"
 
 #include <cmath>
+#include <iomanip>
+#include <ostream>
 #include <stdexcept>
 #include <utility>
 
@@ -106,6 +108,63 @@ void UniformMesh2D::set_node_counts(std::size_t node_count_x, std::size_t node_c
     y_nodes_.swap(new_y_nodes);
     spacing_x_ = new_spacing_x;
     spacing_y_ = new_spacing_y;
+}
+
+void UniformMesh2D::print_details(std::ostream& output) const
+{
+    const std::ios::fmtflags original_flags = output.flags();
+    const std::streamsize original_precision = output.precision();
+
+    output.setf(std::ios::fixed, std::ios::floatfield);
+    output.precision(3);
+
+    output << "Mesh (" << node_count_y() << " rows x " << node_count_x() << " columns)\n"
+           << "Spacing: dx = " << spacing_x_
+           << ", dy = " << spacing_y_ << "\n\n";
+
+    const int label_width = 20;
+    const int column_width = 12;
+
+    output << std::setw(label_width) << "x ->";
+    for (std::size_t i = 0; i < node_count_x(); ++i)
+    {
+        output << std::setw(column_width) << i;
+    }
+    output << '\n';
+
+    output << std::setw(label_width) << " ";
+    for (double x : x_nodes_)
+    {
+        output << std::setw(column_width) << x;
+    }
+    output << '\n';
+
+    for (std::size_t row = 0; row < node_count_y(); ++row)
+    {
+        const std::size_t j = node_count_y() - 1 - row;
+
+        output << std::setw(4) << "j=" << std::setw(3) << j
+               << std::setw(4) << "y=" << std::setw(9) << y_nodes_[j];
+
+        for (std::size_t i = 0; i < node_count_x(); ++i)
+        {
+            output << std::setw(column_width) << "o";
+        }
+        output << '\n';
+
+        if (row != node_count_y() - 1)
+        {
+            output << std::setw(label_width) << " ";
+            for (std::size_t i = 0; i < node_count_x(); ++i)
+            {
+                output << std::setw(column_width) << "|";
+            }
+            output << '\n';
+        }
+    }
+
+    output.flags(original_flags);
+    output.precision(original_precision);
 }
 
 }  // namespace cfd::mesh
