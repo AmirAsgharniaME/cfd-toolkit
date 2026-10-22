@@ -1,48 +1,80 @@
-# Domain1D
+# `Domain1D`
 
-`Domain1D` represents a finite, increasing interval on the X axis. It stores
-the interval bounds and provides its length; it does not contain a mesh or a
-finite-volume discretization.
+`Domain1D` is a small geometry class for a one-dimensional CFD domain. It
+represents one finite, strictly increasing interval on the X axis. Its
+implementation is declared in
+[`include/cfd/geometry/domain/domain1d.hpp`](../../../../include/cfd/geometry/domain/domain1d.hpp)
+and defined in
+[`src/geometry/domain/domain1d.cpp`](../../../../src/geometry/domain/domain1d.cpp).
 
-## Construction
+The object stores two values: `x_start` and `x_end`. `length_x()` returns their
+difference, so the length remains consistent after any successful update.
+
+## Constructing a domain
 
 ```cpp
-#include "cfd/geometry/domain/domain1d.hpp"
+#include <cfd/geometry/domain/domain1d.hpp>
 
-cfd::geometry::Domain1D from_origin(2.0);       // [0, 2]
-cfd::geometry::Domain1D interval(-1.0, 1.0);    // bounds: [-1, 1]
-cfd::geometry::Domain1D shifted =
-    cfd::geometry::Domain1D::from_start_and_length(-1.0, 2.0); // [-1, 1]
+// A length-only domain starts at zero: [0, 4].
+cfd::geometry::Domain1D from_origin(4.0);
+
+// The two-argument constructor takes the start and end coordinates: [-2, 3].
+cfd::geometry::Domain1D from_bounds(-2.0, 3.0);
+
+// Use the named factory when the second value is a length: [5, 7.5].
+auto shifted = cfd::geometry::Domain1D::from_start_and_length(5.0, 2.5);
 ```
 
-The one-argument constructor takes a length and starts the interval at `0.0`.
-The two-argument constructor takes the start and end coordinates. To specify a
-start and a length, use `from_start_and_length`; this named factory avoids
-confusing those two meanings. All construction paths require finite,
-strictly increasing bounds.
+The named factory avoids ambiguity between an interval's end coordinate and
+its length.
 
-## Bounds and length
+## Reading and changing bounds
 
-Read the interval with `x_start()`, `x_end()`, and `length_x()`. Bounds can be
-updated with `set_bounds(start, end)`, `set_x_start(start)`, or
-`set_x_end(end)`. `set_length_x(length)` changes the length while preserving
-the current start coordinate.
-
-Every update enforces finite, strictly increasing bounds. Lengths must be
-finite and greater than zero. Invalid input throws `std::invalid_argument`;
-the current bounds remain unchanged when an update is rejected.
-
-## Use with a finite-volume mesh
-
-Use `Domain1D` to define the physical interval, then construct a mesh over it.
-For example, `cfd::mesh::UniformMesh1D` accepts a domain and a cell count:
+The accessors `x_start()`, `x_end()`, and `length_x()` read the current
+interval. The setters update it:
 
 ```cpp
-#include "cfd/mesh/mesh1d/uniform_mesh1d.hpp"
+cfd::geometry::Domain1D domain(-2.0, 3.0);
+domain.set_x_start(-3.0);  // Keep the end at 3.0.
+domain.set_x_end(4.0);     // Keep the start at -3.0.
+domain.set_length_x(2.0);  // Keep the start; set the end to start + 2.
+domain.set_bounds(1.0, 6.0);
+```
+
+Bounds must be finite and strictly increasing (`x_end > x_start`), and their
+difference must also be finite. Lengths must be finite and greater than zero.
+Invalid constructor arguments or updates throw `std::invalid_argument`.
+Updates validate the proposed values before changing either stored bound, so
+an invalid update leaves the domain unchanged.
+
+## Role in a finite-volume solver
+
+`Domain1D` defines where the physical interval begins and ends. It does not
+discretize that interval. A mesh uses these bounds to create finite-volume
+faces, cells, centers, and widths. For example, the project's
+`cfd::mesh::UniformMesh1D` accepts a `Domain1D` and a cell count:
+
+```cpp
+#include <cfd/geometry/domain/domain1d.hpp>
+#include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
 
 cfd::geometry::Domain1D domain(0.0, 1.0);
-cfd::mesh::UniformMesh1D mesh(domain, 10);
+cfd::mesh::UniformMesh1D mesh(domain, 10); // Ten cells, eleven faces.
 ```
 
-The mesh supplies the finite-volume faces, cell centers, and cell widths;
-`Domain1D` only supplies the geometric bounds.
+The domain also does not hold boundary conditions, field values, material
+properties, or cross-sectional area. Those are provided by other geometry,
+mesh, field, and solver components as required by the problem.
+
+## Running the example
+
+The companion [`test_domain1d.cpp`](test_domain1d.cpp) demonstrates the
+constructors, setters, rejected updates, and the class's scope. With examples
+enabled, build it from the project root with:
+
+```sh
+cmake -S . -B build -DBUILD_EXAMPLES=ON
+cmake --build build --target test_domain1d
+```
+
+The executable is written to `build/bin/test_domain1d`.

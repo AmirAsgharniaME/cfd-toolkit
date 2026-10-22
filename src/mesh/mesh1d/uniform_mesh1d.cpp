@@ -116,7 +116,7 @@ UniformMesh1D::UniformMesh1D(double x_start, double x_end, std::size_t num_cells
       cell_centers_(make_cell_centers(faces_, cell_widths_))
 {
 }
-
+ 
 double UniformMesh1D::face(std::size_t f) const
 {
     return faces_.at(f);

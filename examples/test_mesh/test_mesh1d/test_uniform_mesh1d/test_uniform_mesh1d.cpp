@@ -2,8 +2,6 @@
 
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
-#include <cfd/boundary/types.hpp>
-#include <cfd/boundary/1d/dirichlet_boundary1d.hpp>
 
 
 int main()

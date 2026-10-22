@@ -98,7 +98,7 @@ if(BUILD_EXAMPLES)
     )
 
     add_executable(test_uniform_mesh1d
-        examples/test_uniform_mesh1d.cpp
+        examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
     )
     target_link_libraries(test_uniform_mesh1d PRIVATE cfd_toolkit)
     set_target_properties(test_uniform_mesh1d PROPERTIES
