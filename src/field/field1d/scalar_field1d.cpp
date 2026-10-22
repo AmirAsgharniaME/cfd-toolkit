@@ -15,8 +15,8 @@ ScalarField1D::ScalarField1D(std::string name,
       location_(location)
 {
     const std::size_t entry_count = (location_ == FieldLocation::Node)
-                                        ? mesh_.node_count()
-                                        : mesh_.cell_count();
+                                        ? mesh_.num_faces()
+                                        : mesh_.num_cells();
 
     data_.assign(entry_count, initial_val);
 }

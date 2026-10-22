@@ -67,17 +67,12 @@ For an interior cell `P`, `distance_to_east_neighbor(P)` returns
 `x_center[P] - x_center[P - 1]`. Each throws `std::out_of_range` when the
 requested neighbor does not exist (including an invalid cell index).
 
-## Geometry lifetime and compatibility
+## Geometry lifetime
 
 Mesh geometry cannot be resized or assigned after construction. This keeps
 the cell and face arrays stable for fields that hold a reference to the mesh.
-Construct a new mesh when a different resolution is needed.
-
-The former node-named accessors remain as compatibility aliases: nodes map to
-faces, `node_count()` maps to `num_faces()`, and `cell_count()` maps to
-`num_cells()`. New code should use the explicit FVM names. The constructor's
-count is now a **cell count**, whereas the earlier node-centered version
-interpreted it as a node count.
+Construct a new mesh when a different resolution is needed. The constructor's
+count always means the number of cells.
 
 ## Example program
 

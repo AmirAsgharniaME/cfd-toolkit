@@ -99,13 +99,7 @@ public:
     /// Print mesh bounds, cell/face counts, and the geometric coordinates.
     void print_details(std::ostream& output) const;
 
-    // Compatibility aliases for the former node-centered API. In the FVM
-    // representation, old "nodes" correspond to faces and node_count is the
-    // face count. Prefer num_faces(), faces(), and face().
-    [[nodiscard]] std::size_t node_count() const noexcept { return num_faces(); }
     [[nodiscard]] std::size_t cell_count() const noexcept { return num_cells(); }
-    [[nodiscard]] double node(std::size_t f) const { return face(f); }
-    [[nodiscard]] std::span<const double> nodes() const noexcept { return faces(); }
     [[nodiscard]] double spacing() const noexcept { return nominal_spacing(); }
 
 private:
