@@ -89,6 +89,14 @@ install(FILES
 )
 
 if(BUILD_EXAMPLES)
+    add_executable(test_domain1d
+        examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
+    )
+    target_link_libraries(test_domain1d PRIVATE cfd_toolkit)
+    set_target_properties(test_domain1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
     add_executable(test_uniform_mesh1d
         examples/test_uniform_mesh1d.cpp
     )
