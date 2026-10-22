@@ -14,6 +14,7 @@ include(CMakePackageConfigHelpers)
 # Keep this source list explicit so new modules are added intentionally and
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
+    src/field/field1d/scalar_field1d.cpp
     src/geometry/domain/domain1d.cpp
     src/geometry/domain/domain2d.cpp
     src/mesh/mesh1d/uniform_mesh1d.cpp
