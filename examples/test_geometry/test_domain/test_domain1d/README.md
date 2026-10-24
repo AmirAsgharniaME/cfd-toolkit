@@ -28,6 +28,12 @@ auto shifted = cfd::geometry::Domain1D::from_start_and_length(5.0, 2.5);
 The named factory avoids ambiguity between an interval's end coordinate and
 its length.
 
+Stored endpoints are authoritative. The factory and `set_length_x()` compute
+the end by floating-point addition, and `length_x()` reports the represented
+endpoint difference. Rounding can make that difference depart from the requested
+length, especially at large coordinate magnitudes. An endpoint that overflows
+or rounds back to the start is rejected.
+
 ## Reading and changing bounds
 
 The accessors `x_start()`, `x_end()`, and `length_x()` read the current
@@ -61,6 +67,10 @@ faces, cells, centers, and widths. For example, the project's
 cfd::geometry::Domain1D domain(0.0, 1.0);
 cfd::mesh::UniformMesh1D mesh(domain, 10); // Ten cells, eleven faces.
 ```
+
+The mesh takes an independent snapshot of the bounds at construction. Later
+changes to `domain` neither synchronize nor invalidate that mesh. Construct a
+new mesh to discretize the updated interval.
 
 The domain also does not hold boundary conditions, field values, material
 properties, or cross-sectional area. Those are provided by other geometry,

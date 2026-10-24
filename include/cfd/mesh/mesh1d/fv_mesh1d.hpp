@@ -10,6 +10,12 @@ namespace cfd::mesh
 
 /// Base class for all 1D Finite-Volume meshes (Uniform and Non-uniform).
 /// Holds common topological arrays and provides unified FVM geometric queries.
+/// Volumes assume Cartesian cells with unit cross-sectional area (A = 1 m^2
+/// when coordinates are in meters), so their numerical values equal cell widths.
+/// Geometry is read-only through this API. Move construction transfers storage;
+/// move assignment replaces geometry. Do not move from or assign a mesh while
+/// fields or views depend on it. A moved-from mesh may only be destroyed or
+/// assigned a new value before geometric queries are made.
 class FvMesh1D
 {
 public:
@@ -18,7 +24,7 @@ public:
     FvMesh1D(const FvMesh1D&) = default;
     FvMesh1D(FvMesh1D&&) noexcept = default;
     FvMesh1D& operator=(const FvMesh1D&) = delete;
-    FvMesh1D& operator=(FvMesh1D&&) = delete;
+    FvMesh1D& operator=(FvMesh1D&&) noexcept = default;
 
     [[nodiscard]] std::size_t num_cells() const noexcept { return cell_centers_.size(); }
     [[nodiscard]] std::size_t cell_count() const noexcept { return num_cells(); }
@@ -32,14 +38,19 @@ public:
     [[nodiscard]] double face(std::size_t f) const;
     [[nodiscard]] double cell_center(std::size_t P) const;
     [[nodiscard]] double cell_width(std::size_t P) const;
+    /// Cartesian cell volume for unit cross-sectional area: V = A * dx, A = 1.
     [[nodiscard]] double cell_volume(std::size_t P) const { return cell_width(P); }
 
+    /// Center-to-center distance; throws std::out_of_range if P is invalid
+    /// or the requested neighboring cell does not exist.
     [[nodiscard]] double distance_to_east_neighbor(std::size_t P) const;
+    /// Center-to-center distance with the same bounds rules as the east query.
     [[nodiscard]] double distance_to_west_neighbor(std::size_t P) const;
 
     [[nodiscard]] std::span<const double> faces() const noexcept { return faces_; }
     [[nodiscard]] std::span<const double> cell_centers() const noexcept { return cell_centers_; }
     [[nodiscard]] std::span<const double> cell_widths() const noexcept { return cell_widths_; }
+    /// Read-only volumes for Cartesian cells with unit cross-sectional area.
     [[nodiscard]] std::span<const double> cell_volumes() const noexcept { return cell_widths_; }
 
     [[nodiscard]] double operator[](std::size_t P) const noexcept { return cell_centers_[P]; }
@@ -53,11 +64,11 @@ protected:
     explicit FvMesh1D(std::vector<double> faces);
 
 private:
-    const double x_start_;
-    const double x_end_;
-    const std::vector<double> faces_;
-    const std::vector<double> cell_widths_;
-    const std::vector<double> cell_centers_;
+    double x_start_;
+    double x_end_;
+    std::vector<double> faces_;
+    std::vector<double> cell_widths_;
+    std::vector<double> cell_centers_;
 };
 
 }  // namespace cfd::mesh

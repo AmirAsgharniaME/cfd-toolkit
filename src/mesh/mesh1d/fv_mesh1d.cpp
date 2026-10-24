@@ -5,6 +5,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace cfd::mesh
 {
@@ -27,9 +28,9 @@ std::vector<double> validate_and_compute_widths(const std::vector<double>& faces
         }
 
         widths[P] = faces[P + 1] - faces[P];
-        if (!(widths[P] > 0.0))
+        if (!std::isfinite(widths[P]) || !(widths[P] > 0.0))
         {
-            throw std::invalid_argument("FvMesh1D: non-positive cell width (inverted/zero) at index " + std::to_string(P));
+            throw std::invalid_argument("FvMesh1D: cell width must be finite and positive at index " + std::to_string(P));
         }
     }
     return widths;
@@ -41,8 +42,15 @@ std::vector<double> compute_cell_centers(const std::vector<double>& faces,
     std::vector<double> centers(widths.size());
     for (std::size_t P = 0; P < centers.size(); ++P)
     {
+        // Avoid overflow from adding the two face coordinates directly.
         centers[P] = faces[P] + widths[P] * 0.5;
-        // no need for extra monotonicity checks beyond widths>0; centers will be strictly increasing.
+        if (!std::isfinite(centers[P]) || !(faces[P] < centers[P]) ||
+            !(centers[P] < faces[P + 1]) || (P > 0 && !(centers[P] > centers[P - 1])))
+        {
+            throw std::invalid_argument(
+                "FvMesh1D: coordinate precision cannot represent a distinct interior cell center at index " +
+                std::to_string(P));
+        }
     }
     return centers;
 }
@@ -75,7 +83,7 @@ double FvMesh1D::cell_width(std::size_t P) const
 
 double FvMesh1D::distance_to_east_neighbor(std::size_t P) const
 {
-    if (P + 1 >= num_cells())
+    if (P >= num_cells() || P + 1 >= num_cells())
     {
         throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no eastern neighbor.");
     }
@@ -84,7 +92,7 @@ double FvMesh1D::distance_to_east_neighbor(std::size_t P) const
 
 double FvMesh1D::distance_to_west_neighbor(std::size_t P) const
 {
-    if (P == 0 || P >= num_cells())
+    if (P >= num_cells() || P == 0)
     {
         throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no western neighbor.");
     }

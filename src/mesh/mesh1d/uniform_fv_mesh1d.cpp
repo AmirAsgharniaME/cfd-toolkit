@@ -27,6 +27,10 @@ double UniformFvMesh1D::compute_spacing(double x_start, double x_end, std::size_
     }
 
     const double length = x_end - x_start;
+    if (!is_finite(length))
+    {
+        throw std::invalid_argument("UniformFvMesh1D: interval length must be finite.");
+    }
     const double spacing = length / static_cast<double>(num_cells);
     if (!is_finite(spacing) || !(spacing > 0.0))
     {
@@ -51,7 +55,7 @@ std::vector<double> UniformFvMesh1D::make_faces(double x_start, double x_end,
         faces[f] = coordinate;
     }
 
-    faces.back() = x_end;  // pin last face to eliminate FP drift
+    faces.back() = x_end;  // preserve the requested boundary exactly
     if (!(faces.back() > faces[faces.size() - 2]))
     {
         throw std::invalid_argument("UniformFvMesh1D: boundary face collapsed due to extreme cell count.");
@@ -66,9 +70,15 @@ UniformFvMesh1D::UniformFvMesh1D(const cfd::geometry::Domain1D& domain,
 }
 
 UniformFvMesh1D::UniformFvMesh1D(double x_start, double x_end, std::size_t num_cells)
-    : FvMesh1D(make_faces(x_start, x_end, num_cells,
-                          compute_spacing(x_start, x_end, num_cells))),
-      nominal_spacing_(compute_spacing(x_start, x_end, num_cells))
+    : UniformFvMesh1D(x_start, x_end, num_cells,
+                      compute_spacing(x_start, x_end, num_cells))
+{
+}
+
+UniformFvMesh1D::UniformFvMesh1D(double x_start, double x_end, std::size_t num_cells,
+                                 double spacing)
+    : FvMesh1D(make_faces(x_start, x_end, num_cells, spacing)),
+      nominal_spacing_(spacing)
 {
 }
 
