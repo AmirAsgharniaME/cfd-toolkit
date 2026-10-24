@@ -14,16 +14,67 @@ include(CMakePackageConfigHelpers)
 # Keep this source list explicit so new modules are added intentionally and
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
+    # Boundary conditions
     src/boundary/boundary1d/dirichlet_boundary1d.cpp
     src/boundary/boundary1d/neumann_boundary1d.cpp
+    src/boundary/boundary1d/patch_boundary1d.cpp
+
+    # Volume and surface fields
+    src/field/field1d/surface_scalar_field1d.cpp
+    src/field/field1d/surface_vector_field1d.cpp
     src/field/field1d/vol_scalar_field1d.cpp
     src/field/field1d/vol_vector_field1d.cpp
+
+    # Explicit and implicit finite volume operators
+    src/finite_volume/fvc/fvc1d/div1d.cpp
+    src/finite_volume/fvc/fvc1d/grad1d.cpp
+    src/finite_volume/fvm/fvm1d/ddt1d.cpp
+    src/finite_volume/fvm/fvm1d/div1d.cpp
+    src/finite_volume/fvm/fvm1d/laplacian1d.cpp
+    src/finite_volume/fvm/fvm1d/source1d.cpp
+
+    # Discretized equation containers
+    src/fv_matrix/fv_matrix1d.cpp
+    src/fv_matrix/fv_matrix2d.cpp
+    src/fv_matrix/fv_matrix3d.cpp
+
+    # Geometry
     src/geometry/domain/domain1d.cpp
     src/geometry/domain/domain2d.cpp
     src/geometry/domain/domain3d.cpp
+
+    # Output writers
+    src/io/gnuplot_writer.cpp
+    src/io/time_directory_writer.cpp
+    src/io/vtk_writer.cpp
+
+    # Algebraic matrices, vectors, and solvers
+    src/linear_algebra/matrix/sparse_matrix.cpp
+    src/linear_algebra/matrix/tridiagonal_matrix.cpp
+    src/linear_algebra/solvers/conjugate_gradient.cpp
+    src/linear_algebra/solvers/gauss_seidel_solver.cpp
+    src/linear_algebra/solvers/tdma_solver.cpp
+    src/linear_algebra/vector.cpp
+
+    # Finite volume meshes
+    src/mesh/mesh1d/fv_mesh1d.cpp
     src/mesh/mesh1d/uniform_fv_mesh1d.cpp
     src/mesh/mesh2d/uniform_fv_mesh2d.cpp
     src/mesh/mesh3d/uniform_fv_mesh3d.cpp
+
+    # Interpolation schemes
+    src/schemes/central_difference_scheme.cpp
+    src/schemes/interpolation_scheme.cpp
+    src/schemes/upwind_scheme.cpp
+
+    # Equation solver workflows
+    src/solvers/solvers1d/advection_diffusion_solver1d.cpp
+    src/solvers/solvers1d/laplace_solver1d.cpp
+    src/solvers/solvers1d/pimple_solver1d.cpp
+
+    # Simulation time and transport properties
+    src/time/time.cpp
+    src/transport_model/transport_properties.cpp
 )
 
 # Consumers use the same namespaced target in add_subdirectory, FetchContent,

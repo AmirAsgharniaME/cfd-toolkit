@@ -11,6 +11,7 @@ H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
 H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
 H | Domain 3D header | include/cfd/geometry/domain/domain3d.hpp
 H | Boundary types header | include/cfd/boundary/types.hpp
+H | FV mesh 1D base header | include/cfd/mesh/mesh1d/fv_mesh1d.hpp
 H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp
 H | Neumann boundary 1D header | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp
 H | Uniform mesh 1D header | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp
@@ -21,6 +22,7 @@ H | Vector 2D header | include/cfd/vector/vector2d.hpp
 H | Vector 3D header | include/cfd/vector/vector3d.hpp
 
 # Source
+CPP | FV mesh 1D base source | src/mesh/mesh1d/fv_mesh1d.cpp
 CPP | Scalar field 1D source | src/field/field1d/vol_scalar_field1d.cpp
 CPP | Vector field 1D source | src/field/field1d/vol_vector_field1d.cpp
 CPP | Dirichlet boundary 1D source | src/boundary/boundary1d/dirichlet_boundary1d.cpp
@@ -33,6 +35,7 @@ CPP | Uniform mesh 2D source | src/mesh/mesh2d/uniform_fv_mesh2d.cpp
 CPP | Uniform mesh 3D placeholder source | src/mesh/mesh3d/uniform_fv_mesh3d.cpp
 
 # Classes (header and source)
+CLASS | FV mesh 1D base class | include/cfd/mesh/mesh1d/fv_mesh1d.hpp and src/mesh/mesh1d/fv_mesh1d.cpp
 CLASS | Scalar field 1D class | include/cfd/field/field1d/vol_scalar_field1d.hpp and src/field/field1d/vol_scalar_field1d.cpp
 CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geometry/domain/domain1d.cpp
 CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
@@ -50,6 +53,7 @@ CPP | Simulation time source | src/time/time.cpp
 H | Interpolation scheme header | include/cfd/schemes/interpolation_scheme.hpp
 H | Upwind scheme header | include/cfd/schemes/upwind_scheme.hpp
 H | Central difference scheme header | include/cfd/schemes/central_difference_scheme.hpp
+CPP | Interpolation scheme source | src/schemes/interpolation_scheme.cpp
 CPP | Upwind scheme source | src/schemes/upwind_scheme.cpp
 CPP | Central difference scheme source | src/schemes/central_difference_scheme.cpp
 
