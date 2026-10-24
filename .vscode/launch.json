@@ -26,10 +26,10 @@
             "preLaunchTask": "CMake: Build (Debug)"
         },
         {
-            "name": "Run test_uniform_mesh2d",
+            "name": "Run test_scalar_field1d",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/test_uniform_mesh2d",
+            "program": "${workspaceFolder}/build/bin/test_scalar_field1d",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

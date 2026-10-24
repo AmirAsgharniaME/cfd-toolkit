@@ -105,11 +105,12 @@ if(BUILD_EXAMPLES)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
-    add_executable(test_uniform_mesh2d
-        examples/test_uniform_mesh2d.cpp
+    add_executable(test_scalar_field1d
+        examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
     )
-    target_link_libraries(test_uniform_mesh2d PRIVATE cfd_toolkit)
-    set_target_properties(test_uniform_mesh2d PROPERTIES
+    target_link_libraries(test_scalar_field1d PRIVATE cfd_toolkit)
+    set_target_properties(test_scalar_field1d PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
+
 endif()
