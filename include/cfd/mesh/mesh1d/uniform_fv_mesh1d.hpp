@@ -12,54 +12,38 @@ namespace cfd::mesh
 
 /// Uniform one-dimensional, cell-centered finite-volume mesh.
 ///
-/// A mesh with N cells has N+1 faces and N cell centers. The first and last
-/// faces coincide with the domain boundaries. Cell values are associated with
-/// cell centers; face coordinates bound the corresponding control volumes.
-/// Geometry is fixed after construction so fields holding a reference to this
-/// mesh cannot become desynchronized by resizing it.
-class UniformMesh1D
+/// A mesh with N cells has N+1 faces and N cell centers.
+/// Follows OpenFOAM FVM conventions for volumes and face areas.
+class UniformFvMesh1D
 {
 public:
     /// Construct a mesh with `num_cells` cells over the domain bounds.
-    explicit UniformMesh1D(const cfd::geometry::Domain1D& domain,
-                           std::size_t num_cells);
+    explicit UniformFvMesh1D(const cfd::geometry::Domain1D& domain,
+                             std::size_t num_cells);
 
     /// Construct a mesh with `num_cells` cells over [x_start, x_end].
-    explicit UniformMesh1D(double x_start, double x_end, std::size_t num_cells);
+    explicit UniformFvMesh1D(double x_start, double x_end, std::size_t num_cells);
 
-    UniformMesh1D(const UniformMesh1D&) = default;
-    UniformMesh1D(UniformMesh1D&&) = default;
-    UniformMesh1D& operator=(const UniformMesh1D&) = delete;
-    UniformMesh1D& operator=(UniformMesh1D&&) = delete;
+    UniformFvMesh1D(const UniformFvMesh1D&) = default;
+    UniformFvMesh1D(UniformFvMesh1D&&) noexcept = default;
+    UniformFvMesh1D& operator=(const UniformFvMesh1D&) = delete;
+    UniformFvMesh1D& operator=(UniformFvMesh1D&&) = delete;
+    ~UniformFvMesh1D() = default;
 
     /// Number of control volumes, N.
-    [[nodiscard]] std::size_t num_cells() const noexcept 
-    {
-        return cell_centers_.size(); 
-    }
+    [[nodiscard]] std::size_t num_cells() const noexcept { return cell_centers_.size(); }
+    [[nodiscard]] std::size_t cell_count() const noexcept { return num_cells(); }
 
     /// Number of control-volume faces, N+1.
-    [[nodiscard]] std::size_t num_faces() const noexcept 
-    { 
-        return faces_.size(); 
-    }
+    [[nodiscard]] std::size_t num_faces() const noexcept { return faces_.size(); }
+    [[nodiscard]] std::size_t face_count() const noexcept { return num_faces(); }
 
-    [[nodiscard]] double x_start() const noexcept
-     { 
-        return x_start_;
-     }
-    [[nodiscard]] double x_end() const noexcept 
-    { 
-        return x_end_; 
-    }
+    [[nodiscard]] double x_start() const noexcept { return x_start_; }
+    [[nodiscard]] double x_end() const noexcept { return x_end_; }
 
-    /// Nominal uniform spacing, (x_end - x_start) / num_cells.
-    /// For robust geometric sums, use cell_width(i), which is computed from
-    /// the actual adjacent face coordinates.
-    [[nodiscard]] double nominal_spacing() const noexcept 
-    { 
-    return nominal_spacing_;
-    }
+    /// Nominal uniform spacing, dx = (x_end - x_start) / num_cells.
+    [[nodiscard]] double spacing() const noexcept { return nominal_spacing_; }
+    [[nodiscard]] double nominal_spacing() const noexcept { return nominal_spacing_; }
 
     /// Coordinate of face f, throwing std::out_of_range if f >= num_faces().
     [[nodiscard]] double face(std::size_t f) const;
@@ -67,41 +51,32 @@ public:
     /// Coordinate of cell center P, throwing std::out_of_range if P >= num_cells().
     [[nodiscard]] double cell_center(std::size_t P) const;
 
-    /// Width of control volume P: x_f[P+1] - x_f[P].
+    /// Width of control volume P (dx_P = x_f[P+1] - x_f[P]).
     [[nodiscard]] double cell_width(std::size_t P) const;
 
-    /// Distance from cell P center to its eastern neighbor's center.
-    /// Throws std::out_of_range if P has no eastern neighbor.
+    /// Volume of control volume P (In 1D, volume = width * 1 * 1).
+    [[nodiscard]] double cell_volume(std::size_t P) const { return cell_width(P); }
+
+    /// Distance between cell centers: P and P+1 (East).
     [[nodiscard]] double distance_to_east_neighbor(std::size_t P) const;
 
-    /// Distance from cell P center to its western neighbor's center.
-    /// Throws std::out_of_range if P has no western neighbor.
+    /// Distance between cell centers: P and P-1 (West).
     [[nodiscard]] double distance_to_west_neighbor(std::size_t P) const;
 
-    /// Read-only, contiguous view of all face coordinates.
+    /// Read-only spans for zero-overhead vector passes
     [[nodiscard]] std::span<const double> faces() const noexcept { return faces_; }
-
-    /// Read-only, contiguous view of all cell-center coordinates.
     [[nodiscard]] std::span<const double> cell_centers() const noexcept { return cell_centers_; }
-
-    /// Read-only, contiguous view of actual control-volume widths.
     [[nodiscard]] std::span<const double> cell_widths() const noexcept { return cell_widths_; }
+    [[nodiscard]] std::span<const double> cell_volumes() const noexcept { return cell_widths_; }
 
-    /// Unchecked cell-center indexing, following std::vector::operator[].
-    [[nodiscard]] double operator[](std::size_t P) const noexcept 
-    { return cell_centers_[P]; }
+    /// Unchecked access
+    [[nodiscard]] double operator[](std::size_t P) const noexcept { return cell_centers_[P]; }
 
-    /// Checked cell-center indexing.
+    /// Checked element access
     [[nodiscard]] double cell_center_at(std::size_t P) const { return cell_centers_.at(P); }
-
-    /// Checked face indexing.
     [[nodiscard]] double face_at(std::size_t f) const { return faces_.at(f); }
 
-    /// Print mesh bounds, cell/face counts, and the geometric coordinates.
     void print_details(std::ostream& output) const;
-
-    [[nodiscard]] std::size_t cell_count() const noexcept { return num_cells(); }
-    [[nodiscard]] double spacing() const noexcept { return nominal_spacing(); }
 
 private:
     const double x_start_;
@@ -112,7 +87,8 @@ private:
     const std::vector<double> cell_centers_;
 };
 
-/// Compatibility alias for code using the shorter generic name.
-using Mesh1D = UniformMesh1D;
+/// Type aliases matching OpenFOAM nomenclature
+using UniformMesh1D = UniformFvMesh1D;
+using Mesh1D = UniformFvMesh1D;
 
 }  // namespace cfd::mesh

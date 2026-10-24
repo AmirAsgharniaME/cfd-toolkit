@@ -10,11 +10,12 @@
 namespace cfd::field::field1d
 {
 
-/// A scalar field sampled on a one-dimensional uniform mesh.
+/// A scalar field sampled on a one-dimensional uniform finite-volume mesh.
 ///
 /// Values live at either mesh faces or mesh cells, and the storage is sized
-/// once from the mesh and kept for the lifetime of the field.
-class ScalarField1D
+/// once from the mesh. The referenced mesh must outlive the field and all
+/// fields produced by copying or arithmetic.
+class VolScalarField1D
 {
 public:
     /// Construct a field and allocate one value per face or cell.
@@ -23,10 +24,10 @@ public:
     /// @param mesh        Mesh the field is sampled on; stored by reference.
     /// @param location    Sampling location, cells by default.
     /// @param initial_val Value assigned to every allocated entry.
-    ScalarField1D(std::string name,
-                  const mesh::UniformMesh1D& mesh,
-                  FieldLocation location = FieldLocation::Cell,
-                  double initial_val = 0.0);
+    VolScalarField1D(std::string name,
+                     const cfd::mesh::UniformFvMesh1D& mesh,
+                     FieldLocation location = FieldLocation::Cell,
+                     double initial_val = 0.0);
 
     /// Field name.
     /// @return The stored name.
@@ -34,7 +35,7 @@ public:
 
     /// Mesh the field is sampled on.
     /// @return The referenced mesh.
-    [[nodiscard]] const mesh::UniformMesh1D& mesh() const noexcept { return mesh_; }
+    [[nodiscard]] const mesh::UniformFvMesh1D& mesh() const noexcept { return mesh_; }
 
     /// Sampling location of the stored values.
     /// @return Face or Cell.
@@ -70,6 +71,7 @@ public:
     [[nodiscard]] const double& at(std::size_t index) const;
 
     /// Mutable access to the underlying buffer.
+    /// Keep its size equal to the mesh count for location().
     /// @return The storage vector.
     [[nodiscard]] std::vector<double>& raw_data() noexcept { return data_; }
 
@@ -84,29 +86,29 @@ public:
     /// Add another field entry by entry.
     /// @param rhs Field to add.
     /// @return *this.
-    /// @throws std::invalid_argument If size() != rhs.size().
-    ScalarField1D& operator+=(const ScalarField1D& rhs);
+    /// @throws std::invalid_argument If mesh identity, location, or size differs.
+    VolScalarField1D& operator+=(const VolScalarField1D& rhs);
 
     /// Subtract another field entry by entry.
     /// @param rhs Field to subtract.
     /// @return *this.
-    /// @throws std::invalid_argument If size() != rhs.size().
-    ScalarField1D& operator-=(const ScalarField1D& rhs);
+    /// @throws std::invalid_argument If mesh identity, location, or size differs.
+    VolScalarField1D& operator-=(const VolScalarField1D& rhs);
 
     /// Multiply every entry by a scalar.
     /// @param scalar Factor applied to each entry.
     /// @return *this.
-    ScalarField1D& operator*=(double scalar);
+    VolScalarField1D& operator*=(double scalar);
 
     /// Divide every entry by a scalar.
     /// @param scalar Divisor applied to each entry.
     /// @return *this.
     /// @throws std::invalid_argument If scalar == 0.0.
-    ScalarField1D& operator/=(double scalar);
+    VolScalarField1D& operator/=(double scalar);
 
 private:
     std::string name_;
-    const cfd::mesh::UniformMesh1D& mesh_;
+    const cfd::mesh::UniformFvMesh1D& mesh_;
     FieldLocation location_;
     std::vector<double> data_;
 };
@@ -115,33 +117,36 @@ private:
 /// @param lhs Left operand, taken by value.
 /// @param rhs Right operand.
 /// @return lhs after adding rhs.
-/// @throws std::invalid_argument If the sizes differ.
-[[nodiscard]] ScalarField1D operator+(ScalarField1D lhs, const ScalarField1D& rhs);
+/// @throws std::invalid_argument If mesh identity, location, or size differs.
+[[nodiscard]] VolScalarField1D operator+(VolScalarField1D lhs, const VolScalarField1D& rhs);
 
 /// Subtract rhs from lhs entry by entry.
 /// @param lhs Left operand, taken by value.
 /// @param rhs Right operand.
 /// @return lhs after subtracting rhs.
-/// @throws std::invalid_argument If the sizes differ.
-[[nodiscard]] ScalarField1D operator-(ScalarField1D lhs, const ScalarField1D& rhs);
+/// @throws std::invalid_argument If mesh identity, location, or size differs.
+[[nodiscard]] VolScalarField1D operator-(VolScalarField1D lhs, const VolScalarField1D& rhs);
 
 /// Scale a field by a scalar.
 /// @param lhs Field, taken by value.
 /// @param scalar Factor applied to each entry.
 /// @return The scaled field.
-[[nodiscard]] ScalarField1D operator*(ScalarField1D lhs, double scalar);
+[[nodiscard]] VolScalarField1D operator*(VolScalarField1D lhs, double scalar);
 
 /// Scale a field by a scalar.
 /// @param scalar Factor applied to each entry.
 /// @param rhs Field, taken by value.
 /// @return The scaled field.
-[[nodiscard]] ScalarField1D operator*(double scalar, ScalarField1D rhs);
+[[nodiscard]] VolScalarField1D operator*(double scalar, VolScalarField1D rhs);
 
 /// Divide a field by a scalar.
 /// @param lhs Field, taken by value.
 /// @param scalar Divisor applied to each entry.
 /// @return The scaled field.
 /// @throws std::invalid_argument If scalar == 0.0.
-[[nodiscard]] ScalarField1D operator/(ScalarField1D lhs, double scalar);
+[[nodiscard]] VolScalarField1D operator/(VolScalarField1D lhs, double scalar);
+
+/// Compatibility alias for existing scalar field code.
+using ScalarField1D = VolScalarField1D;
 
 }  // namespace cfd::field::field1d
