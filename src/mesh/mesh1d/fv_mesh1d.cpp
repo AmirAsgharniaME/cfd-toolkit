@@ -15,7 +15,7 @@ std::vector<double> validate_and_compute_widths(const std::vector<double>& faces
 {
     if (faces.size() < 2)
     {
-        throw std::invalid_argument("FvMesh1D: Mesh requires at least two faces (at least one cell).");
+        throw std::invalid_argument("FvMesh1D: requires at least two faces (>= 1 cell).");
     }
 
     std::vector<double> widths(faces.size() - 1);
@@ -23,13 +23,13 @@ std::vector<double> validate_and_compute_widths(const std::vector<double>& faces
     {
         if (!std::isfinite(faces[P]) || !std::isfinite(faces[P + 1]))
         {
-            throw std::invalid_argument("FvMesh1D: Non-finite face coordinate detected at index " + std::to_string(P));
+            throw std::invalid_argument("FvMesh1D: non-finite face coordinate at index " + std::to_string(P));
         }
 
         widths[P] = faces[P + 1] - faces[P];
-        if (widths[P] <= 0.0)
+        if (!(widths[P] > 0.0))
         {
-            throw std::invalid_argument("FvMesh1D: Inverted or zero-volume cell detected at index " + std::to_string(P));
+            throw std::invalid_argument("FvMesh1D: non-positive cell width (inverted/zero) at index " + std::to_string(P));
         }
     }
     return widths;
@@ -41,8 +41,8 @@ std::vector<double> compute_cell_centers(const std::vector<double>& faces,
     std::vector<double> centers(widths.size());
     for (std::size_t P = 0; P < centers.size(); ++P)
     {
-        // Stable midpoint calculation avoiding coordinate overflow
         centers[P] = faces[P] + widths[P] * 0.5;
+        // no need for extra monotonicity checks beyond widths>0; centers will be strictly increasing.
     }
     return centers;
 }
@@ -77,7 +77,7 @@ double FvMesh1D::distance_to_east_neighbor(std::size_t P) const
 {
     if (P + 1 >= num_cells())
     {
-        throw std::out_of_range("FvMesh1D: Cell " + std::to_string(P) + " has no eastern neighbor.");
+        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no eastern neighbor.");
     }
     return cell_centers_[P + 1] - cell_centers_[P];
 }
@@ -86,7 +86,7 @@ double FvMesh1D::distance_to_west_neighbor(std::size_t P) const
 {
     if (P == 0 || P >= num_cells())
     {
-        throw std::out_of_range("FvMesh1D: Cell " + std::to_string(P) + " has no western neighbor.");
+        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no western neighbor.");
     }
     return cell_centers_[P] - cell_centers_[P - 1];
 }
