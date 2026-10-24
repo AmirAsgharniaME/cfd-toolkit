@@ -14,11 +14,16 @@ include(CMakePackageConfigHelpers)
 # Keep this source list explicit so new modules are added intentionally and
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
+    src/boundary/boundary1d/dirichlet_boundary1d.cpp
+    src/boundary/boundary1d/neumann_boundary1d.cpp
     src/field/field1d/scalar_field1d.cpp
+    src/field/field1d/vector_field1d.cpp
     src/geometry/domain/domain1d.cpp
     src/geometry/domain/domain2d.cpp
+    src/geometry/domain/domain3d.cpp
     src/mesh/mesh1d/uniform_mesh1d.cpp
     src/mesh/mesh2d/uniform_mesh2d.cpp
+    src/mesh/mesh3d/uniform_mesh3d.cpp
 )
 
 # Consumers use the same namespaced target in add_subdirectory, FetchContent,
