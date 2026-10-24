@@ -88,7 +88,8 @@ public:
     [[nodiscard]] std::span<const double> cell_widths() const noexcept { return cell_widths_; }
 
     /// Unchecked cell-center indexing, following std::vector::operator[].
-    [[nodiscard]] double operator[](std::size_t P) const noexcept { return cell_centers_[P]; }
+    [[nodiscard]] double operator[](std::size_t P) const noexcept 
+    { return cell_centers_[P]; }
 
     /// Checked cell-center indexing.
     [[nodiscard]] double cell_center_at(std::size_t P) const { return cell_centers_.at(P); }

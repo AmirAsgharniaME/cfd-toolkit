@@ -1,5 +1,4 @@
-#ifndef CFD_FIELD_FIELD1D_SCALAR_FIELD1D_HPP
-#define CFD_FIELD_FIELD1D_SCALAR_FIELD1D_HPP
+#pragma once
 
 #include <cstddef>
 #include <string>
@@ -13,20 +12,20 @@ namespace cfd::field::field1d
 
 /// A scalar field sampled on a one-dimensional uniform mesh.
 ///
-/// Values live at either mesh nodes or mesh cells, and the storage is sized
+/// Values live at either mesh faces or mesh cells, and the storage is sized
 /// once from the mesh and kept for the lifetime of the field.
 class ScalarField1D
 {
 public:
-    /// Construct a field and allocate one value per node or cell.
+    /// Construct a field and allocate one value per face or cell.
     ///
     /// @param name        Human readable field name.
     /// @param mesh        Mesh the field is sampled on; stored by reference.
-    /// @param location    Sampling location, nodes by default.
+    /// @param location    Sampling location, cells by default.
     /// @param initial_val Value assigned to every allocated entry.
     ScalarField1D(std::string name,
                   const mesh::UniformMesh1D& mesh,
-                  FieldLocation location = FieldLocation::Node,
+                  FieldLocation location = FieldLocation::Cell,
                   double initial_val = 0.0);
 
     /// Field name.
@@ -38,11 +37,11 @@ public:
     [[nodiscard]] const mesh::UniformMesh1D& mesh() const noexcept { return mesh_; }
 
     /// Sampling location of the stored values.
-    /// @return Node or Cell.
+    /// @return Face or Cell.
     [[nodiscard]] FieldLocation location() const noexcept { return location_; }
 
     /// Number of stored values.
-    /// @return Node count or cell count, depending on location().
+    /// @return Face count or cell count, depending on location().
     [[nodiscard]] std::size_t size() const noexcept { return data_.size(); }
 
     /// Unchecked element access, following the convention of std::vector.
@@ -62,7 +61,7 @@ public:
     /// @param index Zero-based entry index.
     /// @return Reference to the stored value.
     /// @throws std::out_of_range If index >= size().
-    double& at(std::size_t index);
+    [[nodiscard]] double& at(std::size_t index);
 
     /// Bounds-checked element access.
     /// @param index Zero-based entry index.
@@ -107,7 +106,7 @@ public:
 
 private:
     std::string name_;
-    const mesh::UniformMesh1D& mesh_;
+    const cfd::mesh::UniformMesh1D& mesh_;
     FieldLocation location_;
     std::vector<double> data_;
 };
@@ -146,5 +145,3 @@ private:
 [[nodiscard]] ScalarField1D operator/(ScalarField1D lhs, double scalar);
 
 }  // namespace cfd::field::field1d
-
-#endif  // CFD_FIELD_FIELD1D_SCALAR_FIELD1D_HPP

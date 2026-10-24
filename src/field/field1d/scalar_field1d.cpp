@@ -1,5 +1,6 @@
 #include "cfd/field/field1d/scalar_field1d.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <utility>
 
@@ -14,7 +15,7 @@ ScalarField1D::ScalarField1D(std::string name,
       mesh_(mesh),
       location_(location)
 {
-    const std::size_t entry_count = (location_ == FieldLocation::Node)
+    const std::size_t entry_count = (location_ == FieldLocation::Face)
                                         ? mesh_.num_faces()
                                         : mesh_.num_cells();
 
@@ -43,14 +44,21 @@ const double& ScalarField1D::at(std::size_t index) const
 
 void ScalarField1D::fill(double value)
 {
-    for (double& entry : data_)
-    {
-        entry = value;
-    }
+    // Using std::fill for cleaner code and compiler vectorization optimization (SIMD)
+    std::fill(data_.begin(), data_.end(), value);
 }
 
 ScalarField1D& ScalarField1D::operator+=(const ScalarField1D& rhs)
 {
+    // Strict physics/mesh safety checks for FVM
+    if (&mesh_ != &rhs.mesh_)
+    {
+        throw std::invalid_argument("ScalarField1D::operator+=: mesh mismatch");
+    }
+    if (location_ != rhs.location_)
+    {
+        throw std::invalid_argument("ScalarField1D::operator+=: location mismatch (Cell vs Face)");
+    }
     if (data_.size() != rhs.size())
     {
         throw std::invalid_argument("ScalarField1D::operator+=: size mismatch");
@@ -66,6 +74,15 @@ ScalarField1D& ScalarField1D::operator+=(const ScalarField1D& rhs)
 
 ScalarField1D& ScalarField1D::operator-=(const ScalarField1D& rhs)
 {
+    // Strict physics/mesh safety checks for FVM
+    if (&mesh_ != &rhs.mesh_)
+    {
+        throw std::invalid_argument("ScalarField1D::operator-=: mesh mismatch");
+    }
+    if (location_ != rhs.location_)
+    {
+        throw std::invalid_argument("ScalarField1D::operator-=: location mismatch (Cell vs Face)");
+    }
     if (data_.size() != rhs.size())
     {
         throw std::invalid_argument("ScalarField1D::operator-=: size mismatch");
@@ -73,7 +90,7 @@ ScalarField1D& ScalarField1D::operator-=(const ScalarField1D& rhs)
 
     for (std::size_t index = 0; index < data_.size(); ++index)
     {
-        data_[index] -= rhs[index];
+        this->data_[index] -= rhs[index];
     }
 
     return *this;

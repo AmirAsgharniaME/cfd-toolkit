@@ -1,5 +1,4 @@
-#ifndef CFD_FIELD_TYPES_HPP
-#define CFD_FIELD_TYPES_HPP
+#pragma once
 
 namespace cfd::field
 {
@@ -7,10 +6,8 @@ namespace cfd::field
 /// Where a field's values are sampled on the mesh.
 enum class FieldLocation
 {
-    Node,
+    Face,
     Cell
 };
 
 }  // namespace cfd::field
-
-#endif  // CFD_FIELD_TYPES_HPP
