@@ -1,0 +1,139 @@
+TYPE | LABEL | PATH
+
+# Project documentation
+MD | Project README | README.md
+
+# Headers
+H | Scalar field 1D header | include/cfd/field/field1d/vol_scalar_field1d.hpp
+H | Vector field 1D header | include/cfd/field/field1d/vol_vector_field1d.hpp
+H | Field types header | include/cfd/field/types.hpp
+H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
+H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
+H | Domain 3D header | include/cfd/geometry/domain/domain3d.hpp
+H | Boundary types header | include/cfd/boundary/types.hpp
+H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp
+H | Neumann boundary 1D header | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp
+H | Uniform mesh 1D header | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp
+H | Uniform mesh 2D header | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp
+H | Uniform mesh 3D placeholder header | include/cfd/mesh/mesh3d/uniform_fv_mesh3d.hpp
+H | Vector 1D header | include/cfd/vector/vector1d.hpp
+H | Vector 2D header | include/cfd/vector/vector2d.hpp
+H | Vector 3D header | include/cfd/vector/vector3d.hpp
+
+# Source
+CPP | Scalar field 1D source | src/field/field1d/vol_scalar_field1d.cpp
+CPP | Vector field 1D source | src/field/field1d/vol_vector_field1d.cpp
+CPP | Dirichlet boundary 1D source | src/boundary/boundary1d/dirichlet_boundary1d.cpp
+CPP | Neumann boundary 1D source | src/boundary/boundary1d/neumann_boundary1d.cpp
+CPP | Domain 1D source | src/geometry/domain/domain1d.cpp
+CPP | Domain 2D source | src/geometry/domain/domain2d.cpp
+CPP | Domain 3D source | src/geometry/domain/domain3d.cpp
+CPP | Uniform mesh 1D source | src/mesh/mesh1d/uniform_fv_mesh1d.cpp
+CPP | Uniform mesh 2D source | src/mesh/mesh2d/uniform_fv_mesh2d.cpp
+CPP | Uniform mesh 3D placeholder source | src/mesh/mesh3d/uniform_fv_mesh3d.cpp
+
+# Classes (header and source)
+CLASS | Scalar field 1D class | include/cfd/field/field1d/vol_scalar_field1d.hpp and src/field/field1d/vol_scalar_field1d.cpp
+CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geometry/domain/domain1d.cpp
+CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
+CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geometry/domain/domain3d.cpp
+CLASS | Uniform mesh 1D class | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp and src/mesh/mesh1d/uniform_fv_mesh1d.cpp
+CLASS | Uniform mesh 2D class | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp and src/mesh/mesh2d/uniform_fv_mesh2d.cpp
+CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp and src/boundary/boundary1d/dirichlet_boundary1d.cpp
+CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp
+
+# Time management
+H | Simulation time header | include/cfd/time/time.hpp
+CPP | Simulation time source | src/time/time.cpp
+
+# Numerical schemes
+H | Interpolation scheme header | include/cfd/schemes/interpolation_scheme.hpp
+H | Upwind scheme header | include/cfd/schemes/upwind_scheme.hpp
+H | Central difference scheme header | include/cfd/schemes/central_difference_scheme.hpp
+CPP | Upwind scheme source | src/schemes/upwind_scheme.cpp
+CPP | Central difference scheme source | src/schemes/central_difference_scheme.cpp
+
+# Implicit finite volume operators
+H | DDT 1D operator header | include/cfd/finite_volume/fvm/fvm1d/ddt1d.hpp
+H | Laplacian 1D operator header | include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp
+H | Implicit divergence 1D operator header | include/cfd/finite_volume/fvm/fvm1d/div1d.hpp
+CPP | DDT 1D operator source | src/finite_volume/fvm/fvm1d/ddt1d.cpp
+CPP | Laplacian 1D operator source | src/finite_volume/fvm/fvm1d/laplacian1d.cpp
+CPP | Implicit divergence 1D operator source | src/finite_volume/fvm/fvm1d/div1d.cpp
+
+# Equation solvers
+H | Advection diffusion solver 1D header | include/cfd/solvers/solvers1d/advection_diffusion_solver1d.hpp
+CPP | Advection diffusion solver 1D source | src/solvers/solvers1d/advection_diffusion_solver1d.cpp
+H | Laplace solver 1D header | include/cfd/solvers/solvers1d/laplace_solver1d.hpp
+H | PIMPLE solver 1D header | include/cfd/solvers/solvers1d/pimple_solver1d.hpp
+CPP | Laplace solver 1D source | src/solvers/solvers1d/laplace_solver1d.cpp
+CPP | PIMPLE solver 1D source | src/solvers/solvers1d/pimple_solver1d.cpp
+
+# Finite Volume matrix containers
+H | FV matrix 1D header | include/cfd/fv_matrix/fv_matrix1d.hpp
+H | FV matrix 2D header | include/cfd/fv_matrix/fv_matrix2d.hpp
+H | FV matrix 3D header | include/cfd/fv_matrix/fv_matrix3d.hpp
+CPP | FV matrix 1D source | src/fv_matrix/fv_matrix1d.cpp
+CPP | FV matrix 2D source | src/fv_matrix/fv_matrix2d.cpp
+CPP | FV matrix 3D source | src/fv_matrix/fv_matrix3d.cpp
+
+# Transport properties
+H | Transport properties header | include/cfd/transport_model/transport_properties.hpp
+CPP | Transport properties source | src/transport_model/transport_properties.cpp
+
+# Linear algebra
+H | Tridiagonal matrix header | include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp
+H | Sparse matrix header | include/cfd/linear_algebra/matrix/sparse_matrix.hpp
+CPP | Tridiagonal matrix source | src/linear_algebra/matrix/tridiagonal_matrix.cpp
+CPP | Sparse matrix source | src/linear_algebra/matrix/sparse_matrix.cpp
+H | Algebraic vector header | include/cfd/linear_algebra/vector.hpp
+CPP | Algebraic vector source | src/linear_algebra/vector.cpp
+H | Linear solver interface header | include/cfd/linear_algebra/solvers/linear_solver.hpp
+H | TDMA solver header | include/cfd/linear_algebra/solvers/tdma_solver.hpp
+H | Gauss Seidel solver header | include/cfd/linear_algebra/solvers/gauss_seidel_solver.hpp
+H | Conjugate gradient solver header | include/cfd/linear_algebra/solvers/conjugate_gradient.hpp
+CPP | TDMA solver source | src/linear_algebra/solvers/tdma_solver.cpp
+CPP | Gauss Seidel solver source | src/linear_algebra/solvers/gauss_seidel_solver.cpp
+CPP | Conjugate gradient solver source | src/linear_algebra/solvers/conjugate_gradient.cpp
+
+# I/O writers
+H | Gnuplot writer header | include/cfd/io/gnuplot_writer.hpp
+H | VTK writer header | include/cfd/io/vtk_writer.hpp
+H | Time directory writer header | include/cfd/io/time_directory_writer.hpp
+CPP | Gnuplot writer source | src/io/gnuplot_writer.cpp
+CPP | VTK writer source | src/io/vtk_writer.cpp
+CPP | Time directory writer source | src/io/time_directory_writer.cpp
+
+# Additional finite volume operator
+H | Source 1D operator header | include/cfd/finite_volume/fvm/fvm1d/source1d.hpp
+CPP | Source 1D operator source | src/finite_volume/fvm/fvm1d/source1d.cpp
+
+# Tests and example executables
+EXE | Test domain 1D executable source | examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
+EXE | Test scalar field 1D executable source | examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
+EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
+
+# Example documentation
+MD | Domain 1D example README | examples/test_geometry/test_domain/test_domain1d/README.md
+MD | Scalar field 1D README | examples/test_field/test_field1d/test_scalar_field1d/README.md
+MD | Uniform mesh 1D README | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/README.md
+
+# Project configuration
+CFG | CMake project configuration | CMakeLists.txt
+CFG | CMake package config template | cmake/cfd-toolkitConfig.cmake.in
+CFG | Git ignore rules | .gitignore
+CFG | VS Code launch configuration | .vscode/launch.json
+CFG | VS Code task configuration | .vscode/tasks.json
+CFG | File manager | file_path
+
+# Surface fields, patch boundaries, and explicit operators
+H | surface scalar field1d header | include/cfd/field/field1d/surface_scalar_field1d.hpp
+H | surface vector field1d header | include/cfd/field/field1d/surface_vector_field1d.hpp
+H | patch boundary1d header | include/cfd/boundary/boundary1d/patch_boundary1d.hpp
+H | div1d header | include/cfd/finite_volume/fvc/fvc1d/div1d.hpp
+H | grad1d header | include/cfd/finite_volume/fvc/fvc1d/grad1d.hpp
+CPP | surface scalar field1d source | src/field/field1d/surface_scalar_field1d.cpp
+CPP | surface vector field1d source | src/field/field1d/surface_vector_field1d.cpp
+CPP | patch boundary1d source | src/boundary/boundary1d/patch_boundary1d.cpp
+CPP | div1d source | src/finite_volume/fvc/fvc1d/div1d.cpp
+CPP | grad1d source | src/finite_volume/fvc/fvc1d/grad1d.cpp
