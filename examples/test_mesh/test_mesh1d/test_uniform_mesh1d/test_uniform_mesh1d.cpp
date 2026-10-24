@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <cfd/geometry/domain/domain1d.hpp>
-#include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
 
 
 int main()

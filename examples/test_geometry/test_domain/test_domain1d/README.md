@@ -56,7 +56,7 @@ faces, cells, centers, and widths. For example, the project's
 
 ```cpp
 #include <cfd/geometry/domain/domain1d.hpp>
-#include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
 
 cfd::geometry::Domain1D domain(0.0, 1.0);
 cfd::mesh::UniformMesh1D mesh(domain, 10); // Ten cells, eleven faces.

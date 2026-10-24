@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <string>
 
-#include <cfd/field/field1d/scalar_field1d.hpp>
+#include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
-#include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
 
 namespace
 {

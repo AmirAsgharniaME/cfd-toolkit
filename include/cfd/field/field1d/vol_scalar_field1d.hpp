@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <cfd/field/types.hpp>
-#include <cfd/mesh/mesh1d/uniform_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
 
 namespace cfd::field::field1d
 {

@@ -6,9 +6,9 @@ and `N + 1` face coordinates. The first and last faces are the domain
 boundaries, and each pair of adjacent faces bounds one control volume.
 
 The class declaration is in
-[`include/cfd/mesh/mesh1d/uniform_mesh1d.hpp`](../../../../include/cfd/mesh/mesh1d/uniform_mesh1d.hpp),
+[`include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp`](../../../../include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp),
 and its implementation is in
-[`src/mesh/mesh1d/uniform_mesh1d.cpp`](../../../../src/mesh/mesh1d/uniform_mesh1d.cpp).
+[`src/mesh/mesh1d/uniform_fv_mesh1d.cpp`](../../../../src/mesh/mesh1d/uniform_fv_mesh1d.cpp).
 
 ## Constructing a mesh
 
@@ -19,7 +19,7 @@ of cells**:
 #include <iostream>
 
 #include "cfd/geometry/domain/domain1d.hpp"
-#include "cfd/mesh/mesh1d/uniform_mesh1d.hpp"
+#include "cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp"
 
 int main()
 {

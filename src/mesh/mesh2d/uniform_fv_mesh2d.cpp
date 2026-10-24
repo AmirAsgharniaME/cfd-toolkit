@@ -1,4 +1,4 @@
-#include "cfd/mesh/mesh2d/uniform_mesh2d.hpp"
+#include "cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp"
 
 #include <cmath>
 #include <iomanip>

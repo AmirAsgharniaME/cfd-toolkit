@@ -1,4 +1,4 @@
-#include "cfd/field/field1d/scalar_field1d.hpp"
+#include "cfd/field/field1d/vol_scalar_field1d.hpp"
 
 #include <algorithm>
 #include <stdexcept>
