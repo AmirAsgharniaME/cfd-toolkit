@@ -29,20 +29,22 @@ double UniformFvMesh1D::compute_spacing(const cfd::geometry::Domain1D& domain,
 std::vector<double> UniformFvMesh1D::make_faces(const cfd::geometry::Domain1D& domain,
                                              std::size_t num_cells, double spacing)
 {
+    const double start = domain.start();
+    const double end = domain.end();
     std::vector<double> faces(num_cells + 1);
-    faces.front() = domain.start();
+    faces.front() = start;
 
     for (std::size_t f = 1; f < num_cells; ++f)
     {
-        const double coordinate = domain.start() + static_cast<double>(f) * spacing;
-        if (!std::isfinite(coordinate) || !(coordinate > faces[f - 1]) || !(coordinate < domain.end()))
+        const double coordinate = start + static_cast<double>(f) * spacing;
+        if (!std::isfinite(coordinate) || !(coordinate > faces[f - 1]) || !(coordinate < end))
         {
             throw std::invalid_argument("UniformFvMesh1D: coordinate precision degraded over interval.");
         }
         faces[f] = coordinate;
     }
 
-    faces.back() = domain.end();  // preserve the authoritative endpoint exactly
+    faces.back() = end;  // preserve the authoritative endpoint exactly
     if (!(faces.back() > faces[faces.size() - 2]))
     {
         throw std::invalid_argument("UniformFvMesh1D: boundary face collapsed due to extreme cell count.");

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
@@ -28,7 +29,7 @@ void require_exception(Operation operation)
     {
         return;
     }
-    throw std::runtime_error("Expected mesh construction exception");
+    throw std::runtime_error("Expected mesh operation exception");
 }
 
 class ExplicitFacesMesh final : public cfd::mesh::FvMesh1D
@@ -50,6 +51,11 @@ void check_contracts()
             mesh.length() == domain.length() && mesh.x_start() == mesh.start() &&
             mesh.x_end() == mesh.end(), "Mesh bounds do not match Domain1D interface");
     require(mesh.num_cells() == 4 && mesh.num_faces() == 5, "Incorrect mesh counts");
+    require(mesh.faces().size() == mesh.num_faces() &&
+            mesh.cell_centers().size() == mesh.num_cells() &&
+            mesh.cell_widths().size() == mesh.num_cells() &&
+            mesh.cell_volumes().size() == mesh.num_cells(),
+            "Geometry storage sizes do not match mesh counts");
     require(mesh.dx() == 1.0 && mesh.spacing() == mesh.dx() &&
             mesh.nominal_spacing() == mesh.dx(), "Incorrect nominal spacing");
     for (std::size_t f = 0; f < mesh.num_faces(); ++f)
@@ -64,17 +70,33 @@ void check_contracts()
                 "Incorrect cell geometry");
     }
 
+    const auto check_domain_update = [&] {
+        require(mesh.start() == -2.0 && mesh.end() == 2.0 && mesh.length() == 4.0 &&
+                mesh.dx() == 1.0, "Domain mutation changed the mesh snapshot");
+        for (std::size_t f = 0; f < mesh.num_faces(); ++f)
+        {
+            require(mesh.face(f) == direct.face(f), "Domain mutation changed stored faces");
+        }
+        for (std::size_t p = 0; p < mesh.num_cells(); ++p)
+        {
+            require(mesh.cell_center(p) == direct.cell_center(p) &&
+                    mesh.cell_width(p) == direct.cell_width(p),
+                    "Domain mutation changed stored cell geometry");
+        }
+        const UniformFvMesh1D updated(domain, 4);
+        require(updated.start() == domain.start() && updated.end() == domain.end() &&
+                updated.length() == domain.length() && updated.dx() == domain.length() / 4.0 &&
+                updated.face(0) == domain.start() && updated.face(4) == domain.end(),
+                "New mesh did not use updated domain interval");
+    };
     domain.set_start(-3.0);
+    check_domain_update();
     domain.set_end(5.0);
+    check_domain_update();
     domain.set_length(4.0);
+    check_domain_update();
     domain.set_bounds(10.0, 14.0);
-    require(mesh.start() == -2.0 && mesh.end() == 2.0 && mesh.length() == 4.0 &&
-            mesh.x_start() == -2.0 && mesh.x_end() == 2.0 && mesh.dx() == 1.0 &&
-            mesh.face(0) == -2.0 && mesh.face(4) == 2.0 && mesh.cell_center(0) == -1.5,
-            "Domain mutation changed the mesh snapshot");
-    const UniformFvMesh1D updated(domain, 4);
-    require(updated.face(0) == 10.0 && updated.face(4) == 14.0,
-            "New mesh did not use updated domain bounds");
+    check_domain_update();
 
     auto rounded = Domain1D::from_start_and_length(1e16, 3.0);
     const UniformFvMesh1D rounded_mesh(rounded, 1);
@@ -86,6 +108,8 @@ void check_contracts()
             "Mesh ignored rounded length update");
 
     const UniformFvMesh1D fractional(Domain1D(1.0), 11);
+    require(fractional.dx() == fractional.length() / 11.0,
+            "Fractional spacing does not use the represented interval length");
     require(fractional.face(0) == 0.0 && fractional.face(11) == 1.0,
             "Boundary coordinates were not preserved exactly");
     for (std::size_t p = 0; p < fractional.num_cells(); ++p)
@@ -124,6 +148,19 @@ void check_contracts()
     const ExplicitFacesMesh explicit_mesh({-2.0, -1.0, 2.0});
     require(explicit_mesh.start() == -2.0 && explicit_mesh.end() == 2.0 &&
             explicit_mesh.length() == 4.0, "Explicit face bounds are incorrect");
+    require(explicit_mesh.cell_width(0) == 1.0 && explicit_mesh.cell_width(1) == 3.0 &&
+            explicit_mesh.cell_center(0) == -1.5 && explicit_mesh.cell_center(1) == 0.5,
+            "Base mesh did not preserve nonuniform interval geometry");
+    require_exception<std::invalid_argument>([] { (void)ExplicitFacesMesh({}); });
+    require_exception<std::invalid_argument>([] { (void)ExplicitFacesMesh({0.0}); });
+    require_exception<std::invalid_argument>([] { (void)ExplicitFacesMesh({0.0, 0.0}); });
+    require_exception<std::invalid_argument>([] { (void)ExplicitFacesMesh({1.0, 0.0}); });
+    require_exception<std::invalid_argument>([] { (void)ExplicitFacesMesh({0.0, 2.0, 1.0}); });
+    require_exception<std::invalid_argument>([&] { (void)ExplicitFacesMesh({0.0, nan, 1.0}); });
+    require_exception<std::invalid_argument>([&] { (void)ExplicitFacesMesh({0.0, inf}); });
+    require_exception<std::invalid_argument>([&] {
+        (void)ExplicitFacesMesh({1.0, std::nextafter(1.0, inf)});
+    });
     // Each cell width is finite, but the complete interval is not.
     require_exception<std::invalid_argument>([&] {
         (void)ExplicitFacesMesh({-max, 0.0, max});
