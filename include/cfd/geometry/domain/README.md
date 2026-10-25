@@ -1,8 +1,8 @@
 # Geometry domains
 
-`cfd::geometry::Domain1D` represents a one-dimensional, axis-aligned interval
-with finite, strictly increasing X bounds. The stored endpoints are authoritative;
-`length_x()` returns their represented difference, `x_end() - x_start()`.
+`cfd::geometry::Domain1D` represents a coordinate-agnostic interval on the real
+line with finite, strictly increasing bounds. The stored endpoints are authoritative;
+`length()` returns their represented difference, `end() - start()`.
 
 ## Construction
 
@@ -28,21 +28,24 @@ overflows or rounds back to the start is rejected.
 
 ## Bounds and queries
 
-- `x_start()` and `x_end()` return the stored bounds.
-- `length_x()` returns `x_end() - x_start()`; it can differ from a requested
+- `start()` and `end()` return the stored bounds.
+- `length()` returns `end() - start()`; it can differ from a requested
   length because of floating-point rounding, especially for large start values.
-- `contains(x)` returns `true` when `x` is in the closed interval
-  `[x_start(), x_end()]`.
+- `contains(coordinate)` returns `true` when `coordinate` is in the closed interval
+  `[start(), end()]`.
 - `set_bounds(start, end)` replaces both bounds after validation.
-- `set_x_start(start)` and `set_x_end(end)` update one bound while retaining the
+- `set_start(start)` and `set_end(end)` update one bound while retaining the
   other, and enforce the same interval rules.
-- `set_length_x(length)` preserves the current start and sets the end to
+- `set_length(length)` preserves the current start and sets the end to
   `start + length`, with the same rounding behavior as
   `from_start_and_length()`.
 
 If a setter receives invalid values, it throws `std::invalid_argument` and
 leaves the domain unchanged. `operator==` and `operator!=` compare both bounds
 using exact floating-point equality.
+
+The former axis-specific names (`x_start()`, `x_end()`, `length_x()`, and their
+setters) have been replaced by this interval API; callers must use the new names.
 
 ## Mesh interaction
 
@@ -53,6 +56,8 @@ mesh; construct a new mesh to use changed bounds.
 ## Rectangular and cuboid domains
 
 `Domain2D` and `Domain3D` compose two or three validated `Domain1D` values.
+Cartesian axis names belong to these compositions, rather than to `Domain1D`.
+For example, `rectangle.y_domain().start()` returns the Y interval's lower bound.
 Include `domain2d.hpp` or `domain3d.hpp` from this directory and construct them
 with an interval for each axis. The endpoint and finite-extent rules apply
 independently to every axis; no area or volume representability is guaranteed.

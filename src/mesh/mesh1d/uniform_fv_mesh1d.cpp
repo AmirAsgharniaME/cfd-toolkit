@@ -65,7 +65,7 @@ std::vector<double> UniformFvMesh1D::make_faces(double x_start, double x_end,
 
 UniformFvMesh1D::UniformFvMesh1D(const cfd::geometry::Domain1D& domain,
                                  std::size_t num_cells)
-    : UniformFvMesh1D(domain.x_start(), domain.x_end(), num_cells)
+    : UniformFvMesh1D(domain.start(), domain.end(), num_cells)
 {
 }
 

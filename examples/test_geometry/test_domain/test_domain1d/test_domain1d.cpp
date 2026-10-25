@@ -69,31 +69,31 @@ void check_contracts()
     require_invalid([] { (void)Domain1D(2.0, 1.0); });
     require_invalid([&] { (void)Domain1D::from_start_and_length(max, max); });
     require_invalid([] { (void)Domain1D::from_start_and_length(1e16, 1.0); });
-    require(Domain1D(0.0, tiny).length_x() == tiny, "Subnormal extent rejected");
+    require(Domain1D(0.0, tiny).length() == tiny, "Subnormal extent rejected");
     const double next = std::nextafter(1.0, inf);
-    require(Domain1D(1.0, next).length_x() == next - 1.0, "Adjacent bounds lost");
+    require(Domain1D(1.0, next).length() == next - 1.0, "Adjacent bounds lost");
     auto rounded = Domain1D::from_start_and_length(1e16, 3.0);
-    require(rounded.length_x() == rounded.x_end() - rounded.x_start() &&
-            rounded.length_x() != 3.0, "Requested length replaced represented extent");
-    rounded.set_length_x(5.0);
-    require(rounded.x_end() == 1e16 + 5.0 && rounded.length_x() != 5.0,
+    require(rounded.length() == rounded.end() - rounded.start() &&
+            rounded.length() != 3.0, "Requested length replaced represented extent");
+    rounded.set_length(5.0);
+    require(rounded.end() == 1e16 + 5.0 && rounded.length() != 5.0,
             "Length setter ignored endpoint rounding");
     const auto before = rounded;
-    require_invalid([&] { rounded.set_length_x(1.0); });
+    require_invalid([&] { rounded.set_length(1.0); });
     require(rounded == before, "Collapsed length setter changed bounds");
 
     Domain1D interval(-1.0, 1.0);
     const auto original = interval;
     for (double invalid : {nan, inf, -inf}) {
-        require_invalid([&] { interval.set_x_start(invalid); });
-        require_invalid([&] { interval.set_x_end(invalid); });
-        require_invalid([&] { interval.set_length_x(invalid); });
+        require_invalid([&] { interval.set_start(invalid); });
+        require_invalid([&] { interval.set_end(invalid); });
+        require_invalid([&] { interval.set_length(invalid); });
         require(interval == original, "Rejected setter changed bounds");
     }
     require_invalid([&] { interval.set_bounds(-max, max); });
-    require_invalid([&] { interval.set_x_start(1.0); });
-    require_invalid([&] { interval.set_x_end(-1.0); });
-    require_invalid([&] { interval.set_length_x(0.0); });
+    require_invalid([&] { interval.set_start(1.0); });
+    require_invalid([&] { interval.set_end(-1.0); });
+    require_invalid([&] { interval.set_length(0.0); });
     require(interval == original, "Rejected update changed bounds");
     require(interval.contains(-1.0) && interval.contains(1.0) && interval.contains(0.0),
             "Closed containment failed");
@@ -104,6 +104,8 @@ void check_contracts()
 
     Domain2D rectangle(interval, Domain1D(2.0));
     Domain3D cuboid(interval, Domain1D(2.0), Domain1D(3.0));
+    require(rectangle.y_domain().start() == 0.0 && rectangle.y_domain().end() == 2.0 &&
+            cuboid.z_domain().length() == 3.0, "Composed interval queries lost bounds");
     const auto rectangle_before = rectangle;
     const auto cuboid_before = cuboid;
     const auto& snapshot = rectangle.x_domain();
@@ -140,8 +142,8 @@ void check_contracts()
 
 void print_domain(const char* label, const cfd::geometry::Domain1D& domain)
 {
-    std::cout << label << ": [" << domain.x_start() << ", " << domain.x_end()
-              << "], length = " << domain.length_x() << '\n';
+    std::cout << label << ": [" << domain.start() << ", " << domain.end()
+              << "], length = " << domain.length() << '\n';
 }
 
 }  // namespace
@@ -160,7 +162,7 @@ int main()
               << "Domain1D stores the finite interval bounds. Its length is\n"
               << "calculated from those bounds; it does not store mesh data.\n\n";
 
-    // One argument means a length starting at x = 0.
+    // One argument means a length starting at zero.
     cfd::geometry::Domain1D from_origin(4.0);
     print_domain("Constructed from length", from_origin);
 
@@ -174,14 +176,14 @@ int main()
     print_domain("Constructed from start and length", shifted);
 
     std::cout << "\nUpdating bounds and length:\n";
-    from_bounds.set_x_start(-3.0);
-    print_domain("After set_x_start(-3.0)", from_bounds);
+    from_bounds.set_start(-3.0);
+    print_domain("After set_start(-3.0)", from_bounds);
 
-    from_bounds.set_x_end(4.0);
-    print_domain("After set_x_end(4.0)", from_bounds);
+    from_bounds.set_end(4.0);
+    print_domain("After set_end(4.0)", from_bounds);
 
-    from_bounds.set_length_x(2.0);
-    print_domain("After set_length_x(2.0)", from_bounds);
+    from_bounds.set_length(2.0);
+    print_domain("After set_length(2.0)", from_bounds);
 
     from_bounds.set_bounds(1.0, 6.0);
     print_domain("After set_bounds(1.0, 6.0)", from_bounds);
@@ -189,7 +191,7 @@ int main()
     std::cout << "\nInvalid updates are rejected and preserve the current interval:\n";
     try
     {
-        from_bounds.set_x_end(0.0);  // The end must be greater than the start.
+        from_bounds.set_end(0.0);  // The end must be greater than the start.
     }
     catch (const std::invalid_argument& error)
     {
@@ -199,7 +201,7 @@ int main()
 
     try
     {
-        from_bounds.set_length_x(std::numeric_limits<double>::infinity());
+        from_bounds.set_length(std::numeric_limits<double>::infinity());
     }
     catch (const std::invalid_argument& error)
     {
@@ -208,7 +210,7 @@ int main()
     }
 
     std::cout << "\nDomain1D limitations:\n"
-              << "  - It stores only one finite, increasing X interval.\n"
+              << "  - It stores only one finite, increasing interval on the real line.\n"
               << "  - It does not create cells, faces, or cell centers.\n"
               << "  - It does not store boundary conditions, field values, or\n"
               << "    cross-sectional area. Those belong to mesh/solver objects.\n";

@@ -8,7 +8,7 @@ Current implementation status:
 
 | Module paths under `include/cfd/` and `src/` | Implemented behavior or reserved scope |
 | --- | --- |
-| `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite axis-aligned intervals, rectangles, and cuboids. |
+| `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite coordinate-agnostic intervals, Cartesian rectangles, and cuboids, respectively. |
 | `mesh/mesh1d/` | `FvMesh1D` owns shared geometry; `UniformFvMesh1D` constructs uniform meshes. `UniformMesh1D` and `Mesh1D` are compatibility aliases. |
 | `field/field1d/` | `VolScalarField1D` stores cell- or face-sampled scalar values; `ScalarField1D` is a compatibility alias. Volume vector and surface field files are placeholders. |
 | `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
@@ -19,7 +19,7 @@ Current implementation status:
 
 Field directories for 2D/3D are also reserved with `.gitkeep`. Use the current `finite_volume/fvc` and `finite_volume/fvm` layout and the `vol_scalar_field1d` / `uniform_fv_mesh1d` filenames when adding code or includes.
 
-Preserve the separation between domain values, mesh geometry, and field storage. `Domain1D` stores authoritative endpoints with a finite, positive represented extent. `Domain2D` and `Domain3D` compose validated `Domain1D` values and return independent axis snapshots; they do not guarantee representable area or volume. Domain containment uses closed bounds and equality compares endpoints exactly. Rejected domain updates preserve the existing value. Mesh construction snapshots domain bounds, so later domain mutations do not alter meshes. `FvMesh1D` exposes read-only geometry spans; actual cell widths can differ from nominal uniform spacing, and cell volumes assume unit cross-sectional area. Scalar fields retain a reference to their uniform mesh, which must outlive them; do not move from or move-assign a mesh while fields or views depend on it. Field arithmetic requires the same mesh object, sampling location, and storage size.
+Preserve the separation between domain values, mesh geometry, and field storage. `Domain1D` stores authoritative endpoints with a finite, positive represented extent. Its coordinate-agnostic API uses `start()`, `end()`, `length()`, `set_bounds(start, end)`, `set_start(start)`, `set_end(end)`, and `set_length(length)`; Cartesian axis names belong to `Domain2D`/`Domain3D` compositions or coordinate mappings. `Domain2D` and `Domain3D` compose validated `Domain1D` values and return independent axis snapshots; they do not guarantee representable area or volume. Domain containment uses closed bounds and equality compares endpoints exactly. Rejected domain updates preserve the existing value. Mesh construction snapshots domain bounds, so later domain mutations do not alter meshes. `FvMesh1D` exposes read-only geometry spans; actual cell widths can differ from nominal uniform spacing, and cell volumes assume unit cross-sectional area. Scalar fields retain a reference to their uniform mesh, which must outlive them; do not move from or move-assign a mesh while fields or views depend on it. Field arithmetic requires the same mesh object, sampling location, and storage size.
 
 Standalone sanity executables are nested by component and dimension:
 

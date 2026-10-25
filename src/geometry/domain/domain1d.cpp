@@ -39,43 +39,43 @@ inline void validate_bounds(double start, double end) {
     }
 }
 
-inline void validate_length(double length_x) {
-    if (!std::isfinite(length_x) || length_x <= 0.0) {
+inline void validate_length(double length) {
+    if (!std::isfinite(length) || length <= 0.0) {
         throw std::invalid_argument(
-            "Domain1D length must be finite and > 0: length=" + format_coordinate(length_x));
+            "Domain1D length must be finite and > 0: length=" + format_coordinate(length));
     }
 }
 
 } // namespace
 
-Domain1D::Domain1D(double length_x)
-    : Domain1D(0.0, length_x) {}
+Domain1D::Domain1D(double length)
+    : Domain1D(0.0, length) {}
 
-Domain1D::Domain1D(double x_start, double x_end)
-    : x_start_(x_start), x_end_(x_end) {
-    validate_bounds(x_start_, x_end_);
+Domain1D::Domain1D(double start, double end)
+    : start_(start), end_(end) {
+    validate_bounds(start_, end_);
 }
 
-Domain1D Domain1D::from_start_and_length(double x_start, double length_x) {
-    validate_length(length_x);
+Domain1D Domain1D::from_start_and_length(double start, double length) {
+    validate_length(length);
     // Store the rounded endpoint; validate overflow/collapse and derive length
     // from those authoritative bounds rather than caching the requested length.
-    return Domain1D(x_start, x_start + length_x);
+    return Domain1D(start, start + length);
 }
 
-void Domain1D::set_bounds(double x_start, double x_end) {
-    validate_bounds(x_start, x_end);
-    x_start_ = x_start;
-    x_end_ = x_end;
+void Domain1D::set_bounds(double start, double end) {
+    validate_bounds(start, end);
+    start_ = start;
+    end_ = end;
 }
 
-void Domain1D::set_x_start(double x_start) { set_bounds(x_start, x_end_); }
-void Domain1D::set_x_end(double x_end)     { set_bounds(x_start_, x_end); }
+void Domain1D::set_start(double start) { set_bounds(start, end_); }
+void Domain1D::set_end(double end) { set_bounds(start_, end); }
 
-void Domain1D::set_length_x(double length_x) {
-    validate_length(length_x);
+void Domain1D::set_length(double length) {
+    validate_length(length);
     // set_bounds validates the rounded endpoint before committing either bound.
-    set_bounds(x_start_, x_start_ + length_x);
+    set_bounds(start_, start_ + length);
 }
 
 } // namespace cfd::geometry
