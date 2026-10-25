@@ -1,4 +1,9 @@
-TYPE | LABEL | PATH
+# SYNTAX: TYPE | LABEL | PATH
+# LABEL: Mechanical conversion of filename snake_case to Title Case + type suffix (e.g. non_uniform_fv_mesh1d.hpp -> Non Uniform FV Mesh 1D Header). NEVER add subjective words like "placeholder", "temporary", or status notes.
+# TYPES: MD (docs), H (headers), CPP (sources), EXE (tests/mains), CFG (configs)
+# PAIRED: CLASS or FUNCTION | Label | header and source (only if both implemented; if empty/stub -> list in H or CPP)
+# Keep exact section headers below. Append new verified project files in-place.
+
 
 # Project documentation(.md)
 MD | Project README | README.md
@@ -21,7 +26,8 @@ H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_bou
 H | Neumann boundary 1D header | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp
 H | Uniform FV mesh 1D header | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp
 H | Uniform FV mesh 2D header | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp
-H | Uniform FV mesh 3D placeholder header | include/cfd/mesh/mesh3d/uniform_fv_mesh3d.hpp
+H | Uniform FV Mesh 3D Header | include/cfd/mesh/mesh3d/uniform_fv_mesh3d.hpp
+H | Non Uniform FV Mesh 1D Header | include/cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp.hpp
 H | Vector 1D header | include/cfd/vector/vector1d.hpp
 H | Vector 2D header | include/cfd/vector/vector2d.hpp
 H | Vector 3D header | include/cfd/vector/vector3d.hpp
@@ -37,7 +43,8 @@ CPP | Domain 2D source | src/geometry/domain/domain2d.cpp
 CPP | Domain 3D source | src/geometry/domain/domain3d.cpp
 CPP | Uniform FV mesh 1D source | src/mesh/mesh1d/uniform_fv_mesh1d.cpp
 CPP | Uniform FV mesh 2D source | src/mesh/mesh2d/uniform_fv_mesh2d.cpp
-CPP | Uniform FV mesh 3D placeholder source | src/mesh/mesh3d/uniform_fv_mesh3d.cpp
+CPP | Uniform FV Mesh 3D Source | src/mesh/mesh3d/uniform_fv_mesh3d.cpp
+CPP | Non Uniform FV Mesh 1D Source | src/mesh/mesh1d/non_uniform_fv_mesh1d.hpp.cpp
 
 # Classes (header and source)
 CLASS | FV mesh 1D base class | include/cfd/mesh/mesh1d/fv_mesh1d.hpp and src/mesh/mesh1d/fv_mesh1d.cpp
