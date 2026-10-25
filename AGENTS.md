@@ -2,9 +2,32 @@
 
 ## Project Structure & Module Organization
 
-This repository provides a C++20 library for computational fluid dynamics research. Public headers live under `include/cfd/`; implementations live under `src/` and are grouped by module. Current dimensional coverage varies by module: geometry domains and finite-volume matrix containers cover 1D, 2D, and 3D; the mesh layer has a shared 1D finite-volume base plus uniform meshes in 1D, 2D, and 3D; explicit (`finite_volume/fvc`) and implicit (`finite_volume/fvm`) operators and equation-solver workflows are currently 1D. Other modules provide boundary conditions, volume and surface fields, output (`io`), linear algebra, numerical schemes, simulation time, transport properties, and geometric vectors. Keep headers (`.hpp`) and implementations (`.cpp`) in the corresponding module directories, and add implementation files to the explicit source list in `CMakeLists.txt`.
+This repository provides a C++20 library for computational fluid dynamics research. Public headers live under `include/cfd/`; implementations live under `src/` in corresponding module directories. Keep headers (`.hpp`) and implementations (`.cpp`) together by module, and add implementation files to the explicit source list in `CMakeLists.txt`. File and directory presence does not imply a usable API: much of the architecture is scaffolding.
 
-Standalone sanity executables are organized by component under `examples/test_geometry/`, `examples/test_mesh/`, and `examples/test_field/`. CMake builds the domain, uniform 1D mesh, and scalar 1D field executables when `BUILD_EXAMPLES` is enabled and places them in `build/bin/`. Component documentation may live beside its public headers, including the geometry domain, 1D mesh, and 1D field READMEs. The root `CMakeLists.txt` defines the static `cfd_toolkit` library and its `cfd::toolkit` alias, installs the public headers, and exports a CMake package; its config template lives in `cmake/`. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+Current implementation status:
+
+| Module paths under `include/cfd/` and `src/` | Implemented behavior or reserved scope |
+| --- | --- |
+| `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite axis-aligned intervals, rectangles, and cuboids. |
+| `mesh/mesh1d/` | `FvMesh1D` owns shared geometry; `UniformFvMesh1D` constructs uniform meshes. `UniformMesh1D` and `Mesh1D` are compatibility aliases. |
+| `field/field1d/` | `VolScalarField1D` stores cell- or face-sampled scalar values; `ScalarField1D` is a compatibility alias. Volume vector and surface field files are placeholders. |
+| `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
+| `mesh/mesh2d/`, `mesh/mesh3d/` | The uniform 2D header/source are empty; the uniform 3D files are placeholders. There is no implemented multidimensional mesh API. |
+| `finite_volume/fvc/`, `finite_volume/fvm/` | Explicit gradient/divergence and implicit time-derivative/divergence/Laplacian/source files are 1D placeholders. 2D/3D directories are reserved with `.gitkeep`. |
+| `fv_matrix/`, `linear_algebra/`, `solvers/` | Matrix containers named for 1D/2D/3D, algebraic matrices/vectors/solvers, and 1D equation workflows are scaffolding. 2D/3D equation-solver directories are reserved. |
+| `io/`, `schemes/`, `time/`, `transport_model/`, `vector/` | Reserved writer, interpolation, simulation-time, transport, and geometric-vector files; these do not yet provide functional APIs. Geometric-vector headers have no corresponding source files. |
+
+Field directories for 2D/3D are also reserved with `.gitkeep`. Use the current `finite_volume/fvc` and `finite_volume/fvm` layout and the `vol_scalar_field1d` / `uniform_fv_mesh1d` filenames when adding code or includes.
+
+Preserve the separation between domain values, mesh geometry, and field storage. `Domain1D` stores authoritative endpoints with a finite, positive represented extent. `Domain2D` and `Domain3D` compose validated `Domain1D` values and return independent axis snapshots; they do not guarantee representable area or volume. Domain containment uses closed bounds and equality compares endpoints exactly. Rejected domain updates preserve the existing value. Mesh construction snapshots domain bounds, so later domain mutations do not alter meshes. `FvMesh1D` exposes read-only geometry spans; actual cell widths can differ from nominal uniform spacing, and cell volumes assume unit cross-sectional area. Scalar fields retain a reference to their uniform mesh, which must outlive them; do not move from or move-assign a mesh while fields or views depend on it. Field arithmetic requires the same mesh object, sampling location, and storage size.
+
+Standalone sanity executables are nested by component and dimension:
+
+- `test_domain1d`: `examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp` (also checks 2D/3D domain contracts).
+- `test_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`.
+- `test_scalar_field1d`: `examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp`.
+
+Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
@@ -14,21 +37,25 @@ Use CMake 3.20 or newer and a compiler supporting C++20. Run commands from the r
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel
 ./build/bin/test_domain1d < /dev/null
-./build/bin/test_uniform_mesh1d
-./build/bin/test_scalar_field1d
+./build/bin/test_uniform_mesh1d < /dev/null
+./build/bin/test_scalar_field1d < /dev/null
 ```
 
-Configuration enables examples by default; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Build a single check with `cmake --build build --target test_scalar_field1d`. The domain example waits for input, so redirect stdin for unattended runs. The project builds a static library and exposes the `cfd::toolkit` target both to in-tree consumers and through its installed CMake package.
+Configuration enables examples by default through `BUILD_EXAMPLES`; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_scalar_field1d`. All three examples call `std::cin.get()`, so redirect stdin for unattended runs.
+
+The root CMake configuration builds the static `cfd_toolkit` library with the in-tree alias `cfd::toolkit`. C++20 is a public target requirement, and include paths use separate build/install interfaces. No external dependencies are currently declared. Installation uses `GNUInstallDirs` and exports `cfd::toolkit`; consumers call `find_package(cfd-toolkit CONFIG REQUIRED)` and link that target. The package config template is `cmake/cfd-toolkitConfig.cmake.in`; generated config, version, and target files are installed under `${CMAKE_INSTALL_LIBDIR}/cmake/cfd-toolkit`, with `SameMajorVersion` compatibility. To check installation, use `cmake --install build --prefix /tmp/cfd-toolkit-install` after building.
 
 ## Coding Style & Naming Conventions
 
-Use four-space indentation and follow the surrounding file's brace style. Use `snake_case` filenames, functions, and variables; class names follow patterns such as `Domain1D` and `UniformMesh1D`. Private data members commonly end in `_`. Keep APIs in the appropriate `cfd` namespace and use `#pragma once` in headers.
+Use four-space indentation and follow the surrounding file's brace style. Use `snake_case` filenames, functions, and variables; class names follow patterns such as `Domain1D`, `UniformFvMesh1D`, and `VolScalarField1D`. Private data members commonly end in `_`. Keep APIs in the appropriate `cfd` namespace and use `#pragma once` in headers. Existing namespaces include `cfd::geometry`, `cfd::mesh`, `cfd::boundary`, and `cfd::field::field1d`.
 
-Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds enable `-Wall`, `-Wextra`, `-Wpedantic`, `-Wconversion`, and `-Wshadow`; address warnings introduced by changes. No repository-wide formatter or linter configuration is provided.
+Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds enable `-Wall`, `-Wextra`, `-Wpedantic`, `-Wconversion`, and `-Wshadow` privately for the library; address warnings introduced by changes. No repository-wide formatter or linter configuration is provided.
 
 ## Testing Guidelines
 
 Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Follow the `test_<component>` naming pattern and register new executables in CMake. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
+
+`test_domain1d` checks 1D/2D/3D domain contracts, including invalid values, floating-point limits, containment, equality, rejected updates, and snapshot independence. `test_scalar_field1d` checks allocation, arithmetic, checked indexing, incompatible fields, and zero division. Both return nonzero on failed checks. `test_uniform_mesh1d` prints mesh details and requires output inspection; it is not an automated assertion suite.
 
 ## Commit & Pull Request Guidelines
 
@@ -37,9 +64,12 @@ History uses short, imperative subjects such as `Update domain1d mesh1d`; no for
 Pull requests should describe the behavior change, affected modules, and validation commands with results. Link relevant issues and update component documentation when public contracts change. Keep generated build output out of commits.
 
 ## Document Maintenance
+
 Whenever you (the AI) perform any of the following tasks:
+
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
-- Whenever the path of any file changes or a new file is added to the project, the `file_path` file in the root of the project must be updated.
+- Add, remove, or rename a project file, or change a file's path; update the root `file_path` inventory in the same turn/commit.
+
 You MUST update this `AGENTS.md` file in the same turn/commit to reflect the changes. Keep it synchronized without waiting for explicit user reminders.

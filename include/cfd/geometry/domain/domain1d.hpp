@@ -30,7 +30,8 @@ public:
     /// Represented endpoint difference; may differ from a requested input length.
     [[nodiscard]] constexpr double length_x() const noexcept { return x_end_ - x_start_; }
 
-    /// Returns true if x is within [x_start, x_end].
+    /// Exact closed-interval membership; NaN and infinities return false.
+    /// No tolerance is applied; this does not assign points to mesh cells.
     [[nodiscard]] bool contains(double x) const noexcept { return x >= x_start_ && x <= x_end_; }
 
     /// Replace both bounds after validation; throws std::invalid_argument for
