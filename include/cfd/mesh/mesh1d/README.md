@@ -19,18 +19,24 @@ double first_width = mesh.cell_width(0);
 double nominal_dx = mesh.dx();
 ```
 
-`UniformFvMesh1D` can also be constructed directly from `x_start`, `x_end`,
-and a cell count. Constructing from a `Domain1D` copies its current bounds;
-subsequent domain changes do not change the mesh.
+`UniformFvMesh1D` can also be constructed directly from `start`, `end`,
+and a cell count, using `Domain1D(start, end)` for bounds validation.
+Constructing from a `Domain1D` snapshots its current authoritative endpoints;
+subsequent domain changes do not change the mesh. Construct a new mesh to use
+updated bounds. When using `Domain1D::from_start_and_length` or `set_length`,
+nominal spacing uses `domain.length()` (the represented endpoint difference),
+which can differ from the requested length due to rounding.
 
 The bounds must be finite and strictly increasing, and the represented interval
 length must be finite. At least one cell is required. Invalid bounds, a zero
 cell count, invalid spacing, or coordinates that cannot be represented as
-strictly increasing faces throw `std::invalid_argument`. A cell count too large
+strictly increasing faces and distinct interior cell centers throw
+`std::invalid_argument`. A valid domain can therefore be too small to mesh at
+the requested resolution. A cell count too large
 to allocate the required faces throws `std::length_error`.
 
 `dx()`, `spacing()`, and `nominal_spacing()` are aliases for the nominal
-spacing `(x_end - x_start) / num_cells`. Floating-point rounding can make
+spacing `(end() - start()) / num_cells`. Floating-point rounding can make
 individual face-to-face distances differ from this target; use `cell_width(P)`
 or `cell_volumes()[P]` as the actual finite-volume metric.
 
@@ -42,7 +48,11 @@ or `cell_volumes()[P]` as the actual finite-volume metric.
 
 - `num_cells()` / `cell_count()` and `num_faces()` / `face_count()` return the
   cell and face counts.
-- `x_start()` and `x_end()` return the mesh boundary coordinates.
+- `start()` and `end()` return the snapshotted boundary coordinates;
+  `length()` returns their finite, positive represented difference, matching
+  `Domain1D`. `x_start()` and `x_end()` remain compatibility aliases.
+  The base constructor validates the complete interval with `Domain1D`,
+  including for meshes constructed from explicit face arrays.
 - `face(f)` / `face_at(f)` return a face coordinate.
 - `cell_center(P)` / `cell_center_at(P)` return a cell center. The
   `operator[](P)` shorthand also returns the center, but does not check bounds.

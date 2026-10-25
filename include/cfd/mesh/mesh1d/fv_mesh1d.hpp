@@ -32,8 +32,15 @@ public:
     [[nodiscard]] std::size_t num_faces() const noexcept { return faces_.size(); }
     [[nodiscard]] std::size_t face_count() const noexcept { return num_faces(); }
 
-    [[nodiscard]] double x_start() const noexcept { return x_start_; }
-    [[nodiscard]] double x_end() const noexcept { return x_end_; }
+    /// Independent snapshot of the authoritative boundary face coordinates.
+    [[nodiscard]] double start() const noexcept { return start_; }
+    [[nodiscard]] double end() const noexcept { return end_; }
+    /// Finite represented endpoint difference, as in Domain1D::length().
+    [[nodiscard]] double length() const noexcept { return end_ - start_; }
+
+    /// Compatibility aliases for start() and end().
+    [[nodiscard]] double x_start() const noexcept { return start(); }
+    [[nodiscard]] double x_end() const noexcept { return end(); }
 
     [[nodiscard]] double face(std::size_t f) const;
     [[nodiscard]] double cell_center(std::size_t P) const;
@@ -61,11 +68,14 @@ public:
 
 protected:
     /// Protected: only derived meshes construct with an explicit faces array.
+    /// Bounds must satisfy Domain1D's finite, positive represented extent.
+    /// Faces must increase strictly and each cell needs a distinct interior
+    /// center. Invalid geometry throws std::invalid_argument.
     explicit FvMesh1D(std::vector<double> faces);
 
 private:
-    double x_start_;
-    double x_end_;
+    double start_;
+    double end_;
     std::vector<double> faces_;
     std::vector<double> cell_widths_;
     std::vector<double> cell_centers_;

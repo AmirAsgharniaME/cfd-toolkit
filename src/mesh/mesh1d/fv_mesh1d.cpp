@@ -1,5 +1,7 @@
 #include "cfd/mesh/mesh1d/fv_mesh1d.hpp"
 
+#include "cfd/geometry/domain/domain1d.hpp"
+
 #include <cmath>
 #include <iomanip>
 #include <ostream>
@@ -18,6 +20,10 @@ std::vector<double> validate_and_compute_widths(const std::vector<double>& faces
     {
         throw std::invalid_argument("FvMesh1D: requires at least two faces (>= 1 cell).");
     }
+
+    // Validate the whole represented interval, even when every individual
+    // width is finite (their total extent can still overflow).
+    (void)cfd::geometry::Domain1D(faces.front(), faces.back());
 
     std::vector<double> widths(faces.size() - 1);
     for (std::size_t P = 0; P < widths.size(); ++P)
@@ -58,8 +64,8 @@ std::vector<double> compute_cell_centers(const std::vector<double>& faces,
 }  // namespace
 
 FvMesh1D::FvMesh1D(std::vector<double> faces)
-    : x_start_(faces.empty() ? 0.0 : faces.front()),
-      x_end_(faces.empty() ? 0.0 : faces.back()),
+    : start_(faces.empty() ? 0.0 : faces.front()),
+      end_(faces.empty() ? 0.0 : faces.back()),
       faces_(std::move(faces)),
       cell_widths_(validate_and_compute_widths(faces_)),
       cell_centers_(compute_cell_centers(faces_, cell_widths_))
@@ -107,7 +113,7 @@ void FvMesh1D::print_details(std::ostream& output) const
     output << std::fixed << std::setprecision(6)
            << "FvMesh1D Geometry Details\n"
            << "=========================\n"
-           << "Domain bounds: [" << x_start_ << ", " << x_end_ << "]\n"
+           << "Domain bounds: [" << start_ << ", " << end_ << "]\n"
            << "Cells (N):     " << num_cells() << '\n'
            << "Faces (N+1):   " << num_faces() << "\n\n"
            << "Topology:\n"
