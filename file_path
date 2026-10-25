@@ -1,9 +1,12 @@
 TYPE | LABEL | PATH
 
-# Project documentation
+# Project documentation(.md)
 MD | Project README | README.md
 MD | Repository guidelines | AGENTS.md
 MD | Domain geometry README | include/cfd/geometry/domain/README.md
+MD | mesh 1D README | include/cfd/mesh/mesh1d/README.md
+MD | field 1D README | include/cfd/field/field1d/README.md
+
 
 # Headers
 H | Volume scalar field 1D header | include/cfd/field/field1d/vol_scalar_field1d.hpp
@@ -119,9 +122,6 @@ EXE | Test domain 1D executable source | examples/test_geometry/test_domain/test
 EXE | Test scalar field 1D executable source | examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
 EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
 
-# Example documentation
-MD | Scalar field 1D README | examples/test_field/test_field1d/test_scalar_field1d/README.md
-MD | Uniform mesh 1D README | include/cfd/mesh/mesh1d/README.md
 
 # Project configuration
 CFG | CMake project configuration | CMakeLists.txt

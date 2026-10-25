@@ -4,7 +4,7 @@
 
 This repository provides a C++20 library for computational fluid dynamics research. Public headers live under `include/cfd/`; implementations live under `src/` and are grouped by module. The current modules cover boundary conditions, fields, explicit and implicit finite-volume operators (`finite_volume/fvc` and `finite_volume/fvm`), finite-volume matrices (`fv_matrix`), geometry, output (`io`), linear algebra, meshes, numerical schemes, equation solvers, simulation time, transport properties, and vectors. Keep headers (`.hpp`) and implementations (`.cpp`) in the corresponding module directories, and add implementation files to the explicit source list in `CMakeLists.txt`.
 
-Standalone examples and sanity executables are organized by component under `examples/test_geometry/`, `examples/test_mesh/`, and `examples/test_field/`; CMake builds them when `BUILD_EXAMPLES` is enabled and places executables in `build/bin/`. Component documentation may live beside its public headers, such as the mesh 1D and geometry domain READMEs. Package configuration lives in `cmake/`. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+Standalone examples and sanity executables are organized by component under `examples/test_geometry/`, `examples/test_mesh/`, and `examples/test_field/`; CMake builds them when `BUILD_EXAMPLES` is enabled and places executables in `build/bin/`. Component documentation may live beside its public headers, including the geometry domain, 1D mesh, and 1D field READMEs. Package configuration lives in `cmake/`. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
@@ -41,4 +41,5 @@ Whenever you (the AI) perform any of the following tasks:
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
+- If the path of any file changes, the `file_path` file in the root of the project must be updated.
 You MUST update this `AGENTS.md` file in the same turn/commit to reflect the changes. Keep it synchronized without waiting for explicit user reminders.
