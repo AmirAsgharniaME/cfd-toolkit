@@ -2,6 +2,8 @@ TYPE | LABEL | PATH
 
 # Project documentation
 MD | Project README | README.md
+MD | Repository guidelines | AGENTS.md
+MD | Domain geometry README | include/cfd/geometry/domain/README.md
 
 # Headers
 H | Volume scalar field 1D header | include/cfd/field/field1d/vol_scalar_field1d.hpp
@@ -118,7 +120,6 @@ EXE | Test scalar field 1D executable source | examples/test_field/test_field1d/
 EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
 
 # Example documentation
-MD | Domain 1D example README | examples/test_geometry/test_domain/test_domain1d/README.md
 MD | Scalar field 1D README | examples/test_field/test_field1d/test_scalar_field1d/README.md
 MD | Uniform mesh 1D README | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/README.md
 
