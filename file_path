@@ -121,7 +121,7 @@ EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/te
 
 # Example documentation
 MD | Scalar field 1D README | examples/test_field/test_field1d/test_scalar_field1d/README.md
-MD | Uniform mesh 1D README | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/README.md
+MD | Uniform mesh 1D README | include/cfd/mesh/mesh1d/README.md
 
 # Project configuration
 CFG | CMake project configuration | CMakeLists.txt
