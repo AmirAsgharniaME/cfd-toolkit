@@ -41,5 +41,5 @@ Whenever you (the AI) perform any of the following tasks:
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
-- If the path of any file changes, the `file_path` file in the root of the project must be updated.
+- Whenever the path of any file changes or a new file is added to the project, the `file_path` file in the root of the project must be updated.
 You MUST update this `AGENTS.md` file in the same turn/commit to reflect the changes. Keep it synchronized without waiting for explicit user reminders.
