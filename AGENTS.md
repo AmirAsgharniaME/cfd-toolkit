@@ -37,7 +37,7 @@ by component and dimension:
 - `test_non_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`.
 - `test_scalar_field1d`: `examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp`.
 
-Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory, grouped into documentation, headers, sources, class pairs, standalone functions, and subsystem sections. Record implemented free-function APIs such as `grading::generate_faces_1d` under Functions, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::generate_faces_1d` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
