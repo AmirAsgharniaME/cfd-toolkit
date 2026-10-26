@@ -9,7 +9,7 @@ Current implementation status:
 | Module paths under `include/cfd/` and `src/` | Implemented behavior or reserved scope |
 | --- | --- |
 | `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite coordinate-agnostic intervals, Cartesian rectangles, and cuboids, respectively. |
-| `mesh/mesh1d/` | `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes and `NonUniformFvMesh1D` accepts explicit faces. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
+| `mesh/mesh1d/` | `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes, `NonUniformFvMesh1D` accepts explicit faces, and `cfd::mesh::grading::geometric` generates faces with geometrically progressing cell widths. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
 | `field/field1d/` | `VolScalarField1D` stores cell- or face-sampled scalar values; `ScalarField1D` is a compatibility alias. Volume vector and surface field files are placeholders. |
 | `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
 | `mesh/mesh2d/`, `mesh/mesh3d/` | The uniform 2D header/source are empty; the uniform 3D files are placeholders. There is no implemented multidimensional mesh API. |

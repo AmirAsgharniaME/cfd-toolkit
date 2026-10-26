@@ -6,6 +6,15 @@ interface, `UniformFvMesh1D`, a uniform mesh implementation, and
 `N` cells and `N + 1` faces. Cell indices run from `0` to `N - 1`; face indices
 run from `0` to `N`.
 
+## Generating geometrically graded faces
+
+`cfd::mesh::grading::geometric(domain, n_cells, ratio)` returns `n_cells + 1`
+face coordinates spanning the exact domain endpoints. Cell widths follow a
+geometric progression where each width is the preceding width multiplied by
+`ratio`; `ratio == 1.0` gives uniform spacing. At least two cells and a
+positive finite ratio are required. The returned faces can be passed directly
+to `NonUniformFvMesh1D`.
+
 ## Constructing a uniform mesh
 
 ```cpp
