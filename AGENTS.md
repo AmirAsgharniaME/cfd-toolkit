@@ -35,6 +35,7 @@ by component and dimension:
 - `test_domain1d`: `examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp` (also checks 2D/3D domain contracts).
 - `test_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`.
 - `test_non_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`.
+- `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
 - `test_scalar_field1d`: `examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp`.
 
 Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::generate_faces_1d` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
@@ -49,6 +50,7 @@ cmake --build build --parallel
 ./build/bin/test_domain1d < /dev/null
 ./build/bin/test_uniform_mesh1d < /dev/null
 ./build/bin/test_non_uniform_mesh1d
+./build/bin/test_grading1d
 ./build/bin/test_scalar_field1d < /dev/null
 ```
 
@@ -68,7 +70,7 @@ Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds en
 
 Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Follow the `test_<component>` naming pattern and register new executables in CMake. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
 
-`test_domain1d` checks 1D/2D/3D domain contracts, including invalid values, floating-point limits, containment, equality, rejected updates, and snapshot independence. `test_scalar_field1d` checks allocation, arithmetic, checked indexing, incompatible fields, and zero division. `test_uniform_mesh1d` checks constructor equivalence, represented domain lengths, geometry storage sizes, snapshot independence after each domain setter, cell geometry, explicit-face base mesh validation, invalid inputs, and floating-point limits before printing mesh details. `test_non_uniform_mesh1d` checks explicit nonuniform geometry, snapshot independence, exact bounds, and invalid face sequences. These checks return nonzero on failed contracts.
+`test_domain1d` checks 1D/2D/3D domain contracts, including invalid values, floating-point limits, containment, equality, rejected updates, and snapshot independence. `test_scalar_field1d` checks allocation, arithmetic, checked indexing, incompatible fields, and zero division. `test_uniform_mesh1d` checks constructor equivalence, represented domain lengths, geometry storage sizes, snapshot independence after each domain setter, cell geometry, explicit-face base mesh validation, invalid inputs, and floating-point limits before printing mesh details. `test_non_uniform_mesh1d` checks explicit nonuniform geometry, snapshot independence, exact bounds, and invalid face sequences. `test_grading1d` checks all grading types for even and odd cell counts, symmetric patterns, ratio-one limits, exact endpoint anchoring, input validation, center representability, and compatibility with `NonUniformFvMesh1D`. These checks return nonzero on failed contracts.
 
 ## Commit & Pull Request Guidelines
 

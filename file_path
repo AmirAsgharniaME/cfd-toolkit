@@ -137,6 +137,7 @@ EXE | Test domain 1D executable source | examples/test_geometry/test_domain/test
 EXE | Test scalar field 1D executable source | examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
 EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
 EXE | Test non uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
+EXE | Test grading 1D executable source | examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
 
 
 # Project configuration

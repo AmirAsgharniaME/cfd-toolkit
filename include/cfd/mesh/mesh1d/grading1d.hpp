@@ -23,9 +23,12 @@ namespace cfd::mesh::grading
 /// @param ratio Positive finite width-growth factor; graded modes require a
 ///              value greater than or equal to 1.0.
 /// @return `n_cells + 1` strictly increasing face coordinates, including the
-///         exact domain endpoints.
+///         exact domain endpoints. A successful return also guarantees that
+///         every cell center is representable strictly inside its faces using
+///         the arithmetic used by `FvMesh1D`.
 /// @throws std::invalid_argument If an input is invalid or the faces cannot be
-///         represented as a strictly increasing sequence of finite doubles.
+///         represented as a strictly increasing sequence of finite doubles
+///         with distinct interior cell centers.
 [[nodiscard]] std::vector<double> generate_faces_1d(
     const geometry::Domain1D& domain,
     int n_cells,

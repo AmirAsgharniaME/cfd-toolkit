@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -59,6 +63,21 @@ namespace
         if (!std::isfinite(faces[i]) || !(faces[i] > faces[i - 1U])) {
             throw std::invalid_argument(
                 "1D grading faces are not representable as increasing doubles");
+        }
+    }
+
+    for (std::size_t i = 0; i < cell_count; ++i) {
+        const double width = faces[i + 1U] - faces[i];
+        const double center = faces[i] + width * 0.5;
+        if (!std::isfinite(center) || !(faces[i] < center) ||
+            !(center < faces[i + 1U])) {
+            std::ostringstream message;
+            message.imbue(std::locale::classic());
+            message << std::setprecision(std::numeric_limits<double>::max_digits10)
+                    << "1D grading cell center is not representable strictly inside cell at index "
+                    << i << " [left=" << faces[i] << ", center=" << center
+                    << ", right=" << faces[i + 1U] << ']';
+            throw std::invalid_argument(message.str());
         }
     }
     return faces;

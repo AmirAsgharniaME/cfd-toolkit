@@ -171,6 +171,14 @@ if(BUILD_EXAMPLES)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
+    add_executable(test_grading1d
+        examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
+    )
+    target_link_libraries(test_grading1d PRIVATE cfd_toolkit)
+    set_target_properties(test_grading1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
     add_executable(test_scalar_field1d
         examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
     )
