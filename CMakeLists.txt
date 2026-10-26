@@ -58,6 +58,7 @@ add_library(cfd_toolkit STATIC
 
     # Finite volume meshes
     src/mesh/mesh1d/fv_mesh1d.cpp
+    src/mesh/mesh1d/non_uniform_fv_mesh1d.cpp
     src/mesh/mesh1d/uniform_fv_mesh1d.cpp
     src/mesh/mesh2d/uniform_fv_mesh2d.cpp
     src/mesh/mesh3d/uniform_fv_mesh3d.cpp
@@ -158,6 +159,14 @@ if(BUILD_EXAMPLES)
     )
     target_link_libraries(test_uniform_mesh1d PRIVATE cfd_toolkit)
     set_target_properties(test_uniform_mesh1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
+    add_executable(test_non_uniform_mesh1d
+        examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
+    )
+    target_link_libraries(test_non_uniform_mesh1d PRIVATE cfd_toolkit)
+    set_target_properties(test_non_uniform_mesh1d PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 

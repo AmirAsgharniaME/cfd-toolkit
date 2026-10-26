@@ -1,7 +1,8 @@
 # One-Dimensional Finite-Volume Meshes
 
 The `cfd::mesh` namespace provides `FvMesh1D`, the common read-only geometry
-interface, and `UniformFvMesh1D`, a uniform mesh implementation. A mesh has
+interface, `UniformFvMesh1D`, a uniform mesh implementation, and
+`NonUniformFvMesh1D`, which accepts explicit faces. A mesh has
 `N` cells and `N + 1` faces. Cell indices run from `0` to `N - 1`; face indices
 run from `0` to `N`.
 
@@ -41,6 +42,24 @@ individual face-to-face distances differ from this target; use `cell_width(P)`
 or `cell_volumes()[P]` as the actual finite-volume metric.
 
 `UniformMesh1D` and `Mesh1D` are aliases for `UniformFvMesh1D`.
+
+## Constructing a non-uniform mesh
+
+```cpp
+#include "cfd/geometry/domain/domain1d.hpp"
+#include "cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp"
+
+cfd::geometry::Domain1D domain(0.0, 4.0);
+cfd::mesh::NonUniformFvMesh1D mesh(domain, {0.0, 0.5, 2.0, 4.0});
+```
+
+The face vector must have at least two finite, strictly increasing values.
+Its endpoints must exactly match `domain.start()` and `domain.end()`; no
+tolerance is applied, and the supplied boundary coordinates are preserved.
+The constructor snapshots both bounds and face geometry. Later changes to the
+domain or the input vector do not change the mesh. As with the base class,
+construction also rejects intervals where a distinct interior cell center
+cannot be represented.
 
 ## Geometry queries
 
