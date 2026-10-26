@@ -27,14 +27,17 @@ Preserve the separation between domain values, mesh geometry, and field storage.
 
 `FvMesh1D` has a protected constructor for derived meshes that provide explicit face arrays. It validates the complete interval, strictly increasing finite faces, and distinct interior cell centers; `NonUniformFvMesh1D` uses this constructor after also checking that its first and last faces exactly match the supplied domain. Meshes support copy construction and move construction/assignment; copy assignment is deleted. A moved-from mesh must be destroyed or assigned a new value before geometry queries. Checked indexed geometry queries throw `std::out_of_range`; `operator[]` is unchecked.
 
-Standalone sanity executables are nested by component and dimension:
+`CMakeLists.txt` keeps the library source list explicit and grouped by subsystem;
+new implementation files must be added there deliberately. Standalone example
+executables are registered under `BUILD_EXAMPLES` and their files are nested
+by component and dimension:
 
 - `test_domain1d`: `examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp` (also checks 2D/3D domain contracts).
 - `test_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`.
 - `test_non_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`.
 - `test_scalar_field1d`: `examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp`.
 
-Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory, grouped into documentation, headers, sources, class pairs, standalone functions, and subsystem sections. Record implemented free-function APIs such as `grading::generate_faces_1d` under Functions, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
