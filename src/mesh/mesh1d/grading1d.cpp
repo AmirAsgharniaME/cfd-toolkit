@@ -85,7 +85,7 @@ namespace
 
 }  // namespace
 
-std::vector<double> generate_faces_1d(const geometry::Domain1D& domain,
+std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
                                       const int n_cells,
                                       const GradingType type,
                                       const double ratio)

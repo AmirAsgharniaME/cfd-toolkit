@@ -70,7 +70,7 @@ void check_generated_geometry(const Domain1D& domain,
                               const double ratio,
                               double& maximum_symmetry_error)
 {
-    const auto faces = cfd::mesh::grading::generate_faces_1d(domain, n_cells, type, ratio);
+    const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
     const auto cell_count = static_cast<std::size_t>(n_cells);
     const std::string context = type_name(type) + " with N=" + std::to_string(n_cells);
 
@@ -114,7 +114,7 @@ void check_unit_ratio(const Domain1D& domain, const GradingType type, const int 
         return;
     }
 
-    const auto faces = cfd::mesh::grading::generate_faces_1d(domain, n_cells, type, 1.0);
+    const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, 1.0);
     const auto cell_count = static_cast<std::size_t>(n_cells);
     const double expected_width = domain.length() / static_cast<double>(n_cells);
     const double tolerance = 1e-12 * domain.length();
@@ -133,7 +133,7 @@ void check_invalid_inputs()
     const auto generate = [&domain](const int n_cells,
                                     const GradingType type,
                                     const double ratio) {
-        return cfd::mesh::grading::generate_faces_1d(domain, n_cells, type, ratio);
+        return cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
     };
 
     require_exception<std::invalid_argument>(
@@ -160,7 +160,7 @@ void check_invalid_inputs()
     const Domain1D two_ulp_domain(1.0, std::nextafter(next, inf));
     require_exception<std::invalid_argument>(
         [&] {
-            (void)cfd::mesh::grading::generate_faces_1d(
+            (void)cfd::mesh::grading::make_1d_faces(
                 two_ulp_domain, 2, GradingType::Uniform, 1.0);
         },
         "Expected unrepresentable cell centers to throw std::invalid_argument");

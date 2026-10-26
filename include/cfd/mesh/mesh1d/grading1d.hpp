@@ -29,7 +29,7 @@ namespace cfd::mesh::grading
 /// @throws std::invalid_argument If an input is invalid or the faces cannot be
 ///         represented as a strictly increasing sequence of finite doubles
 ///         with distinct interior cell centers.
-[[nodiscard]] std::vector<double> generate_faces_1d(
+[[nodiscard]] std::vector<double> make_1d_faces(
     const geometry::Domain1D& domain,
     int n_cells,
     GradingType type,
