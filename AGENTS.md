@@ -9,15 +9,15 @@ Current implementation status:
 | Module paths under `include/cfd/` and `src/` | Implemented behavior or reserved scope |
 | --- | --- |
 | `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite coordinate-agnostic intervals, Cartesian rectangles, and cuboids, respectively. |
-| `mesh/mesh1d/` | `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes, `NonUniformFvMesh1D` accepts explicit faces, and `cfd::mesh::grading::geometric` generates faces with geometrically progressing cell widths. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
+| `mesh/` and `mesh/mesh1d/` | `cfd::mesh::GradingType` (`include/cfd/mesh/grading_type.hpp`) names dimension-agnostic cell-width distributions; it does not itself generate mesh coordinates. `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes, `NonUniformFvMesh1D` accepts explicit faces, and `cfd::mesh::grading::geometric` (`mesh1d/grading.hpp` / `src/mesh/mesh1d/grading.cpp`) generates 1D faces whose successive cell widths follow a geometric progression. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
 | `field/field1d/` | `VolScalarField1D` stores cell- or face-sampled scalar values; `ScalarField1D` is a compatibility alias. Volume vector and surface field files are placeholders. |
-| `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
+| `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared boundary enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
 | `mesh/mesh2d/`, `mesh/mesh3d/` | The uniform 2D header/source are empty; the uniform 3D files are placeholders. There is no implemented multidimensional mesh API. |
 | `finite_volume/fvc/`, `finite_volume/fvm/` | Explicit gradient/divergence and implicit time-derivative/divergence/Laplacian/source files are 1D placeholders. 2D/3D directories are reserved with `.gitkeep`. |
 | `fv_matrix/`, `linear_algebra/`, `solvers/` | Matrix containers named for 1D/2D/3D, algebraic matrices/vectors/solvers, and 1D equation workflows are scaffolding. 2D/3D equation-solver directories are reserved. |
 | `io/`, `schemes/`, `time/`, `transport_model/`, `vector/` | Reserved writer, interpolation, simulation-time, transport, and geometric-vector files; these do not yet provide functional APIs. Geometric-vector headers have no corresponding source files. |
 
-Field directories for 2D/3D are also reserved with `.gitkeep`. Use the current `finite_volume/fvc` and `finite_volume/fvm` layout and the `vol_scalar_field1d` / `uniform_fv_mesh1d` filenames when adding code or includes.
+Field directories for 2D/3D are also reserved with `.gitkeep`. Use the current `finite_volume/fvc` and `finite_volume/fvm` layout and the `vol_scalar_field1d` / `uniform_fv_mesh1d` filenames when adding code or includes. Mesh grading strategy names are dimension-agnostic and belong in `mesh/`; concrete 1D face-generation helpers belong in `mesh/mesh1d/`.
 
 `NonUniformFvMesh1D` requires at least two finite, strictly increasing face coordinates whose endpoints exactly match the supplied `Domain1D`. It snapshots the bounds and face array; `FvMesh1D` derives widths and centers and rejects unrepresentable interior centers.
 

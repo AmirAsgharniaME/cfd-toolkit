@@ -22,6 +22,7 @@ H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
 H | Domain 3D header | include/cfd/geometry/domain/domain3d.hpp
 H | Boundary types header | include/cfd/boundary/types.hpp
 H | FV mesh 1D base header | include/cfd/mesh/mesh1d/fv_mesh1d.hpp
+H | Grading type header | include/cfd/mesh/grading_type.hpp
 H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp
 H | Neumann boundary 1D header | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp
 H | Uniform FV mesh 1D header | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp
