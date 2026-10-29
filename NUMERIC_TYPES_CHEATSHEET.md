@@ -1,83 +1,115 @@
-# C++ Numeric Types and Literal Suffixes
 
-A practical guide for C++17/20 CFD development on Linux x86_64 with GCC. Sizes below describe the usual GCC LP64 target: `int` is 32 bits, `long` is 64 bits, pointers are 64 bits, and `long double` is typically stored in a 16-byte object. The C++ standard does not require all these sizes, so confirm them with `sizeof` and `<limits>` for the build you ship.
+# C++ Numeric Types & Literal Suffixes Cheatsheet
 
-## 1. THE GOLDEN FORMULA OF C++ TYPES
+A precise technical guide to fundamental numeric types, type anatomy, and literal suffixes in Modern C++ (C++17/20), configured for the LP64 data model on Linux x86_64 (`g++`).
 
-For many integer types, think of the spelling as:
+---
 
-> **[Sign Modifier] + [Width Modifier] + [Base Type]**
+## 1. The Core Philosophy: Container vs. Literal
 
-For example, `unsigned long int` is `unsigned` (sign) + `long` (width) + `int` (base). Some parts can be omitted: `long` is shorthand for `long int`, and `unsigned long` means `unsigned long int`. This formula is a learning aid, not a rule that every C++ type must fit: `char` has its own variants, and floating-point types follow a separate taxonomy.
+The single biggest source of confusion in numeric declarations is mixing up two fundamentally distinct concepts:
 
-Keep the declared **container type** separate from the type of a **literal** used to initialize or calculate a value:
+1. **The Container Type (Variable Declaration):** The data type of the storage location in memory, constructed via keywords and modifiers (`unsigned long long int`).
+2. **The Literal (The Raw Value in Code):** The raw number written directly in source code (`100ULL` or `3.14f`), whose type is inferred by the compiler or explicitly dictated via a **Literal Suffix**.
+
+> **Golden Rule:** Suffixes (`u`, `l`, `ll`, `f`, etc.) **never** attach to variable names or type definitions. They attach exclusively to raw literal values in source code to override the compiler's default assumptions.
+
+---
+
+## 2. The Golden Formula of C++ Type Anatomy
+
+In C++, variable types are not arbitrary strings; they follow a strict taxonomic formula:
+
+$$\text{[Sign Modifier]} + \text{[Width Modifier]} + \text{[Base Type]}$$
+
+### Integer Anatomy
+* **Base Type:** Only `int` (and `char` for 1-byte integral units).
+* **Sign Modifiers:** `signed` (default) or `unsigned`.
+* **Width Modifiers:** `short`, `long`, or `long long`.
+
+Because C++ allows shorthand alias forms by dropping the default `signed` and the implied base `int`, we get:
+
+| Canonical (Official) Name | Shorthand In Code | What Was Dropped? |
+| :--- | :--- | :--- |
+| `signed int` | `int` | `signed` is implicit default |
+| `unsigned int` | `unsigned` or `unsigned int` | `int` can be omitted |
+| `signed short int` | `short` | Both `signed` and `int` dropped |
+| `unsigned short int` | `unsigned short` | `int` dropped |
+| `signed long int` | `long` | Both `signed` and `int` dropped |
+| `unsigned long int` | `unsigned long` | `int` dropped |
+| `signed long long int` | `long long` | Both `signed` and `int` dropped |
+| `unsigned long long int` | `unsigned long long` | `int` dropped |
+
+> **Key Takeaway:** There is no distinct fundamental type named `long long` by itself—it is technically the width modifier `long long` modifying the base `int`. Writing `long long` is 100% valid and universally accepted standard practice.
+
+---
+
+### Floating-Point Anatomy
+Floating-point numbers do **not** accept `signed` or `unsigned` modifiers because the sign bit is an intrinsic, permanent component of the IEEE 754 hardware standard.
+
+* **Base Types:** `float` and `double` are two completely independent, distinct base types.
+* **Width Modifier:** Only `long` is available, and it applies exclusively to `double`:
+
+| Official Type Name | Shorthand | Size (Linux x86_64) | Precision |
+| :--- | :--- | :---: | :--- |
+| `float` | *(None - complete as is)* | 4 Bytes | Single Precision (~6–7 decimal digits) |
+| `double` | *(None - complete as is)* | 8 Bytes | Double Precision (~15–17 decimal digits) |
+| `long double` | *(None - both words required)* | 16 Bytes (GCC LP64) | Extended Precision (80-bit padded to 128-bit) |
+
+---
+
+## 3. Literal Suffixes: Overriding Compiler Defaults
+
+When a raw number appears in source code, the compiler applies strict default type assignments before any assignment or operation occurs:
+
+* Any raw integer without a decimal point (e.g., `42`) defaults to **`int`**.
+* Any raw floating-point number with a decimal point (e.g., `3.14`) defaults to **`double`**.
+
+To prevent unwanted implicit conversions or truncation, attach literal suffixes to the value:
 
 ```cpp
-unsigned long cell_count = 42UL;
-// ^ container type             ^^ literal suffix
+auto a = 100;     // Type: int (4 bytes)
+auto b = 100U;    // Type: unsigned int (4 bytes)
+auto c = 100L;    // Type: long (8 bytes on Linux x86_64)
+auto d = 100ULL;  // Type: unsigned long long (8 bytes)
+
+auto x = 3.14;    // Type: double (8 bytes)
+auto y = 3.14f;   // Type: float (4 bytes)
+auto z = 3.14L;   // Type: long double (16 bytes on GCC x86_64)
 ```
 
-The declaration determines the type used to store `cell_count`. The literal is the raw numeric token `42UL` in the source code; its suffix helps determine the literal expression's type before any conversion to the variable's type. A suffix does not change the type of a variable.
+> **Performance Note:** Writing `float pressure = 101325.0;` causes the compiler to treat `101325.0` as an 8-byte `double` and then convert/truncate it to a 4-byte `float`. Use `101325.0f` to instantiate directly as single precision.
 
-## 2. COMPONENT COUNT & TAXONOMY
+---
 
-### Base types
+## 4. Master Reference Table (Linux x86_64 / GCC LP64)
 
-- **`int`** is the base for the ordinary signed and unsigned integer families. The standard integer types also include `short int`, `long int`, and `long long int` forms.
-- **`char`** is a distinct character type. It is not an alias for `signed char` or `unsigned char`; plain `char` has implementation-defined signedness. On common GCC x86_64 Linux builds it is signed.
-- **`float`** and **`double`** are floating-point base types. `long double` is the extended-width form of `double`.
+The definitive mapping of container types to hardware size and corresponding literal suffixes:
 
-### Sign modifiers
+| Category | Canonical Container Type | Standard Code Shorthand | Size (Bytes) | Literal Suffix | Code Declaration & Literal Example |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **Character / Byte** | `signed char` | `char` | 1 | None | `char c = 'A';` |
+| **Unsigned Byte** | `unsigned char` | `unsigned char` | 1 | None | `unsigned char b = 255;` |
+| **Small Integer** | `signed short int` | `short` | 2 | None *(auto-promoted)* | `short s = 32000;` |
+| **Small Unsigned** | `unsigned short int` | `unsigned short` | 2 | None *(auto-promoted)* | `unsigned short us = 65000U;` |
+| **Standard Integer** | `signed int` | `int` | 4 | None *(default)* | `int count = -42;` |
+| **Standard Unsigned** | `unsigned int` | `unsigned int` / `unsigned` | 4 | `u` / `U` | `unsigned int u = 42U;` |
+| **Wide Integer** | `signed long int` | `long` | 8 | `l` / `L` | `long idx = 1000000L;` |
+| **Wide Unsigned** | `unsigned long int` | `unsigned long` | 8 | `ul` / `UL` | `unsigned long n = 1000000UL;` |
+| **Very Wide Integer** | `signed long long int` | `long long` | 8 | `ll` / `LL` | `long long large = 9000000000LL;` |
+| **Very Wide Unsigned**| `unsigned long long int`| `unsigned long long` | 8 | `ull` / `ULL` | `unsigned long long max = 18000000000ULL;` |
+| **Single Precision** | `float` | `float` | 4 | `f` / `F` | `float dt = 0.001f;` |
+| **Double Precision** | `double` | `double` | 8 | None *(default)* | `double viscosity = 1.002e-3;` |
+| **Extended Precision**| `long double` | `long double` | 16 | `l` / `L` | `long double exact = 3.141592653589793238L;` |
 
-There are **two** sign modifiers: `signed` and `unsigned`. They apply to integer types, including `char` (`signed char`, `unsigned char`) and the `int` family. Omitting the sign from `int` means signed `int`; omitting it from plain `char` leaves the implementation-defined `char` type. Sign modifiers do not apply to `float`, `double`, or `long double`.
+---
 
-### Width modifiers
+## 5. Engineering Guidelines for Scientific & CFD Codes
 
-There are **three** integer width modifiers: `short`, `long`, and `long long`. They apply to `int`, whose name can be omitted (`short int` → `short`, `long int` → `long`, `long long int` → `long long`). The standard guarantees the ordering `sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)`, not fixed byte counts. On the target described here, the usual sizes are 2, 4, 8, and 8 bytes respectively. `long` also combines with `double` to form `long double`; `short` and `long long` do not modify floating-point types.
-
-### How combinations work
-
-Valid integer spellings include `signed int`, `unsigned short int`, `long int`, `signed long int`, and `unsigned long long int`. Equivalent shorthand spellings include `int`, `unsigned short`, `long`, `long`, and `unsigned long long`. In particular, `signed long int` is commonly written `long`, because plain `long int` is signed by default.
-
-Floating-point types form their own, separate taxonomy: **`float`, `double`, and `long double`**. They do not take `signed` or `unsigned`; `long double` is not an integer type with both modifiers and does not have an integer suffix.
-
-## 3. LITERAL SUFFIXES
-
-A literal suffix is a letter or group of letters written directly after a numeric literal, such as the `U` in `100U`, the `LL` in `100LL`, or the `f` in `0.25f`. Suffixes apply to raw numeric values in the source code, **never to variable names**: `countU` is an identifier, not a suffixed variable.
-
-Suffixes affect the compiler's type selection for a literal. In C++17/20, an unsuffixed floating-point literal such as `0.25` has type `double`; add `f`/`F` for `float` or `l`/`L` for `long double`. An unsuffixed integer literal such as `42` has type `int` when representable. For larger values, C++ tries a standard candidate sequence based on the literal's base and suffix; adding `U`, `L`, or `LL` changes that sequence. The chosen type must still be able to represent the value.
-
-Integer suffixes select among integer types; there are no standard suffixes that directly produce `short`, `char`, `unsigned char`, or a fixed-width type such as `std::uint64_t`. For example, `42` is an `int` literal even when used to initialize a `short`; the value is then converted to the declared container type. Use an explicit cast or type-aware construction where that conversion matters.
-
-```cpp
-short local_count = 42;          // 42 is int; its value converts to short
-double time_step = 1e-4;          // unsuffixed floating literal is double
-float display_value = 1e-4f;      // f selects float literal type
-long double accumulated = 1e-4L;  // L selects long double literal type
-std::uint64_t global_id = 42ULL;  // ULL selects an unsigned integer candidate
+1. **Physical Field Variables ($U, V, W, P, T$):**
+   * Use **`double`** exclusively. Single-precision `float` accumulates catastrophic round-off error over millions of iterative sweeps and non-linear solver cycles.
+2. **Mesh Indices, Cell Counts, and Addressing:**
+   * Prefer **`std::size_t`** (an alias for `unsigned long` on 64-bit Linux) for array indices, boundary cell counts, and memory sizing to prevent sign-comparison warnings and prevent 32-bit integer overflow on large grids.
+3. **Scientific Literals:**
+   * Write floating constants cleanly using exponential notation with standard `double` precision: `1.0e-5` rather than `0.00001`.
 ```
-
-Integer suffix letters are case-insensitive in general. The two `l` letters in `ll` must both use the same case (`LL` or `ll`); `u` may be combined before or after the `l`/`ll` part (`ULL` or `LLU`). Prefer uppercase `U`, `L`, and `LL` in code when they make the intended type easier to read. C++17/20 has no standard `z` size suffix (it was added in C++23); use `std::size_t{n}` or an appropriately typed value for container counts.
-
-## 4. THE ULTIMATE REFERENCE TABLE
-
-The sizes are typical `sizeof` results in bytes for GCC on Linux x86_64 (LP64), not portable guarantees. “Literal suffixes” lists suffixes that influence selection in that family; it does not claim every suffixed literal is exactly the row's type. Integer suffixes select a candidate sequence, and the compiler chooses a type in that sequence that can represent the value. `—` means no standard suffix directly selects that type.
-
-| Category | Full/Official Type Name (Container) | Common Shorthand Name | Typical Size on Linux x86_64 (GCC) | Literal Suffixes (if applicable) | Code Example |
-|---|---|---|---:|---|---|
-| Integer / character | `char` | `char` | 1 byte | `—` | `char marker = 'x';` |
-| Integer / character | `signed char` | `signed char` | 1 byte | `—` | `signed char offset = -3;` |
-| Integer / character | `unsigned char` | `unsigned char` | 1 byte | `—` | `unsigned char tag = 7;` |
-| Signed integer | `short int` | `short` | 2 bytes | `—` | `short layer = 12;` |
-| Unsigned integer | `unsigned short int` | `unsigned short` | 2 bytes | `U` (unsigned candidate sequence; does not force `short`) | `unsigned short flags = 7U;` |
-| Signed integer | `int` | `int` | 4 bytes | none (default when representable); `U` can select unsigned candidates | `int iterations = 1000;` |
-| Unsigned integer | `unsigned int` | `unsigned` / `unsigned int` | 4 bytes | `U` | `unsigned int cells = 1000U;` |
-| Signed integer | `long int` | `long` | 8 bytes | `L` | `long offset = -100L;` |
-| Unsigned integer | `unsigned long int` | `unsigned long` | 8 bytes | `UL` or `LU` | `unsigned long count = 100UL;` |
-| Signed integer | `long long int` | `long long` | 8 bytes | `LL` | `long long wide_value = 100LL;` |
-| Unsigned integer | `unsigned long long int` | `unsigned long long` | 8 bytes | `ULL` or `LLU` | `unsigned long long global_cells = 1ULL << 40;` |
-| Floating-point | `float` | `float` | 4 bytes | `F` or `f` | `float cfl = 0.5f;` |
-| Floating-point | `double` | `double` | 8 bytes | none (default); no standard `D` suffix | `double pressure = 101325.0;` |
-| Floating-point | `long double` | `long double` | 16 bytes of storage (typically x87 extended precision) | `L` or `l` | `long double sum = 1.0L;` |
-
-For CFD code, `double` is a common choice for mesh coordinates, field values, and solver arithmetic when accuracy is the priority. Use `std::size_t` for container sizes and nonnegative local indices; use fixed-width types from `<cstdint>` when an interface, file format, or distributed global identifier requires a specific width. Fixed-width types are aliases to available built-in integer types and do not introduce new literal suffixes. Check `std::numeric_limits<T>` when range or precision matters, and avoid assuming that `long double` has more precision on every platform.
