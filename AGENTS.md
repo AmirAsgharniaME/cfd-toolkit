@@ -80,11 +80,13 @@ Pull requests should describe the behavior change, affected modules, and validat
 
 ## Document Maintenance
 
-Whenever you (the AI) perform any of the following tasks:
+Always update this `AGENTS.md` in the same turn/commit whenever a significant or fundamental project change affects its architecture, supported behavior, public API, module status, build workflow, or development conventions. Do not wait for an explicit reminder. Keep the description accurate and concise.
+
+Also update the root `FILEPATH.md` inventory whenever you (the AI) perform any of the following tasks:
 
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
-- Add, remove, or rename a project file, or change a file's path; update the root `FILEPATH.md` inventory in the same turn/commit.
+- Add, remove, or rename a project file, or change a file's path.
 
-You MUST update this `AGENTS.md` file in the same turn/commit to reflect the changes. Keep it synchronized without waiting for explicit user reminders.
+When a change meets both conditions, update both documents in the same turn/commit.
