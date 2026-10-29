@@ -106,10 +106,37 @@ The definitive mapping of container types to hardware size and corresponding lit
 
 ## 5. Engineering Guidelines for Scientific & CFD Codes
 
-1. **Physical Field Variables ($U, V, W, P, T$):**
-   * Use **`double`** exclusively. Single-precision `float` accumulates catastrophic round-off error over millions of iterative sweeps and non-linear solver cycles.
+1. **Physical Field Variables ($U, V, W, P, T$, Fluxes):**
+   * Use **`double`** exclusively. Single-precision `float` accumulates catastrophic round-off error over millions of iterative sweeps and non-linear solver cycles (e.g., SIMPLE / PISO loops).
+   * Avoid unintended precision demotion: never append `f` to floating constants in double-precision equations (e.g., write `0.5 * rho * U * U`, never `0.5f * ...`).
+   * When evaluating truncation/round-off errors in experimental solvers using `long double`, always explicitly suffix raw literals with `L` (e.g., `1.0e-12L`), otherwise the compiler defaults the constant to a 64-bit `double` before assigning.
+
 2. **Mesh Indices, Cell Counts, and Addressing:**
-   * Prefer **`std::size_t`** (an alias for `unsigned long` on 64-bit Linux) for array indices, boundary cell counts, and memory sizing to prevent sign-comparison warnings and prevent 32-bit integer overflow on large grids.
-3. **Scientific Literals:**
-   * Write floating constants cleanly using exponential notation with standard `double` precision: `1.0e-5` rather than `0.00001`.
-```
+   * Prefer **`std::size_t`** (an alias for `unsigned long` on 64-bit Linux LP64) for array indices, global cell IDs, face addressing, and linear algebra matrix offsets.
+   * **Prevent 32-bit Mesh Overflow:** When multiplying grid dimensions to calculate global volume/cell buffers ($N_x \times N_y \times N_z$), raw numeric literals must use the `UL` or `ULL` suffix:
+     ```cpp
+     // DANGEROUS: Evaluates as 32-bit signed int, causing catastrophic overflow (> 2.14B cells)
+     std::size_t total_cells = 3000 * 3000 * 3000; 
+
+     // ROBUST: Promotes the entire arithmetic expression to 64-bit unsigned arithmetic
+     std::size_t total_cells = 3000UL * 3000UL * 3000UL;
+     ```
+
+3. **Template Deductions & Limiters (Minmod, Superbee, Courant Number):**
+   * Algorithms involving flux limiters or adaptive time-stepping (`std::min`, `std::max`, `std::clamp`) require strict matching of operand types.
+   * Suffix literals to prevent compilation template deduction failures:
+     ```cpp
+     std::size_t iterations = 50;
+     auto max_iter = std::min(iterations, 100UL); // Matches std::size_t exactly
+     ```
+
+4. **Conditionals & Loop Counters (Readability vs. Over-engineering):**
+   * For plain loop iteration and simple assertion/precondition checks against small numbers (e.g., checking minimum required boundary layers or grading resolution), keep the code clean and free of visual noise:
+     ```cpp
+     if (n_cells < 2) { ... } // Idiomatic, clean, and zero-cost on x86_64
+     ```
+   * The compiler's optimizer generates identical assembly (`cmp` immediate) regardless of whether `2`, `2U`, or `2UL` is used. Reserve suffixes for expressions where overflow or template deduction is genuinely at stake.
+
+5. **Scientific Literals & Vector Math:**
+   * Write tiny or massive physical constants using exponential scientific notation directly as standard `double`: write `1.0e-6` rather than `0.000001`, and `1.0e5` instead of `100000.0`.
+   * Ensure division expressions preserve floating-point semantics: write `1.0 / 3.0` (or `1. / 3.`), never `1 / 3` which yields integer zero.
