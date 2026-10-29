@@ -8,8 +8,10 @@ run from `0` to `N`.
 
 ## Generating graded faces
 
-`cfd::mesh::grading::generate_faces_1d(domain, n_cells, type, ratio)` returns
-`n_cells + 1` face coordinates spanning the exact domain endpoints. `Uniform`
+`cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio)` returns
+`n_cells + 1` face coordinates spanning the exact domain endpoints. `n_cells`
+is a `std::size_t` and must be at least two; a count beyond the supported vector
+sizes throws `std::length_error`. `Uniform`
 uses equal widths; `Forward` grades from fine at the start to coarse at the
 end; `Backward` reverses that distribution; `BothEnds` refines both boundaries;
 and `Center` refines the center. For graded modes, `ratio` is the width growth

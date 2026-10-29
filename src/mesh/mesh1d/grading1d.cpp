@@ -86,12 +86,16 @@ namespace
 }  // namespace
 
 std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
-                                      const int n_cells,
-                                      const GradingType type,
-                                      const double ratio)
+                                  const std::size_t n_cells,
+                                  const GradingType type,
+                                  const double ratio)
 {
-    if (n_cells < 2) {
+    if (n_cells < 2U) {
         throw std::invalid_argument("1D grading requires at least two cells");
+    }
+    if (n_cells >= std::vector<double>{}.max_size() ||
+        n_cells > std::vector<long double>{}.max_size()) {
+        throw std::length_error("1D grading cell count exceeds maximum vector size");
     }
     if (!std::isfinite(ratio) || ratio <= 0.0) {
         throw std::invalid_argument("1D grading ratio must be positive and finite");
@@ -100,7 +104,7 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
         throw std::invalid_argument("graded 1D modes require a ratio greater than or equal to 1");
     }
 
-    const auto cell_count = static_cast<std::size_t>(n_cells);
+    const std::size_t cell_count = n_cells;
     std::vector<long double> exponents(cell_count, 0.0L);
     switch (type) {
     case GradingType::Uniform:

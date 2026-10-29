@@ -9,7 +9,7 @@ Current implementation status:
 | Module paths under `include/cfd/` and `src/` | Implemented behavior or reserved scope |
 | --- | --- |
 | `geometry/domain/` | `Domain1D`, `Domain2D`, and `Domain3D` represent finite coordinate-agnostic intervals, Cartesian rectangles, and cuboids, respectively. |
-| `mesh/` and `mesh/mesh1d/` | `cfd::mesh::GradingType` (`include/cfd/mesh/grading_type.hpp`) names dimension-agnostic cell-width distributions; `cfd::mesh::grading::make_1d_faces` (`mesh1d/grading1d.hpp` / `src/mesh/mesh1d/grading1d.cpp`) implements `Uniform`, `Forward`, `Backward`, `BothEnds`, and `Center` distributions. Graded modes require a finite ratio of at least 1; `Uniform` accepts any positive finite ratio and ignores its value. Generated faces preserve exact domain endpoints and reject unrepresentable faces or cells without a representable interior center. `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes and `NonUniformFvMesh1D` accepts explicit faces. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
+| `mesh/` and `mesh/mesh1d/` | `cfd::mesh::GradingType` (`include/cfd/mesh/grading_type.hpp`) names dimension-agnostic cell-width distributions; `cfd::mesh::grading::make_1d_faces` (`mesh1d/grading1d.hpp` / `src/mesh/mesh1d/grading1d.cpp`) takes a `std::size_t` cell count of at least two and implements `Uniform`, `Forward`, `Backward`, `BothEnds`, and `Center` distributions. Graded modes require a finite ratio of at least 1; `Uniform` accepts any positive finite ratio and ignores its value. The generator throws `std::length_error` when the requested count exceeds supported vector sizes. Generated faces preserve exact domain endpoints and reject unrepresentable faces or cells without a representable interior center. `FvMesh1D` owns common mesh geometry; `UniformFvMesh1D` constructs uniform meshes and `NonUniformFvMesh1D` accepts explicit faces. `UniformMesh1D` and `Mesh1D` are compatibility aliases for `UniformFvMesh1D`. |
 | `field/field1d/` | `VolScalarField1D` stores cell- or face-sampled scalar values; `ScalarField1D` is a compatibility alias. Volume vector and surface field files are placeholders. |
 | `boundary/boundary1d/` | Dirichlet and Neumann boundary objects are implemented; patch boundaries are placeholders. Shared boundary enums live in `boundary/types.hpp`; field locations live in `field/types.hpp`. |
 | `mesh/mesh2d/`, `mesh/mesh3d/` | The uniform 2D header/source are empty; the uniform 3D files are placeholders. There is no implemented multidimensional mesh API. |
@@ -38,7 +38,7 @@ by component and dimension:
 - `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
 - `test_scalar_field1d`: `examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp`.
 
-Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `file_path` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::make_1d_faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+Component documentation lives beside public headers at `include/cfd/geometry/domain/README.md`, `include/cfd/mesh/mesh1d/README.md`, and `include/cfd/field/field1d/README.md`. The root `FILEPATH.md` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::make_1d_faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
@@ -85,6 +85,6 @@ Whenever you (the AI) perform any of the following tasks:
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
-- Add, remove, or rename a project file, or change a file's path; update the root `file_path` inventory in the same turn/commit.
+- Add, remove, or rename a project file, or change a file's path; update the root `FILEPATH.md` inventory in the same turn/commit.
 
 You MUST update this `AGENTS.md` file in the same turn/commit to reflect the changes. Keep it synchronized without waiting for explicit user reminders.

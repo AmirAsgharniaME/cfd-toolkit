@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <initializer_list>
 #include <iostream>
@@ -66,12 +67,12 @@ void require_exception(Operation operation, const char* message)
 
 void check_generated_geometry(const Domain1D& domain,
                               const GradingType type,
-                              const int n_cells,
+                              const std::size_t n_cells,
                               const double ratio,
                               double& maximum_symmetry_error)
 {
     const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
-    const auto cell_count = static_cast<std::size_t>(n_cells);
+    const std::size_t cell_count = n_cells;
     const std::string context = type_name(type) + " with N=" + std::to_string(n_cells);
 
     require(faces.size() == cell_count + 1U, context + ": incorrect face count");
@@ -108,14 +109,16 @@ void check_generated_geometry(const Domain1D& domain,
     }
 }
 
-void check_unit_ratio(const Domain1D& domain, const GradingType type, const int n_cells)
+void check_unit_ratio(const Domain1D& domain,
+                      const GradingType type,
+                      const std::size_t n_cells)
 {
     if (type == GradingType::Uniform) {
         return;
     }
 
     const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, 1.0);
-    const auto cell_count = static_cast<std::size_t>(n_cells);
+    const std::size_t cell_count = n_cells;
     const double expected_width = domain.length() / static_cast<double>(n_cells);
     const double tolerance = 1e-12 * domain.length();
     for (std::size_t cell = 0; cell < cell_count; ++cell) {
@@ -130,7 +133,7 @@ void check_invalid_inputs()
     const Domain1D domain(-2.5, 5.5);
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
-    const auto generate = [&domain](const int n_cells,
+    const auto generate = [&domain](const std::size_t n_cells,
                                     const GradingType type,
                                     const double ratio) {
         return cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
@@ -170,7 +173,7 @@ void check_contracts()
 {
     const Domain1D domain(-2.5, 5.5);
     double maximum_symmetry_error = 0.0;
-    for (const int n_cells : {10, 11}) {
+    for (const std::size_t n_cells : {10U, 11U}) {
         for (const GradingType type : grading_types) {
             check_generated_geometry(domain, type, n_cells, 1.8,
                                      maximum_symmetry_error);

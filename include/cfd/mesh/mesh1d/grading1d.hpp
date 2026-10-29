@@ -3,6 +3,7 @@
 #include "cfd/geometry/domain/domain1d.hpp"
 #include "cfd/mesh/grading_type.hpp"
 
+#include <cstddef>
 #include <vector>
 
 namespace cfd::mesh::grading
@@ -29,9 +30,11 @@ namespace cfd::mesh::grading
 /// @throws std::invalid_argument If an input is invalid or the faces cannot be
 ///         represented as a strictly increasing sequence of finite doubles
 ///         with distinct interior cell centers.
+/// @throws std::length_error If the requested cell count exceeds the maximum
+///         size supported by the face or weight vectors.
 [[nodiscard]] std::vector<double> make_1d_faces(
     const geometry::Domain1D& domain,
-    int n_cells,
+    std::size_t n_cells,
     GradingType type,
     double ratio);
 

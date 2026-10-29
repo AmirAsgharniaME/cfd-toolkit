@@ -146,7 +146,7 @@ CFG | CMake package config template | cmake/cfd-toolkitConfig.cmake.in
 CFG | Git ignore rules | .gitignore
 CFG | VS Code launch configuration | .vscode/launch.json
 CFG | VS Code task configuration | .vscode/tasks.json
-CFG | File manager | file_path
+CFG | File manager | FILEPATH.md
 
 # Surface fields, patch boundaries, and explicit operators
 H | surface scalar field1d header | include/cfd/field/field1d/surface_scalar_field1d.hpp
