@@ -90,6 +90,24 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
                                   const GradingType type,
                                   const double ratio)
 {
+    // =========================================================================
+    // ENGINEERING NOTE: C++ LITERAL SUFFIXES & PRECISION CHOICE
+    // =========================================================================
+    // 1. Unsigned Literal ('U'):
+    //    Used on integer constants (e.g., 2U) to match 'std::size_t' type.
+    //    This prevents strict compiler warnings/errors under -Wsign-compare
+    //    and -Wconversion flags.
+    //
+    // 2. Long Double Literal ('L'):
+    //    Used on floating-point constants (e.g., 0.0L) to initialize containers
+    //    of type 'long double' directly, avoiding implicit type-casting from 'double'.
+    //
+    // 3. Why 'long double' here instead of standard 'double'?
+    //    Although 99% of CFD uses 'double', geometric grading formulas (like 
+    //    geometric progression sums) accumulate round-off errors over many cells.
+    //    Using 80-bit 'long double' locally for face/exponent generation prevents 
+    //    boundary mismatch errors (e.g., grid not landing precisely on domain ends).
+    // =========================================================================
     if (n_cells < 2U) {
         throw std::invalid_argument("1D grading requires at least two cells");
     }
@@ -144,3 +162,38 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
 }
 
 }  // namespace cfd::mesh::grading
+
+
+/* =========================================================================
+ * C++ LITERAL SUFFIXES QUICK REFERENCE GUIDE
+ * =========================================================================
+ * Code Notation    | Data Type          | Suffix Name          | Main Use Case
+ * -------------------------------------------------------------------------
+ * 2                | int                | (Default)            | Simple counters & standard integers
+ * 2U / 2u          | unsigned int       | Unsigned             | Comparing with vector size/indices w/o warnings
+ * 2L / 2l          | long int           | Long                 | Very large integers (64-bit)
+ * 2ULL             | unsigned long long | Unsigned Long Long   | Maximum possible unsigned integer
+ * 2.0              | double             | (Default)            | 99% of floating-point math & CFD
+ * 2.0f / 2.0F      | float              | Float                | Graphics & CUDA programming (32-bit precision)
+ * 2.0L             | long double        | Long Double          | Extended precision (80/128-bit) for sensitive math
+ * ========================================================================= */
+
+/*
+ * ====================================================================================
+ *  APEX-FVM INTEGERS REFERENCE GUIDE (Integer Types, Modifiers & Size Aliases)
+ * ====================================================================================
+ *  Format: [Type / Modifier] -> Bytes | Approximate Range | CFD Use Case
+ * ------------------------------------------------------------------------------------
+ *  1. short               -> 2 Bytes | -32,768 to 32,767                 | Tiny local counters
+ *  2. unsigned short      -> 2 Bytes | 0 to 65,535                       | Small positive IDs
+ *  3. int                 -> 4 Bytes | -2B to +2B (~ -2.1e9 to +2.1e9)     | Standard loops, general vars
+ *  4. unsigned int        -> 4 Bytes | 0 to 4.2B (~ 4.29e9)              | Standard cell/face IDs (> 0)
+ *  5. long                -> 8 Bytes | -9E18 to +9E18 (on Linux 64-bit)  | Large scale counters
+ *  6. unsigned long       -> 8 Bytes | 0 to 1.8E19 (on Linux 64-bit)     | Massive mesh indices
+ *  7. long long           -> 8 Bytes | -9E18 to +9E18 (Guaranteed)       | Astronomical / Global IDs
+ *  8. unsigned long long  -> 8 Bytes | 0 to 1.8E19 (Guaranteed)          | Ultimate non-negative scale
+ * ------------------------------------------------------------------------------------
+ *  SPECIAL SYSTEM ALIAS:
+ *  9. std::size_t         -> 8 Bytes (on Linux 64-bit) | 0 to 1.8E19     | Container sizes & Loop indices (.size())
+ * ====================================================================================
+ */
