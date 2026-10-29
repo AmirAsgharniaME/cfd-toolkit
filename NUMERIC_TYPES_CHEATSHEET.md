@@ -29,16 +29,16 @@ $$\text{[Sign Modifier]} + \text{[Width Modifier]} + \text{[Base Type]}$$
 
 Because C++ allows shorthand alias forms by dropping the default `signed` and the implied base `int`, we get:
 
-| Canonical (Official) Name | Shorthand In Code | What Was Dropped? |
-| :--- | :--- | :--- |
-| `signed int` | `int` | `signed` is implicit default |
-| `unsigned int` | `unsigned` or `unsigned int` | `int` can be omitted |
-| `signed short int` | `short` | Both `signed` and `int` dropped |
-| `unsigned short int` | `unsigned short` | `int` dropped |
-| `signed long int` | `long` | Both `signed` and `int` dropped |
-| `unsigned long int` | `unsigned long` | `int` dropped |
-| `signed long long int` | `long long` | Both `signed` and `int` dropped |
-| `unsigned long long int` | `unsigned long long` | `int` dropped |
+| Canonical (Official) Name | Shorthand In Code | What Was Dropped? | Value Range (Linux x86_64 / GCC LP64) |
+| :--- | :--- | :--- | :--- |
+| `signed int` | `int` | `signed` is implicit default | [-2,147,483,648 to 2,147,483,647] (~ -2.14 x 10^9 to +2.14 x 10^9) |
+| `unsigned int` | `unsigned` or `unsigned int` | `int` can be omitted | [0 to 4,294,967,295] (~ 0 to 4.29 x 10^9) |
+| `signed short int` | `short` | Both `signed` and `int` dropped | [-32,768 to 32,767] |
+| `unsigned short int` | `unsigned short` | `int` dropped | [0 to 65,535] |
+| `signed long int` | `long` | Both `signed` and `int` dropped | [-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807] (~ -9.22 x 10^18 to +9.22 x 10^18) |
+| `unsigned long int` | `unsigned long` | `int` dropped | [0 to 18,446,744,073,709,551,615] (~ 0 to 1.84 x 10^19) |
+| `signed long long int` | `long long` | Both `signed` and `int` dropped | [-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807] |
+| `unsigned long long int` | `unsigned long long` | `int` dropped | [0 to 18,446,744,073,709,551,615] |
 
 > **Key Takeaway:** There is no distinct fundamental type named `long long` by itself—it is technically the width modifier `long long` modifying the base `int`. Writing `long long` is 100% valid and universally accepted standard practice.
 
@@ -50,11 +50,11 @@ Floating-point numbers do **not** accept `signed` or `unsigned` modifiers becaus
 * **Base Types:** `float` and `double` are two completely independent, distinct base types.
 * **Width Modifier:** Only `long` is available, and it applies exclusively to `double`:
 
-| Official Type Name | Shorthand | Size (Linux x86_64) | Precision |
-| :--- | :--- | :---: | :--- |
-| `float` | *(None - complete as is)* | 4 Bytes | Single Precision (~6–7 decimal digits) |
-| `double` | *(None - complete as is)* | 8 Bytes | Double Precision (~15–17 decimal digits) |
-| `long double` | *(None - both words required)* | 16 Bytes (GCC LP64) | Extended Precision (80-bit padded to 128-bit) |
+| Official Type Name | Shorthand | Size (Linux x86_64) | Precision | Approximate Normalized Positive Range |
+| :--- | :--- | :---: | :--- | :--- |
+| `float` | *(None - complete as is)* | 4 Bytes | Single Precision (~6–7 decimal digits) | ~ [1.18 x 10^-38 to 3.40 x 10^38] |
+| `double` | *(None - complete as is)* | 8 Bytes | Double Precision (~15–17 decimal digits) | ~ [2.23 x 10^-308 to 1.79 x 10^308] |
+| `long double` | *(None - both words required)* | 16 Bytes (GCC LP64) | Extended Precision (80-bit padded to 128-bit) | ~ [3.36 x 10^-4932 to 1.18 x 10^4932] (~18–19 decimal digits, x87 80-bit extended layout padded to 16 bytes) |
 
 ---
 
@@ -86,21 +86,21 @@ auto z = 3.14L;   // Type: long double (16 bytes on GCC x86_64)
 
 The definitive mapping of container types to hardware size and corresponding literal suffixes:
 
-| Category | Canonical Container Type | Standard Code Shorthand | Size (Bytes) | Literal Suffix | Code Declaration & Literal Example |
-| :--- | :--- | :--- | :---: | :---: | :--- |
-| **Character / Byte** | `signed char` | `char` | 1 | None | `char c = 'A';` |
-| **Unsigned Byte** | `unsigned char` | `unsigned char` | 1 | None | `unsigned char b = 255;` |
-| **Small Integer** | `signed short int` | `short` | 2 | None *(auto-promoted)* | `short s = 32000;` |
-| **Small Unsigned** | `unsigned short int` | `unsigned short` | 2 | None *(auto-promoted)* | `unsigned short us = 65000U;` |
-| **Standard Integer** | `signed int` | `int` | 4 | None *(default)* | `int count = -42;` |
-| **Standard Unsigned** | `unsigned int` | `unsigned int` / `unsigned` | 4 | `u` / `U` | `unsigned int u = 42U;` |
-| **Wide Integer** | `signed long int` | `long` | 8 | `l` / `L` | `long idx = 1000000L;` |
-| **Wide Unsigned** | `unsigned long int` | `unsigned long` | 8 | `ul` / `UL` | `unsigned long n = 1000000UL;` |
-| **Very Wide Integer** | `signed long long int` | `long long` | 8 | `ll` / `LL` | `long long large = 9000000000LL;` |
-| **Very Wide Unsigned**| `unsigned long long int`| `unsigned long long` | 8 | `ull` / `ULL` | `unsigned long long max = 18000000000ULL;` |
-| **Single Precision** | `float` | `float` | 4 | `f` / `F` | `float dt = 0.001f;` |
-| **Double Precision** | `double` | `double` | 8 | None *(default)* | `double viscosity = 1.002e-3;` |
-| **Extended Precision**| `long double` | `long double` | 16 | `l` / `L` | `long double exact = 3.141592653589793238L;` |
+| Category | Canonical Container Type | Standard Code Shorthand | Size (Bytes) | Value / Dynamic Range (Linux x86_64 / GCC LP64) | Literal Suffix | Code Declaration & Literal Example |
+| :--- | :--- | :--- | :---: | :--- | :---: | :--- |
+| **Character / Byte** | `signed char` | `char` | 1 | [-128 to 127] | None | `char c = 'A';` |
+| **Unsigned Byte** | `unsigned char` | `unsigned char` | 1 | [0 to 255] | None | `unsigned char b = 255;` |
+| **Small Integer** | `signed short int` | `short` | 2 | [-32,768 to 32,767] | None *(auto-promoted)* | `short s = 32000;` |
+| **Small Unsigned** | `unsigned short int` | `unsigned short` | 2 | [0 to 65,535] | None *(auto-promoted)* | `unsigned short us = 65000U;` |
+| **Standard Integer** | `signed int` | `int` | 4 | [-2,147,483,648 to 2,147,483,647] (~ -2.14 x 10^9 to +2.14 x 10^9) | None *(default)* | `int count = -42;` |
+| **Standard Unsigned** | `unsigned int` | `unsigned int` / `unsigned` | 4 | [0 to 4,294,967,295] (~ 0 to 4.29 x 10^9) | `u` / `U` | `unsigned int u = 42U;` |
+| **Wide Integer** | `signed long int` | `long` | 8 | [-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807] (~ -9.22 x 10^18 to +9.22 x 10^18) | `l` / `L` | `long idx = 1000000L;` |
+| **Wide Unsigned** | `unsigned long int` | `unsigned long` | 8 | [0 to 18,446,744,073,709,551,615] (~ 0 to 1.84 x 10^19; std::size_t has this range) | `ul` / `UL` | `unsigned long n = 1000000UL;` |
+| **Very Wide Integer** | `signed long long int` | `long long` | 8 | [-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807] | `ll` / `LL` | `long long large = 9000000000LL;` |
+| **Very Wide Unsigned**| `unsigned long long int`| `unsigned long long` | 8 | [0 to 18,446,744,073,709,551,615] | `ull` / `ULL` | `unsigned long long max = 18000000000ULL;` |
+| **Single Precision** | `float` | `float` | 4 | ~ [1.18 x 10^-38 to 3.40 x 10^38] (~6-7 decimal digits) | `f` / `F` | `float dt = 0.001f;` |
+| **Double Precision** | `double` | `double` | 8 | ~ [2.23 x 10^-308 to 1.79 x 10^308] (~15-17 decimal digits) | None *(default)* | `double viscosity = 1.002e-3;` |
+| **Extended Precision**| `long double` | `long double` | 16 | ~ [3.36 x 10^-4932 to 1.18 x 10^4932] (~18-19 decimal digits, x87 80-bit extended layout padded to 16 bytes) | `l` / `L` | `long double exact = 3.141592653589793238L;` |
 
 ---
 
