@@ -9,6 +9,30 @@
 namespace cfd::mesh::grading
 {
 
+/// Convert a requested largest-to-smallest cell-width ratio to the
+/// per-exponent-step ratio used by `make_1d_faces`.
+///
+/// `total_ratio` means the largest generated cell width divided by the
+/// smallest. The returned ratio is the cell-to-cell growth factor for one
+/// exponent increment, calculated as
+/// `total_ratio^(1 / exponent_span)`. This definition is independent of
+/// physical left-to-right direction: Forward and Backward have the same
+/// exponent span and return the same value for the same inputs.
+///
+/// @param n_cells Number of cells; must be at least two.
+/// @param type Cell-width distribution whose exponent span determines the
+///             conversion.
+/// @param R Requested largest-to-smallest cell-width ratio; must be
+///                    finite and greater than or equal to 1.0.
+/// @return The finite per-exponent-step ratio to pass to `make_1d_faces`.
+/// @throws std::invalid_argument If an input is invalid, Uniform is requested
+///         with a non-unity total ratio, or the grading pattern has no
+///         positive exponent span.
+[[nodiscard]] double ratio_from_total_ratio(
+    std::size_t n_cells,
+    GradingType type,
+    const double R);
+
 /// Generate face coordinates for a one-dimensional mesh using `type`.
 ///
 /// For graded modes, `ratio` is the factor by which cell widths grow when
@@ -21,7 +45,7 @@ namespace cfd::mesh::grading
 /// @param domain Valid, finite domain whose exact endpoints bound the mesh.
 /// @param n_cells Number of cells; must be at least two.
 /// @param type Cell-width distribution to generate.
-/// @param ratio Positive finite width-growth factor; graded modes require a
+/// @param r Positive finite width-growth factor; graded modes require a
 ///              value greater than or equal to 1.0.
 /// @return `n_cells + 1` strictly increasing face coordinates, including the
 ///         exact domain endpoints. A successful return also guarantees that
@@ -36,6 +60,6 @@ namespace cfd::mesh::grading
     const geometry::Domain1D& domain,
     std::size_t n_cells,
     GradingType type,
-    double ratio);
+    double r);
 
 }  // namespace cfd::mesh::grading

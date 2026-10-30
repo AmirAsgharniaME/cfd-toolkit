@@ -169,10 +169,82 @@ void check_invalid_inputs()
         "Expected unrepresentable cell centers to throw std::invalid_argument");
 }
 
+void check_total_ratio_conversion(double& maximum_total_ratio_error)
+{
+    const Domain1D domain(-1.0, 1.0);
+    using cfd::mesh::grading::ratio_from_total_ratio;
+
+    require(ratio_from_total_ratio(5U, GradingType::Forward, 16.0) == 2.0,
+            "Forward N=5 total ratio conversion is incorrect");
+    require(ratio_from_total_ratio(5U, GradingType::Backward, 16.0) == 2.0,
+            "Backward N=5 total ratio conversion is incorrect");
+    require(ratio_from_total_ratio(5U, GradingType::BothEnds, 16.0) == 4.0,
+            "BothEnds N=5 total ratio conversion is incorrect");
+    require(ratio_from_total_ratio(6U, GradingType::BothEnds, 16.0) == 4.0,
+            "BothEnds N=6 exponent span should be two");
+    require(ratio_from_total_ratio(5U, GradingType::Center, 16.0) == 4.0,
+            "Center N=5 total ratio conversion is incorrect");
+    require(ratio_from_total_ratio(6U, GradingType::Center, 16.0) == 4.0,
+            "Center N=6 exponent span should be two");
+
+    for (const GradingType type : grading_types) {
+        require(ratio_from_total_ratio(5U, type, 1.0) == 1.0,
+                type_name(type) + " unity total ratio should return one");
+    }
+    require_exception<std::invalid_argument>(
+        [&] { (void)ratio_from_total_ratio(5U, GradingType::Uniform, 2.0); },
+        "Uniform with non-unity total ratio should throw");
+
+    for (const std::size_t n_cells : {6U, 7U}) {
+        for (const GradingType type : {GradingType::Forward, GradingType::Backward,
+                                       GradingType::BothEnds, GradingType::Center}) {
+            constexpr double total_ratio = 16.0;
+            const double ratio = ratio_from_total_ratio(n_cells, type, total_ratio);
+            const auto faces = cfd::mesh::grading::make_1d_faces(
+                domain, n_cells, type, ratio);
+            double minimum_width = std::numeric_limits<double>::infinity();
+            double maximum_width = 0.0;
+            for (std::size_t cell = 0; cell < n_cells; ++cell) {
+                const double width = faces[cell + 1U] - faces[cell];
+                minimum_width = std::min(minimum_width, width);
+                maximum_width = std::max(maximum_width, width);
+            }
+            const double measured_ratio = maximum_width / minimum_width;
+            const double error = std::fabs(measured_ratio - total_ratio);
+            maximum_total_ratio_error = std::max(maximum_total_ratio_error, error);
+            require(error <= 1e-11 * total_ratio,
+                    type_name(type) + " N=" + std::to_string(n_cells) +
+                        " generated width ratio differs from requested total ratio");
+        }
+    }
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    require_exception<std::invalid_argument>(
+        [&] { (void)ratio_from_total_ratio(1U, GradingType::Forward, 1.0); },
+        "total ratio conversion should reject fewer than two cells");
+    for (const double total_ratio : {nan, inf, 0.5}) {
+        require_exception<std::invalid_argument>(
+            [&] { (void)ratio_from_total_ratio(5U, GradingType::Forward, total_ratio); },
+            "total ratio conversion should reject invalid ratios");
+    }
+    require_exception<std::invalid_argument>(
+        [&] {
+            (void)ratio_from_total_ratio(5U, static_cast<GradingType>(255U), 1.0);
+        },
+        "total ratio conversion should reject unsupported grading types");
+    for (const GradingType type : {GradingType::BothEnds, GradingType::Center}) {
+        require_exception<std::invalid_argument>(
+            [&] { (void)ratio_from_total_ratio(2U, type, 2.0); },
+            "two-cell symmetric grading has no positive exponent span");
+    }
+}
+
 void check_contracts()
 {
     const Domain1D domain(-2.5, 5.5);
     double maximum_symmetry_error = 0.0;
+    double maximum_total_ratio_error = 0.0;
     for (const std::size_t n_cells : {10U, 11U}) {
         for (const GradingType type : grading_types) {
             check_generated_geometry(domain, type, n_cells, 1.8,
@@ -181,9 +253,13 @@ void check_contracts()
         }
     }
     check_invalid_inputs();
+    check_total_ratio_conversion(maximum_total_ratio_error);
     std::cout << "Maximum symmetric-face distance error: " << std::scientific
               << std::setprecision(3) << maximum_symmetry_error
               << " (tolerance " << 1e-12 * domain.length() << ")\n";
+    std::cout << "Maximum generated total-ratio error: " << std::scientific
+              << std::setprecision(3) << maximum_total_ratio_error
+              << " (tolerance " << 1e-11 * 16.0 << ")\n";
 }
 
 }  // namespace

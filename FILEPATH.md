@@ -63,7 +63,7 @@ CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_
 CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp
 
 # Functions (header and source)
-FUNCTION | 1D Grading Face Generator | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
+FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
 
 
 # Time management

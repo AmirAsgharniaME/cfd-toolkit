@@ -85,6 +85,68 @@ namespace
 
 }  // namespace
 
+double ratio_from_total_ratio(const std::size_t n_cells,
+                              const GradingType type,
+                              const double R)
+{
+    if (n_cells < 2U) {
+        throw std::invalid_argument("1D grading requires at least two cells");
+    }
+    if (!std::isfinite(R) || R < 1.0) {
+        throw std::invalid_argument(
+            "1D total cell-width ratio must be finite and greater than or equal to 1");
+    }
+
+    if (type == GradingType::Uniform) {
+        if (R != 1.0) {
+            throw std::invalid_argument(
+                "Uniform grading cannot produce a non-unity total cell-width ratio");
+        }
+        return 1.0;
+    }
+
+    std::size_t max_exponent = 0U;
+    switch (type) {
+    case GradingType::Forward:
+    case GradingType::Backward:
+        max_exponent = n_cells - 1U;
+        break;
+    case GradingType::BothEnds:
+    case GradingType::Center:
+        // Both patterns peak at floor((N - 1) / 2). For Center this differs
+        // from floor(N / 2) when N is even, as confirmed by its two central
+        // zero exponents.
+        max_exponent = (n_cells - 1U) / 2U;
+        break;
+    case GradingType::Uniform:
+        // Handled above; retain an exhaustive enum switch.
+        break;
+    default:
+        throw std::invalid_argument("1D grading type is not a supported GradingType value");
+    }
+    if (max_exponent == 0U) {
+        throw std::invalid_argument("1D grading pattern requires a positive exponent span");
+    }
+
+    const long double log_R =
+        std::log(static_cast<long double>(R));
+    const long double log_r =
+        log_R / static_cast<long double>(max_exponent);
+    const long double r = std::exp(log_r);
+    if (!std::isfinite(r) || r <= 0.0L ||
+        r > static_cast<long double>(std::numeric_limits<double>::max())) {
+        throw std::invalid_argument(
+            "computed 1D cell-width growth factor is not representable as a finite double");
+    }
+
+    const double result = static_cast<double>(r);
+    if (!std::isfinite(result) || result <= 0.0 || result < 1.0) {
+        throw std::invalid_argument(
+            "computed 1D cell-width growth factor is not representable as a finite double");
+    }
+    return result;
+}
+
 std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
                                   const std::size_t n_cells,
                                   const GradingType type,

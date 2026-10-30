@@ -15,14 +15,20 @@ route, and supplies the cell count or face coordinates.
   Boundary faces retain the domain endpoints exactly. `dx()`, `spacing()`, and
   `nominal_spacing()` report the target spacing; actual widths come from the
   stored faces. `UniformMesh1D` and `Mesh1D` are aliases for this class.
-- `grading1d.hpp` / `src/mesh/mesh1d/grading1d.cpp` implement the free function
-  `cfd::mesh::grading::make_1d_faces`. The caller supplies a domain, at least
-  two cells, a `GradingType`, and a ratio. The function builds normalized cell
-  width weights, converts cumulative weights to faces, and returns a vector of
-  `N + 1` coordinates. It preserves the exact domain endpoints and validates
-  that faces and interior centers are representable. It does not construct or
-  own a mesh. The grading enum itself is declared in
-  `include/cfd/mesh/grading_type.hpp`.
+- `grading1d.hpp` / `src/mesh/mesh1d/grading1d.cpp` implement the free functions
+  `cfd::mesh::grading::make_1d_faces` and
+  `cfd::mesh::grading::ratio_from_total_ratio`. For face generation, the caller
+  supplies a domain, at least two cells, a `GradingType`, and a ratio. The
+  function builds normalized cell-width weights, converts cumulative weights to
+  faces, and returns a vector of `N + 1` coordinates. It preserves the exact
+  domain endpoints and validates that faces and interior centers are
+  representable. It does not construct or own a mesh. The grading enum itself
+  is declared in `include/cfd/mesh/grading_type.hpp`.
+  `ratio_from_total_ratio` converts the requested largest generated cell width
+  divided by the smallest into the per-cell ratio for one exponent increment.
+  Its meaning is independent of left-to-right direction: Forward and Backward
+  have the same exponent span and therefore return the same value. Symmetric
+  modes with two cells have zero exponent span and are rejected.
 - `non_uniform_fv_mesh1d.hpp` /
   `src/mesh/mesh1d/non_uniform_fv_mesh1d.cpp` implement
   `NonUniformFvMesh1D`. The caller supplies a domain and explicit face vector.
