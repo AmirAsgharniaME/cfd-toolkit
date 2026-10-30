@@ -1,20 +1,24 @@
 #pragma once
 
 #include <cstddef>
+#include <span>
 #include <string>
 #include <vector>
 
 #include <cfd/field/types.hpp>
-#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 namespace cfd::field::field1d
 {
 
-/// A scalar field sampled on a one-dimensional uniform finite-volume mesh.
+/// A scalar field sampled at the cells or faces of a one-dimensional
+/// finite-volume mesh.
 ///
 /// Values live at either mesh faces or mesh cells, and the storage is sized
-/// once from the mesh. The referenced mesh must outlive the field and all
-/// fields produced by copying or arithmetic.
+/// once from the mesh. The field is bound to the mesh object by reference;
+/// that mesh must outlive the field and all fields produced by copying or
+/// arithmetic. Copy and move construction keep the same binding; assignment
+/// is deleted. Mesh identity (not geometric equality) decides compatibility.
 class VolScalarField1D
 {
 public:
@@ -24,10 +28,17 @@ public:
     /// @param mesh        Mesh the field is sampled on; stored by reference.
     /// @param location    Sampling location, cells by default.
     /// @param initial_val Value assigned to every allocated entry.
+    /// @throws std::invalid_argument If location is not a valid FieldLocation.
     VolScalarField1D(std::string name,
-                     const cfd::mesh::UniformFvMesh1D& mesh,
+                     const cfd::mesh::FvMesh1D& mesh,
                      FieldLocation location = FieldLocation::Cell,
                      double initial_val = 0.0);
+
+    VolScalarField1D(const VolScalarField1D&) = default;
+    VolScalarField1D(VolScalarField1D&&) noexcept = default;
+    VolScalarField1D& operator=(const VolScalarField1D&) = delete;
+    VolScalarField1D& operator=(VolScalarField1D&&) = delete;
+    ~VolScalarField1D() = default;
 
     /// Field name.
     /// @return The stored name.
@@ -35,7 +46,7 @@ public:
 
     /// Mesh the field is sampled on.
     /// @return The referenced mesh.
-    [[nodiscard]] const mesh::UniformFvMesh1D& mesh() const noexcept { return mesh_; }
+    [[nodiscard]] const cfd::mesh::FvMesh1D& mesh() const noexcept { return mesh_; }
 
     /// Sampling location of the stored values.
     /// @return Face or Cell.
@@ -70,14 +81,13 @@ public:
     /// @throws std::out_of_range If index >= size().
     [[nodiscard]] const double& at(std::size_t index) const;
 
-    /// Mutable access to the underlying buffer.
-    /// Keep its size equal to the mesh count for location().
-    /// @return The storage vector.
-    [[nodiscard]] std::vector<double>& raw_data() noexcept { return data_; }
+    /// Mutable contiguous view of the values; its size cannot be changed.
+    /// @return Span over the storage.
+    [[nodiscard]] std::span<double> values() noexcept { return data_; }
 
-    /// Read-only access to the underlying buffer.
-    /// @return The storage vector.
-    [[nodiscard]] const std::vector<double>& raw_data() const noexcept { return data_; }
+    /// Read-only contiguous view of the values.
+    /// @return Span over the storage.
+    [[nodiscard]] std::span<const double> values() const noexcept { return data_; }
 
     /// Assign the same value to every entry.
     /// @param value Value written to each entry.
@@ -108,7 +118,7 @@ public:
 
 private:
     std::string name_;
-    const cfd::mesh::UniformFvMesh1D& mesh_;
+    const cfd::mesh::FvMesh1D& mesh_;
     FieldLocation location_;
     std::vector<double> data_;
 };

@@ -6,6 +6,9 @@
 #include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp>
+
+#include <type_traits>
 
 namespace
 {
@@ -64,6 +67,45 @@ int main()
         require_near(scaled[1], 8.0, "Scalar multiplication should scale every entry.");
         const auto divided = scaled / 2.0;
         require_near(divided[1], 4.0, "Scalar division should scale every entry.");
+
+        static_assert(!std::is_copy_assignable_v<cfd::field::field1d::VolScalarField1D>);
+        static_assert(!std::is_move_assignable_v<cfd::field::field1d::VolScalarField1D>);
+
+        const cfd::mesh::NonUniformFvMesh1D graded(domain, {-1.0, -0.5, 0.0, 1.0});
+        const cfd::field::field1d::VolScalarField1D graded_field("graded", graded);
+        require(graded_field.size() == graded.num_cells(),
+                "A field should bind to a non-uniform base mesh.");
+        require(&graded_field.mesh() == &graded, "mesh() should return the bound mesh.");
+
+        const cfd::mesh::UniformFvMesh1D twin(domain, 4);
+        const cfd::field::field1d::VolScalarField1D twin_field("twin", twin);
+        bool identity_checked = false;
+        try
+        {
+            (void)(temperature + twin_field);
+        }
+        catch (const std::invalid_argument&)
+        {
+            identity_checked = true;
+        }
+        require(identity_checked, "Equal geometry on distinct meshes should still be rejected.");
+
+        auto view = temperature.values();
+        view[2] = 9.0;
+        require_near(temperature[2], 9.0, "values() should alias the field storage.");
+        require(view.size() == temperature.size(), "values() should span all entries.");
+
+        bool location_checked = false;
+        try
+        {
+            const cfd::field::field1d::VolScalarField1D bad(
+                "bad", mesh, static_cast<cfd::field::FieldLocation>(7));
+        }
+        catch (const std::invalid_argument&)
+        {
+            location_checked = true;
+        }
+        require(location_checked, "An invalid field location should be rejected.");
 
         bool bounds_checked = false;
         try

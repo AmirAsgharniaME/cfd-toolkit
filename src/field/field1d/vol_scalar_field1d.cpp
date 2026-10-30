@@ -8,18 +8,24 @@ namespace cfd::field::field1d
 {
 
 VolScalarField1D::VolScalarField1D(std::string name,
-                                   const cfd::mesh::UniformFvMesh1D& mesh,
+                                   const cfd::mesh::FvMesh1D& mesh,
                                    FieldLocation location,
                                    double initial_val)
     : name_(std::move(name)),
       mesh_(mesh),
       location_(location)
 {
-    const std::size_t entry_count = (location_ == FieldLocation::Face)
-                                        ? mesh_.num_faces()
-                                        : mesh_.num_cells();
-
-    data_.assign(entry_count, initial_val);
+    switch (location_)
+    {
+    case FieldLocation::Cell:
+        data_.assign(mesh_.num_cells(), initial_val);
+        break;
+    case FieldLocation::Face:
+        data_.assign(mesh_.num_faces(), initial_val);
+        break;
+    default:
+        throw std::invalid_argument("VolScalarField1D: invalid field location");
+    }
 }
 
 double& VolScalarField1D::at(std::size_t index)
