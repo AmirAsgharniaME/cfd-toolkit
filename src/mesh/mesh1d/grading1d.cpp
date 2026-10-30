@@ -193,28 +193,28 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
     case GradingType::Uniform:
         break;
     case GradingType::Forward:
-        for (std::size_t i = 0; i < cell_count; ++i) {
-            exponents[i] = static_cast<long double>(i);
+        for (std::size_t p = 0; p < cell_count; ++p) {
+            exponents[p] = static_cast<long double>(p);
         }
         break;
     case GradingType::Backward:
-        for (std::size_t i = 0; i < cell_count; ++i) {
-            exponents[i] = static_cast<long double>(cell_count - 1U - i);
+        for (std::size_t p = 0; p < cell_count; ++p) {
+            exponents[p] = static_cast<long double>(cell_count - 1U - p);
         }
         break;
     case GradingType::BothEnds:
-        for (std::size_t i = 0; i < cell_count; ++i) {
-            exponents[i] = static_cast<long double>(std::min(i, cell_count - 1U - i));
+        for (std::size_t p = 0; p < cell_count; ++p) {
+            exponents[p] = static_cast<long double>(std::min(p, cell_count - 1U - p));
         }
         break;
     case GradingType::Center: {
         const std::size_t center_left = (cell_count - 1U) / 2U;
         const std::size_t center_right = cell_count / 2U;
-        for (std::size_t i = 0; i < cell_count; ++i) {
-            const std::size_t distance = i < center_left ? center_left - i
-                                      : i > center_right ? i - center_right
+        for (std::size_t p = 0; p < cell_count; ++p) {
+            const std::size_t distance = p < center_left ? center_left - p
+                                      : p > center_right ? p - center_right
                                                          : 0U;
-            exponents[i] = static_cast<long double>(distance);
+            exponents[p] = static_cast<long double>(distance);
         }
         break;
     }

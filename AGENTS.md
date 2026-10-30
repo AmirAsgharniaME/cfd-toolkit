@@ -68,6 +68,8 @@ Use four-space indentation and follow the surrounding file's brace style. Use `s
 
 Use `std::size_t` for container-sized counts and indices where negative values are not meaningful, as in the 1D grading API; do not assume which fundamental unsigned type it aliases on a particular platform. Check requested allocation sizes against the relevant container's `max_size()` before allocating. Mesh coordinates and public grading ratios remain `double`; the grading face generator uses `long double` for intermediate exponent and weight calculations, then validates the resulting `double` faces and cell centers. For numeric literals, use suffixes where they prevent overflow in compound integer expressions or resolve template type mismatches; small comparisons and loop bounds do not need decorative suffixes. `NUMERIC_TYPES_CHEATSHEET.md` summarizes the project's C++ numeric type and literal guidance; its platform-specific size tables describe typical GCC x86_64 Linux sizes, not portable C++ guarantees.
 
+When assigning grading exponents by cell position, use `p` for the cell-position index to distinguish that mapping from face traversal indices.
+
 Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds enable `-Wall`, `-Wextra`, `-Wpedantic`, `-Wconversion`, and `-Wshadow` privately for the library; address warnings introduced by changes. No repository-wide formatter or linter configuration is provided.
 
 ## Testing Guidelines
