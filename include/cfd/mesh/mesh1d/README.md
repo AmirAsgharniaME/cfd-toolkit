@@ -34,6 +34,60 @@ route, and supplies the cell count or face coordinates.
   and center. Derived mesh classes therefore share the same stored geometry
   and query API.
 
+## Dependency graph
+
+The graph shows both the header/source dependencies and the runtime path from
+caller input to usable mesh geometry. `Domain1D` and `GradingType` are defined
+outside this directory; downstream finite-volume and field code consumes the
+geometry API.
+
+```mermaid
+flowchart LR
+    caller[Caller]
+    domain[Domain1D<br/>geometry/domain/domain1d.hpp]
+    grading_type[GradingType<br/>mesh/grading_type.hpp]
+
+    subgraph mesh1d[mesh/mesh1d]
+        uniform_api[uniform_fv_mesh1d.hpp<br/>UniformFvMesh1D]
+        uniform_impl[uniform_fv_mesh1d.cpp<br/>build uniform faces]
+        graded_api[grading1d.hpp<br/>make_1d_faces]
+        graded_impl[grading1d.cpp<br/>build graded faces]
+        nonuniform_api[non_uniform_fv_mesh1d.hpp<br/>NonUniformFvMesh1D]
+        nonuniform_impl[non_uniform_fv_mesh1d.cpp<br/>validate supplied faces]
+        base_api[fv_mesh1d.hpp<br/>FvMesh1D]
+        base_impl[fv_mesh1d.cpp<br/>validate and derive geometry]
+    end
+
+    faces[Face coordinate vector]
+    geometry[Owned faces, widths, and centers]
+    queries[Read-only geometry queries and spans]
+    consumers[Finite-volume and field consumers]
+
+    caller -->|domain + cell count| uniform_api
+    domain -. used by .-> uniform_api
+    uniform_api --> uniform_impl
+    uniform_impl -->|generated faces| base_api
+
+    caller -->|domain + cell count + type + ratio| graded_api
+    domain -. used by .-> graded_api
+    grading_type -. used by .-> graded_api
+    graded_api --> graded_impl
+    graded_impl --> faces
+    faces -->|caller passes vector| nonuniform_api
+
+    caller -->|domain + explicit faces| nonuniform_api
+    domain -. used by .-> nonuniform_api
+    nonuniform_api --> nonuniform_impl
+    nonuniform_impl -->|validated faces| base_api
+
+    uniform_api -. inherits from .-> base_api
+    nonuniform_api -. inherits from .-> base_api
+    base_api --> base_impl
+    base_impl --> geometry
+    geometry --> queries
+    queries --> consumers
+```
+
 ## Input flow and termination
 
 All construction starts at the caller. A `Domain1D` supplies authoritative,
