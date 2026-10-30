@@ -18,7 +18,7 @@ namespace
 [[nodiscard]] std::vector<double> make_faces(const geometry::Domain1D& domain,
                                              const std::size_t cell_count,
                                              const std::vector<long double>& exponents,
-                                             const long double log_ratio)
+                                             const long double log_r)
 {
     const double start = domain.start();
     const double end = domain.end();
@@ -34,7 +34,7 @@ namespace
 
     long double largest_log_weight = 0.0L;
     for (const long double exponent : exponents) {
-        const long double log_weight = exponent * log_ratio;
+        const long double log_weight = exponent * log_r;
         if (!std::isfinite(log_weight)) {
             throw std::invalid_argument("1D grading ratio produces non-finite cell weights");
         }
@@ -43,40 +43,43 @@ namespace
 
     long double weight_sum = 0.0L;
     for (const long double exponent : exponents) {
-        weight_sum += std::exp(exponent * log_ratio - largest_log_weight);
+        weight_sum += std::exp(exponent * log_r - largest_log_weight);
     }
     if (!std::isfinite(weight_sum) || weight_sum <= 0.0L) {
         throw std::invalid_argument("1D grading could not normalize cell widths");
     }
 
     long double cumulative_weight = 0.0L;
-    for (std::size_t i = 1; i < cell_count; ++i) {
-        const long double exponent = exponents[i - 1U];
-        cumulative_weight += std::exp(exponent * log_ratio - largest_log_weight);
-        const long double fraction = cumulative_weight / weight_sum;
-        const long double coordinate = static_cast<long double>(start) +
-                                       static_cast<long double>(length) * fraction;
-        faces[i] = static_cast<double>(coordinate);
-    }
+for (std::size_t f = 1U; f < cell_count; ++f) {
+    const std::size_t p = f - 1U;
+    const long double exponent = exponents[p];
+    cumulative_weight += std::exp(exponent * log_r - largest_log_weight);
+    const long double fraction = cumulative_weight / weight_sum;
+    const long double coordinate = static_cast<long double>(start) +
+                                   static_cast<long double>(length) * fraction;
+    faces[f] = static_cast<double>(coordinate);
+}
 
-    for (std::size_t i = 1; i < faces.size(); ++i) {
-        if (!std::isfinite(faces[i]) || !(faces[i] > faces[i - 1U])) {
+
+    for (std::size_t f = 1; f < faces.size(); ++f) {
+        const std::size_t p = f - 1U;
+        if (!std::isfinite(faces[f]) || !(faces[f] > faces[p])) {
             throw std::invalid_argument(
                 "1D grading faces are not representable as increasing doubles");
         }
     }
 
-    for (std::size_t i = 0; i < cell_count; ++i) {
-        const double width = faces[i + 1U] - faces[i];
-        const double center = faces[i] + width * 0.5;
-        if (!std::isfinite(center) || !(faces[i] < center) ||
-            !(center < faces[i + 1U])) {
+    for (std::size_t f = 0; f < cell_count; ++f) {
+        const double width = faces[f + 1U] - faces[f];
+        const double center = faces[f] + width * 0.5;
+        if (!std::isfinite(center) || !(faces[f] < center) ||
+            !(center < faces[f + 1U])) {
             std::ostringstream message;
             message.imbue(std::locale::classic());
             message << std::setprecision(std::numeric_limits<double>::max_digits10)
                     << "1D grading cell center is not representable strictly inside cell at index "
-                    << i << " [left=" << faces[i] << ", center=" << center
-                    << ", right=" << faces[i + 1U] << ']';
+                    << f << " [left=" << faces[f] << ", center=" << center
+                    << ", right=" << faces[f + 1U] << ']';
             throw std::invalid_argument(message.str());
         }
     }
@@ -150,7 +153,7 @@ double ratio_from_total_ratio(const std::size_t n_cells,
 std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
                                   const std::size_t n_cells,
                                   const GradingType type,
-                                  const double ratio)
+                                  const double r)
 {
     // =========================================================================
     // ENGINEERING NOTE: C++ LITERAL SUFFIXES & PRECISION CHOICE
@@ -177,10 +180,10 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
         n_cells > std::vector<long double>{}.max_size()) {
         throw std::length_error("1D grading cell count exceeds maximum vector size");
     }
-    if (!std::isfinite(ratio) || ratio <= 0.0) {
+    if (!std::isfinite(r) || r <= 0.0) {
         throw std::invalid_argument("1D grading ratio must be positive and finite");
     }
-    if (type != GradingType::Uniform && ratio < 1.0) {
+    if (type != GradingType::Uniform && r < 1.0) {
         throw std::invalid_argument("graded 1D modes require a ratio greater than or equal to 1");
     }
 
@@ -219,8 +222,8 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
         throw std::invalid_argument("1D grading type is not a supported GradingType value");
     }
 
-    const long double log_ratio = std::log(static_cast<long double>(ratio));
-    return make_faces(domain, cell_count, exponents, log_ratio);
+    const long double log_r = std::log(static_cast<long double>(r));
+    return make_faces(domain, cell_count, exponents, log_r);
 }
 
 }  // namespace cfd::mesh::grading

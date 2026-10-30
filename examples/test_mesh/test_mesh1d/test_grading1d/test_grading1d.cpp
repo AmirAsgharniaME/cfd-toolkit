@@ -128,6 +128,19 @@ void check_unit_ratio(const Domain1D& domain,
     }
 }
 
+void check_uniform_ratio_is_ignored(const Domain1D& domain,
+                                    const std::size_t n_cells)
+{
+    const auto unit_ratio_faces = cfd::mesh::grading::make_1d_faces(
+        domain, n_cells, GradingType::Uniform, 1.0);
+    for (const double ratio : {0.5, 2.0, 17.0}) {
+        const auto faces = cfd::mesh::grading::make_1d_faces(
+            domain, n_cells, GradingType::Uniform, ratio);
+        require(faces == unit_ratio_faces,
+                "Uniform grading must ignore every positive finite ratio");
+    }
+}
+
 void check_invalid_inputs()
 {
     const Domain1D domain(-2.5, 5.5);
@@ -251,6 +264,7 @@ void check_contracts()
                                      maximum_symmetry_error);
             check_unit_ratio(domain, type, n_cells);
         }
+        check_uniform_ratio_is_ignored(domain, n_cells);
     }
     check_invalid_inputs();
     check_total_ratio_conversion(maximum_total_ratio_error);
