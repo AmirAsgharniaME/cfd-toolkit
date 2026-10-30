@@ -49,16 +49,18 @@ namespace
         throw std::invalid_argument("1D grading could not normalize cell widths");
     }
 
+    // The exact endpoints are anchored by direct assignment above. Long
+    // double stabilizes the intermediate weight sums and fraction evaluations.
     long double cumulative_weight = 0.0L;
-for (std::size_t f = 1U; f < cell_count; ++f) {
-    const std::size_t p = f - 1U;
-    const long double exponent = exponents[p];
-    cumulative_weight += std::exp(exponent * log_r - largest_log_weight);
-    const long double fraction = cumulative_weight / weight_sum;
-    const long double coordinate = static_cast<long double>(start) +
-                                   static_cast<long double>(length) * fraction;
-    faces[f] = static_cast<double>(coordinate);
-}
+    for (std::size_t f = 1U; f < cell_count; ++f) {
+        const std::size_t p = f - 1U;
+        const long double exponent = exponents[p];
+        cumulative_weight += std::exp(exponent * log_r - largest_log_weight);
+        const long double fraction = cumulative_weight / weight_sum;
+        const long double coordinate = static_cast<long double>(start) +
+                                       static_cast<long double>(length) * fraction;
+        faces[f] = static_cast<double>(coordinate);
+    }
 
 
     for (std::size_t f = 1; f < faces.size(); ++f) {
@@ -170,8 +172,8 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
     // 3. Why 'long double' here instead of standard 'double'?
     //    Although 99% of CFD uses 'double', geometric grading formulas (like 
     //    geometric progression sums) accumulate round-off errors over many cells.
-    //    Using 80-bit 'long double' locally for face/exponent generation prevents 
-    //    boundary mismatch errors (e.g., grid not landing precisely on domain ends).
+    //    Long double supports intermediate weight and fraction calculations;
+    //    exact endpoint anchoring comes from direct assignment in make_faces.
     // =========================================================================
     if (n_cells < 2U) {
         throw std::invalid_argument("1D grading requires at least two cells");

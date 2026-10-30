@@ -123,9 +123,13 @@ returned face vector. It reaches a mesh only if the caller passes that vector
 to `NonUniformFvMesh1D`, which applies the same checks.
 
 After construction, consumers read geometry through `FvMesh1D` methods such as
-`face()`, `cell_center()`, `cell_width()`, and `cell_volume()`, or through its
-read-only spans. Volumes assume unit cross-sectional area, so their numerical
-values equal cell widths. The mesh layer does not itself advance a simulation
+`face()`, `cell_center()`, `cell_width()`, `cell_volume()`,
+`distance_to_west_face()`, and `distance_to_east_face()`, or through its
+read-only spans. Face indices run west to east: face `0` is the west domain
+boundary and face `num_faces() - 1` (equivalently `num_cells()`) is the east
+boundary. Center-to-face distance queries check that the cell index is valid.
+Volumes assume unit cross-sectional area, so their numerical values equal cell
+widths. The mesh layer does not itself advance a simulation
 or read field values; it ends by providing validated, immutable-through-this-API
 geometry for finite-volume and field code.
 

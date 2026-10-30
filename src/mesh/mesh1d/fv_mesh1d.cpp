@@ -87,6 +87,24 @@ double FvMesh1D::cell_width(std::size_t P) const
     return cell_widths_.at(P);
 }
 
+double FvMesh1D::distance_to_west_face(std::size_t P) const
+{
+    if (P >= num_cells())
+    {
+        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " is out of range.");
+    }
+    return cell_centers_[P] - faces_[P];
+}
+
+double FvMesh1D::distance_to_east_face(std::size_t P) const
+{
+    if (P >= num_cells())
+    {
+        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " is out of range.");
+    }
+    return faces_[P + 1U] - cell_centers_[P];
+}
+
 double FvMesh1D::distance_to_east_neighbor(std::size_t P) const
 {
     if (P >= num_cells() || P + 1 >= num_cells())

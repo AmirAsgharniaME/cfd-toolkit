@@ -42,9 +42,15 @@ public:
     [[nodiscard]] double x_start() const noexcept { return start(); }
     [[nodiscard]] double x_end() const noexcept { return end(); }
 
+    /// Face indices run west to east: face 0 is the domain west boundary, and
+    /// face num_faces() - 1 (equivalently num_cells()) is the east boundary.
     [[nodiscard]] double face(std::size_t f) const;
     [[nodiscard]] double cell_center(std::size_t P) const;
     [[nodiscard]] double cell_width(std::size_t P) const;
+    /// Distance from cell center P to its western face (cell_center(P) - face(P)).
+    [[nodiscard]] double distance_to_west_face(std::size_t P) const;
+    /// Distance from cell center P to its eastern face (face(P + 1) - cell_center(P)).
+    [[nodiscard]] double distance_to_east_face(std::size_t P) const;
     /// Cartesian cell volume for unit cross-sectional area: V = A * dx, A = 1.
     [[nodiscard]] double cell_volume(std::size_t P) const { return cell_width(P); }
 
@@ -60,6 +66,8 @@ public:
     /// Read-only volumes for Cartesian cells with unit cross-sectional area.
     [[nodiscard]] std::span<const double> cell_volumes() const noexcept { return cell_widths_; }
 
+    /// Unchecked fast access for performance-critical loops; the caller must
+    /// guarantee P < num_cells().
     [[nodiscard]] double operator[](std::size_t P) const noexcept { return cell_centers_[P]; }
     [[nodiscard]] double cell_center_at(std::size_t P) const { return cell_centers_.at(P); }
     [[nodiscard]] double face_at(std::size_t f) const { return faces_.at(f); }
