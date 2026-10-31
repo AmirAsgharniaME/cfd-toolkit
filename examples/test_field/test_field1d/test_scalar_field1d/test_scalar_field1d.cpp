@@ -6,7 +6,6 @@
 #include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
-#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 #include <type_traits>
 
@@ -71,7 +70,7 @@ int main()
         static_assert(!std::is_copy_assignable_v<cfd::field::field1d::VolScalarField1D>);
         static_assert(!std::is_move_assignable_v<cfd::field::field1d::VolScalarField1D>);
 
-        const cfd::mesh::FvMesh1D graded(domain, {-1.0, -0.5, 0.0, 1.0});
+        const cfd::mesh::FvMesh1D graded(domain, 4, cfd::mesh::GradingType::Forward, 2.0);
         const cfd::field::field1d::VolScalarField1D graded_field("graded", graded);
         require(graded_field.size() == graded.N_Cells(),
                 "A field should bind to a non-uniform base mesh.");

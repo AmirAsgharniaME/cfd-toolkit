@@ -1,12 +1,15 @@
 #include <cmath>
-#include <initializer_list>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
+
 namespace
 {
 
@@ -37,100 +40,91 @@ void check_contracts()
     using cfd::geometry::Domain1D;
     using cfd::mesh::FvMesh1D;
 
+    static_assert(!std::is_copy_assignable_v<FvMesh1D>);
+    static_assert(!std::is_move_assignable_v<FvMesh1D>);
+    static_assert(std::is_copy_constructible_v<FvMesh1D>);
+    static_assert(std::is_move_constructible_v<FvMesh1D>);
+
     Domain1D domain(-2.0, 2.0);
     const FvMesh1D mesh(domain, 4);
-    const FvMesh1D direct(domain.start(), domain.end(), 4);
-    require(mesh.start() == domain.start() && mesh.end() == domain.end() &&
-            mesh.Length() == domain.length() && mesh.x_start() == mesh.start() &&
-            mesh.x_end() == mesh.end(), "Mesh bounds do not match Domain1D interface");
+    require(mesh.Start_Coord() == domain.Start_Coord() &&
+            mesh.End_Coord() == domain.End_Coord() &&
+            mesh.Length() == domain.Length(), "Mesh bounds do not match Domain1D interface");
     require(mesh.N_Cells() == 4 && mesh.N_Faces() == 5, "Incorrect mesh counts");
-    require(mesh.faces().size() == mesh.N_Faces() &&
-            mesh.cell_centers().size() == mesh.N_Cells() &&
-            mesh.cell_widths().size() == mesh.N_Cells() &&
-            mesh.cell_volumes().size() == mesh.N_Cells(),
+    require(mesh.Face_Coords().size() == mesh.N_Faces() &&
+            mesh.Cell_Center_Coords().size() == mesh.N_Cells() &&
+            mesh.Cell_Volumes().size() == mesh.N_Cells(),
             "Geometry storage sizes do not match mesh counts");
-    require(mesh.dx() == 1.0 && mesh.spacing() == mesh.dx() &&
-            mesh.nominal_spacing() == mesh.dx(), "Incorrect nominal spacing");
     for (std::size_t f = 0; f < mesh.N_Faces(); ++f)
     {
-        require(mesh.face(f) == -2.0 + static_cast<double>(f) &&
-                mesh.face(f) == direct.face(f), "Constructor face geometry differs");
+        require(mesh.Face_Coord(f) == -2.0 + static_cast<double>(f),
+                "Incorrect uniform face geometry");
     }
     for (std::size_t p = 0; p < mesh.N_Cells(); ++p)
     {
         require(mesh.Cell_Center_Coord(p) == -1.5 + static_cast<double>(p) &&
-                mesh.cell_width(p) == 1.0 && mesh.cell_volume(p) == 1.0,
+                mesh.Cell_Volume(p) == 1.0 &&
+                mesh.wFace_Coord(p) == mesh.Face_Coord(p) &&
+                mesh.eFace_Coord(p) == mesh.Face_Coord(p + 1) &&
+                mesh.wFaceDx(p) == 0.5 && mesh.eFaceDx(p) == 0.5,
                 "Incorrect cell geometry");
     }
+    require(mesh.eCellDx(0) == 1.0 && mesh.wCellDx(3) == 1.0, "Incorrect cell distance");
+    require_exception<std::out_of_range>([&] { (void)mesh.wCellDx(0); });
+    require_exception<std::out_of_range>([&] { (void)mesh.eCellDx(3); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Face_Coord(5); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Cell_Volume(4); });
 
     const auto check_domain_update = [&] {
-        require(mesh.start() == -2.0 && mesh.end() == 2.0 && mesh.Length() == 4.0 &&
-                mesh.dx() == 1.0, "Domain mutation changed the mesh snapshot");
-        for (std::size_t f = 0; f < mesh.N_Faces(); ++f)
-        {
-            require(mesh.face(f) == direct.face(f), "Domain mutation changed stored faces");
-        }
-        for (std::size_t p = 0; p < mesh.N_Cells(); ++p)
-        {
-            require(mesh.Cell_Center_Coord(p) == direct.Cell_Center_Coord(p) &&
-                    mesh.cell_width(p) == direct.cell_width(p),
-                    "Domain mutation changed stored cell geometry");
-        }
+        require(mesh.Start_Coord() == -2.0 && mesh.End_Coord() == 2.0 && mesh.Length() == 4.0,
+                "Domain mutation changed the mesh snapshot");
         const FvMesh1D updated(domain, 4);
-        require(updated.start() == domain.start() && updated.end() == domain.end() &&
-                updated.length() == domain.length() && updated.dx() == domain.length() / 4.0 &&
-                updated.face(0) == domain.start() && updated.face(4) == domain.end(),
+        require(updated.Start_Coord() == domain.Start_Coord() &&
+                updated.End_Coord() == domain.End_Coord() &&
+                updated.Length() == domain.Length() &&
+                updated.Cell_Volume(0) == domain.Length() / 4.0 &&
+                updated.Face_Coord(0) == domain.Start_Coord() &&
+                updated.Face_Coord(4) == domain.End_Coord(),
                 "New mesh did not use updated domain interval");
     };
-    domain.set_start(-3.0);
+    domain.Set_Start_Coord(-3.0);
     check_domain_update();
-    domain.set_end(5.0);
+    domain.set_End_Coord(5.0);
     check_domain_update();
-    domain.set_length(4.0);
+    domain.Set_Length(4.0);
     check_domain_update();
-    domain.set_bounds(10.0, 14.0);
+    domain.Set_Bounds(10.0, 14.0);
     check_domain_update();
 
     auto rounded = Domain1D::from_start_and_length(1e16, 3.0);
     const FvMesh1D rounded_mesh(rounded, 1);
-    require(rounded_mesh.dx() == rounded.length() && rounded_mesh.dx() != 3.0 &&
-            rounded_mesh.face(1) == rounded.end(), "Mesh lost represented domain length");
-    rounded.set_length(7.0);
-    const FvMesh1D resized(rounded, 2);
-    require(resized.dx() == rounded.length() / 2.0 && resized.face(2) == rounded.end(),
-            "Mesh ignored rounded length update");
+    require(rounded_mesh.Length() == rounded.Length() && rounded_mesh.Length() != 3.0 &&
+            rounded_mesh.Face_Coord(1) == rounded.End_Coord(),
+            "Mesh lost represented domain length");
 
     const FvMesh1D fractional(Domain1D(1.0), 11);
-    require(fractional.dx() == fractional.length() / 11.0,
-            "Fractional spacing does not use the represented interval length");
-    require(fractional.face(0) == 0.0 && fractional.face(11) == 1.0,
+    require(fractional.Face_Coord(0) == 0.0 && fractional.Face_Coord(11) == 1.0,
             "Boundary coordinates were not preserved exactly");
     for (std::size_t p = 0; p < fractional.N_Cells(); ++p)
     {
-        require(fractional.cell_width(p) == fractional.face(p + 1) - fractional.face(p) &&
-                fractional.face(p) < fractional.Cell_Center_Coord(p) &&
-                fractional.Cell_Center_Coord(p) < fractional.face(p + 1),
+        require(fractional.Cell_Volume(p) ==
+                    fractional.Face_Coord(p + 1) - fractional.Face_Coord(p) &&
+                fractional.Face_Coord(p) < fractional.Cell_Center_Coord(p) &&
+                fractional.Cell_Center_Coord(p) < fractional.Face_Coord(p + 1),
                 "Rounded geometry does not match represented faces");
     }
 
-    const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
     const double max = std::numeric_limits<double>::max();
     const double tiny = std::numeric_limits<double>::denorm_min();
-    for (double invalid : {nan, inf, -inf})
-    {
-        require_exception<std::invalid_argument>([&] { (void)FvMesh1D(invalid, 1.0, 1); });
-        require_exception<std::invalid_argument>([&] { (void)FvMesh1D(0.0, invalid, 1); });
-    }
-    require_exception<std::invalid_argument>([] { (void)FvMesh1D(1.0, 1.0, 1); });
-    require_exception<std::invalid_argument>([] { (void)FvMesh1D(2.0, 1.0, 1); });
-    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(-max, max, 1); });
-    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, 0); });
-    require_exception<std::invalid_argument>([] { (void)FvMesh1D(0.0, 1.0, 0); });
+    const Domain1D unit(0.0, 1.0);
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(unit, 0); });
     require_exception<std::length_error>([&] {
-        (void)FvMesh1D(domain, std::numeric_limits<std::size_t>::max());
+        (void)FvMesh1D(unit, std::numeric_limits<std::size_t>::max());
     });
-    // A valid domain may not have enough representable coordinates for a mesh.
+    require_exception<std::length_error>([&] {
+        (void)FvMesh1D(unit, std::vector<double>().max_size());
+    });
     require_exception<std::invalid_argument>([&] { (void)FvMesh1D(Domain1D(tiny), 2); });
     require_exception<std::invalid_argument>([&] {
         (void)FvMesh1D(Domain1D(1.0, std::nextafter(1.0, inf)), 1);
@@ -138,32 +132,27 @@ void check_contracts()
     require_exception<std::invalid_argument>([] {
         (void)FvMesh1D(Domain1D(1e16, 1e16 + 4.0), 4);
     });
-    const FvMesh1D explicit_mesh({-2.0, -1.0, 2.0});
-    require(explicit_mesh.start() == -2.0 && explicit_mesh.end() == 2.0 &&
-            explicit_mesh.Length() == 4.0, "Explicit face bounds are incorrect");
-    require(explicit_mesh.cell_width(0) == 1.0 && explicit_mesh.cell_width(1) == 3.0 &&
-            explicit_mesh.Cell_Center_Coord(0) == -1.5 && explicit_mesh.Cell_Center_Coord(1) == 0.5,
-            "Base mesh did not preserve nonuniform interval geometry");
-    require_exception<std::invalid_argument>([] { (void)cfd::mesh::FvMesh1D({}); });
-    require_exception<std::invalid_argument>([] { (void)cfd::mesh::FvMesh1D({0.0}); });
-    require_exception<std::invalid_argument>([] { (void)cfd::mesh::FvMesh1D({0.0, 0.0}); });
-    require_exception<std::invalid_argument>([] { (void)cfd::mesh::FvMesh1D({1.0, 0.0}); });
-    require_exception<std::invalid_argument>([] { (void)cfd::mesh::FvMesh1D({0.0, 2.0, 1.0}); });
-    require_exception<std::invalid_argument>([&] { (void)cfd::mesh::FvMesh1D({0.0, nan, 1.0}); });
-    require_exception<std::invalid_argument>([&] { (void)cfd::mesh::FvMesh1D({0.0, inf}); });
-    require_exception<std::invalid_argument>([&] {
-        (void)cfd::mesh::FvMesh1D({1.0, std::nextafter(1.0, inf)});
-    });
-    // Each cell width is finite, but the complete interval is not.
-    require_exception<std::invalid_argument>([&] {
-        (void)cfd::mesh::FvMesh1D({-max, 0.0, max});
-    });
-    require_exception<std::length_error>([&] {
-        (void)FvMesh1D(domain, std::vector<double>().max_size());
-    });
+
     const FvMesh1D extreme(Domain1D(0.0, max), 1);
-    require(extreme.dx() == max && extreme.Cell_Center_Coord(0) == max * 0.5,
+    require(extreme.Cell_Volume(0) == max && extreme.Cell_Center_Coord(0) == max * 0.5,
             "Finite extreme domain geometry failed");
+
+    FvMesh1D source(unit, 3);
+    const FvMesh1D copy(source);
+    require(copy.N_Cells() == 3 && source.N_Cells() == 3, "Copy changed the source mesh");
+    const FvMesh1D moved(std::move(source));
+    require(moved.N_Cells() == 3, "Move construction lost geometry");
+    // NOLINTNEXTLINE(bugprone-use-after-move): the moved-from contract is under test.
+    require(source.N_Cells() == 0 && source.N_Faces() == 0, "Moved-from mesh is not empty");
+    require_exception<std::logic_error>([&] { (void)source.Start_Coord(); });
+    require_exception<std::logic_error>([&] { (void)source.End_Coord(); });
+    require_exception<std::logic_error>([&] { (void)source.Length(); });
+
+    std::ostringstream details;
+    FvMesh1D tiny_cells(Domain1D(0.0, 1.0), 4, cfd::mesh::GradingType::Forward, 1.0);
+    tiny_cells.Print_Details(details);
+    require(details.str().find("FvMesh1D Geometry Details") != std::string::npos,
+            "Print_Details produced no header");
     std::cout << "FvMesh1D contract checks passed\n";
 }
 

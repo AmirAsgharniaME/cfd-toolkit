@@ -42,9 +42,11 @@ namespace
         largest_log_weight = std::max(largest_log_weight, log_weight);
     }
 
+    std::vector<long double> weights(cell_count);
     long double weight_sum = 0.0L;
-    for (const long double exponent : exponents) {
-        weight_sum += std::exp(exponent * log_r - largest_log_weight);
+    for (std::size_t p = 0; p < cell_count; ++p) {
+        weights[p] = std::exp(exponents[p] * log_r - largest_log_weight);
+        weight_sum += weights[p];
     }
     if (!std::isfinite(weight_sum) || weight_sum <= 0.0L) {
         throw std::invalid_argument("1D grading could not normalize cell widths");
@@ -54,9 +56,7 @@ namespace
     // double stabilizes the intermediate weight sums and fraction evaluations.
     long double cumulative_weight = 0.0L;
     for (std::size_t f = 1U; f < cell_count; ++f) {
-        const std::size_t p = f - 1U;
-        const long double exponent = exponents[p];
-        cumulative_weight += std::exp(exponent * log_r - largest_log_weight);
+        cumulative_weight += weights[f - 1U];
         const long double fraction = cumulative_weight / weight_sum;
         const long double coordinate = static_cast<long double>(start) +
                                        static_cast<long double>(length) * fraction;
@@ -73,7 +73,6 @@ namespace
     }
 
     for (std::size_t f = 0; f < cell_count; ++f) {
-        const double width = faces[f + 1U] - faces[f];
         const double center = std::midpoint(faces[f], faces[f + 1U]);
         if (!std::isfinite(center) || !(faces[f] < center) ||
             !(center < faces[f + 1U])) {
@@ -91,12 +90,12 @@ namespace
 
 }  // namespace
 
-double ratio_from_total_ratio(const std::size_t n_cells,
+double Convert_R_To_r(const std::size_t n_cells,
                               const GradingType type,
                               const double R)
 {
-    if (n_cells < 2U) {
-        throw std::invalid_argument("1D grading requires at least two cells");
+    if (n_cells == 0U) {
+        throw std::invalid_argument("1D grading requires at least one cell");
     }
     if (!std::isfinite(R) || R < 1.0) {
         throw std::invalid_argument(
@@ -131,7 +130,11 @@ double ratio_from_total_ratio(const std::size_t n_cells,
         throw std::invalid_argument("1D grading type is not a supported GradingType value");
     }
     if (max_exponent == 0U) {
-        throw std::invalid_argument("1D grading pattern requires a positive exponent span");
+        if (R != 1.0) {
+            throw std::invalid_argument(
+                "1D grading pattern has no exponent span and cannot produce a non-unity total ratio");
+        }
+        return 1.0;
     }
 
     const long double log_R =
@@ -153,7 +156,7 @@ double ratio_from_total_ratio(const std::size_t n_cells,
     return result;
 }
 
-std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
+std::vector<double> Make_Faces(const geometry::Domain1D& domain,
                                   const std::size_t n_cells,
                                   const GradingType type,
                                   const double r)
@@ -176,8 +179,8 @@ std::vector<double> make_1d_faces(const geometry::Domain1D& domain,
     //    Long double supports intermediate weight and fraction calculations;
     //    exact endpoint anchoring comes from direct assignment in make_faces.
     // =========================================================================
-    if (n_cells < 2U) {
-        throw std::invalid_argument("1D grading requires at least two cells");
+    if (n_cells == 0U) {
+        throw std::invalid_argument("1D grading requires at least one cell");
     }
     if (n_cells >= std::vector<double>{}.max_size() ||
         n_cells > std::vector<long double>{}.max_size()) {

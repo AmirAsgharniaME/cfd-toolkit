@@ -6,6 +6,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -71,16 +72,15 @@ void check_generated_geometry(const Domain1D& domain,
                               const double ratio,
                               double& maximum_symmetry_error)
 {
-    const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
+    const auto faces = cfd::mesh::grading::Make_Faces(domain, n_cells, type, ratio);
     const std::size_t cell_count = n_cells;
     const std::string context = type_name(type) + " with N=" + std::to_string(n_cells);
 
     require(faces.size() == cell_count + 1U, context + ": incorrect face count");
-    require(faces.front() == domain.start(), context + ": start face is not exact");
-    require(faces.back() == domain.end(), context + ": end face is not exact");
+    require(faces.front() == domain.Start_Coord(), context + ": start face is not exact");
+    require(faces.back() == domain.End_Coord(), context + ": end face is not exact");
     for (std::size_t cell = 0; cell < cell_count; ++cell) {
-        const double width = faces[cell + 1U] - faces[cell];
-        const double center = faces[cell] + width * 0.5;
+        const double center = std::midpoint(faces[cell], faces[cell + 1U]);
         require(std::isfinite(faces[cell]) && faces[cell] < faces[cell + 1U],
                 context + ": faces are not finite and strictly increasing");
         require(std::isfinite(center) && faces[cell] < center &&
@@ -89,10 +89,10 @@ void check_generated_geometry(const Domain1D& domain,
     }
 
     if (type == GradingType::BothEnds || type == GradingType::Center) {
-        const double tolerance = 1e-12 * domain.length();
+        const double tolerance = 1e-12 * domain.Length();
         for (std::size_t face = 0; face <= cell_count; ++face) {
-            const double left_distance = faces[face] - domain.start();
-            const double right_distance = domain.end() - faces[cell_count - face];
+            const double left_distance = faces[face] - domain.Start_Coord();
+            const double right_distance = domain.End_Coord() - faces[cell_count - face];
             const double symmetry_error = std::fabs(left_distance - right_distance);
             maximum_symmetry_error = std::max(maximum_symmetry_error, symmetry_error);
             require(symmetry_error <= tolerance,
@@ -100,12 +100,12 @@ void check_generated_geometry(const Domain1D& domain,
         }
     }
 
-    const FvMesh1D mesh(domain, faces);
+    const FvMesh1D mesh(domain, n_cells, type, ratio);
     require(mesh.N_Cells() == cell_count && mesh.N_Faces() == faces.size(),
-            context + ": generated faces are incompatible with FvMesh1D");
+            context + ": FvMesh1D differs in size from generated faces");
     for (std::size_t face = 0; face < faces.size(); ++face) {
-        require(mesh.face(face) == faces[face],
-                context + ": consumer changed a generated face");
+        require(mesh.Face_Coord(face) == faces[face],
+                context + ": FvMesh1D changed a generated face");
     }
 }
 
@@ -117,10 +117,10 @@ void check_unit_ratio(const Domain1D& domain,
         return;
     }
 
-    const auto faces = cfd::mesh::grading::make_1d_faces(domain, n_cells, type, 1.0);
+    const auto faces = cfd::mesh::grading::Make_Faces(domain, n_cells, type, 1.0);
     const std::size_t cell_count = n_cells;
-    const double expected_width = domain.length() / static_cast<double>(n_cells);
-    const double tolerance = 1e-12 * domain.length();
+    const double expected_width = domain.Length() / static_cast<double>(n_cells);
+    const double tolerance = 1e-12 * domain.Length();
     for (std::size_t cell = 0; cell < cell_count; ++cell) {
         const double width = faces[cell + 1U] - faces[cell];
         require(std::fabs(width - expected_width) <= tolerance,
@@ -131,10 +131,10 @@ void check_unit_ratio(const Domain1D& domain,
 void check_uniform_ratio_is_ignored(const Domain1D& domain,
                                     const std::size_t n_cells)
 {
-    const auto unit_ratio_faces = cfd::mesh::grading::make_1d_faces(
+    const auto unit_ratio_faces = cfd::mesh::grading::Make_Faces(
         domain, n_cells, GradingType::Uniform, 1.0);
     for (const double ratio : {0.5, 2.0, 17.0}) {
-        const auto faces = cfd::mesh::grading::make_1d_faces(
+        const auto faces = cfd::mesh::grading::Make_Faces(
             domain, n_cells, GradingType::Uniform, ratio);
         require(faces == unit_ratio_faces,
                 "Uniform grading must ignore every positive finite ratio");
@@ -149,15 +149,18 @@ void check_invalid_inputs()
     const auto generate = [&domain](const std::size_t n_cells,
                                     const GradingType type,
                                     const double ratio) {
-        return cfd::mesh::grading::make_1d_faces(domain, n_cells, type, ratio);
+        return cfd::mesh::grading::Make_Faces(domain, n_cells, type, ratio);
     };
 
     require_exception<std::invalid_argument>(
         [&] { (void)generate(0, GradingType::Uniform, 1.0); },
         "Expected n_cells=0 to throw std::invalid_argument");
-    require_exception<std::invalid_argument>(
-        [&] { (void)generate(1, GradingType::Uniform, 1.0); },
-        "Expected n_cells=1 to throw std::invalid_argument");
+    for (const GradingType type : grading_types) {
+        const auto single = generate(1, type, 1.0);
+        require(single.size() == 2U && single.front() == domain.Start_Coord() &&
+                    single.back() == domain.End_Coord(),
+                "Expected a single cell to span the whole domain");
+    }
     for (const double ratio : {0.0, -1.0, nan, inf, -inf}) {
         require_exception<std::invalid_argument>(
             [&] { (void)generate(4, GradingType::Forward, ratio); },
@@ -176,7 +179,7 @@ void check_invalid_inputs()
     const Domain1D two_ulp_domain(1.0, std::nextafter(next, inf));
     require_exception<std::invalid_argument>(
         [&] {
-            (void)cfd::mesh::grading::make_1d_faces(
+            (void)cfd::mesh::grading::Make_Faces(
                 two_ulp_domain, 2, GradingType::Uniform, 1.0);
         },
         "Expected unrepresentable cell centers to throw std::invalid_argument");
@@ -185,35 +188,35 @@ void check_invalid_inputs()
 void check_total_ratio_conversion(double& maximum_total_ratio_error)
 {
     const Domain1D domain(-1.0, 1.0);
-    using cfd::mesh::grading::ratio_from_total_ratio;
+    using cfd::mesh::grading::Convert_R_To_r;
 
-    require(ratio_from_total_ratio(5U, GradingType::Forward, 16.0) == 2.0,
+    require(Convert_R_To_r(5U, GradingType::Forward, 16.0) == 2.0,
             "Forward N=5 total ratio conversion is incorrect");
-    require(ratio_from_total_ratio(5U, GradingType::Backward, 16.0) == 2.0,
+    require(Convert_R_To_r(5U, GradingType::Backward, 16.0) == 2.0,
             "Backward N=5 total ratio conversion is incorrect");
-    require(ratio_from_total_ratio(5U, GradingType::BothEnds, 16.0) == 4.0,
+    require(Convert_R_To_r(5U, GradingType::BothEnds, 16.0) == 4.0,
             "BothEnds N=5 total ratio conversion is incorrect");
-    require(ratio_from_total_ratio(6U, GradingType::BothEnds, 16.0) == 4.0,
+    require(Convert_R_To_r(6U, GradingType::BothEnds, 16.0) == 4.0,
             "BothEnds N=6 exponent span should be two");
-    require(ratio_from_total_ratio(5U, GradingType::Center, 16.0) == 4.0,
+    require(Convert_R_To_r(5U, GradingType::Center, 16.0) == 4.0,
             "Center N=5 total ratio conversion is incorrect");
-    require(ratio_from_total_ratio(6U, GradingType::Center, 16.0) == 4.0,
+    require(Convert_R_To_r(6U, GradingType::Center, 16.0) == 4.0,
             "Center N=6 exponent span should be two");
 
     for (const GradingType type : grading_types) {
-        require(ratio_from_total_ratio(5U, type, 1.0) == 1.0,
+        require(Convert_R_To_r(5U, type, 1.0) == 1.0,
                 type_name(type) + " unity total ratio should return one");
     }
     require_exception<std::invalid_argument>(
-        [&] { (void)ratio_from_total_ratio(5U, GradingType::Uniform, 2.0); },
+        [&] { (void)Convert_R_To_r(5U, GradingType::Uniform, 2.0); },
         "Uniform with non-unity total ratio should throw");
 
     for (const std::size_t n_cells : {6U, 7U}) {
         for (const GradingType type : {GradingType::Forward, GradingType::Backward,
                                        GradingType::BothEnds, GradingType::Center}) {
             constexpr double total_ratio = 16.0;
-            const double ratio = ratio_from_total_ratio(n_cells, type, total_ratio);
-            const auto faces = cfd::mesh::grading::make_1d_faces(
+            const double ratio = Convert_R_To_r(n_cells, type, total_ratio);
+            const auto faces = cfd::mesh::grading::Make_Faces(
                 domain, n_cells, type, ratio);
             double minimum_width = std::numeric_limits<double>::infinity();
             double maximum_width = 0.0;
@@ -234,23 +237,32 @@ void check_total_ratio_conversion(double& maximum_total_ratio_error)
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
     require_exception<std::invalid_argument>(
-        [&] { (void)ratio_from_total_ratio(1U, GradingType::Forward, 1.0); },
-        "total ratio conversion should reject fewer than two cells");
+        [&] { (void)Convert_R_To_r(0U, GradingType::Forward, 1.0); },
+        "total ratio conversion should reject zero cells");
     for (const double total_ratio : {nan, inf, 0.5}) {
         require_exception<std::invalid_argument>(
-            [&] { (void)ratio_from_total_ratio(5U, GradingType::Forward, total_ratio); },
+            [&] { (void)Convert_R_To_r(5U, GradingType::Forward, total_ratio); },
             "total ratio conversion should reject invalid ratios");
     }
     require_exception<std::invalid_argument>(
         [&] {
-            (void)ratio_from_total_ratio(5U, static_cast<GradingType>(255U), 1.0);
+            (void)Convert_R_To_r(5U, static_cast<GradingType>(255U), 1.0);
         },
         "total ratio conversion should reject unsupported grading types");
     for (const GradingType type : {GradingType::BothEnds, GradingType::Center}) {
         require_exception<std::invalid_argument>(
-            [&] { (void)ratio_from_total_ratio(2U, type, 2.0); },
+            [&] { (void)Convert_R_To_r(2U, type, 2.0); },
             "two-cell symmetric grading has no positive exponent span");
+        require(Convert_R_To_r(2U, type, 1.0) == 1.0,
+                "two-cell symmetric grading with R == 1 should be uniform");
     }
+    for (const GradingType type : grading_types) {
+        require(Convert_R_To_r(1U, type, 1.0) == 1.0,
+                "single-cell grading with R == 1 should be uniform");
+    }
+    require_exception<std::invalid_argument>(
+        [&] { (void)Convert_R_To_r(1U, GradingType::Forward, 2.0); },
+        "single-cell grading cannot realize a non-unity total ratio");
 }
 
 void check_contracts()
@@ -270,7 +282,7 @@ void check_contracts()
     check_total_ratio_conversion(maximum_total_ratio_error);
     std::cout << "Maximum symmetric-face distance error: " << std::scientific
               << std::setprecision(3) << maximum_symmetry_error
-              << " (tolerance " << 1e-12 * domain.length() << ")\n";
+              << " (tolerance " << 1e-12 * domain.Length() << ")\n";
     std::cout << "Maximum generated total-ratio error: " << std::scientific
               << std::setprecision(3) << maximum_total_ratio_error
               << " (tolerance " << 1e-11 * 16.0 << ")\n";

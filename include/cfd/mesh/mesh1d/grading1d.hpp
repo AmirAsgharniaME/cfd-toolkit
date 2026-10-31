@@ -10,7 +10,7 @@ namespace cfd::mesh::grading
 {
 
 /// Convert a requested largest-to-smallest cell-width ratio to the
-/// per-exponent-step ratio used by `make_1d_faces`.
+/// per-exponent-step ratio used by `Make_Faces`.
 ///
 /// `total_ratio` means the largest generated cell width divided by the
 /// smallest. The returned ratio is the cell-to-cell growth factor for one
@@ -19,16 +19,18 @@ namespace cfd::mesh::grading
 /// physical left-to-right direction: Forward and Backward have the same
 /// exponent span and return the same value for the same inputs.
 ///
-/// @param n_cells Number of cells; must be at least two.
+/// @param n_cells Number of cells; must be at least one. Patterns with no
+///                positive exponent span (e.g. BothEnds/Center with fewer than
+///                three cells) return 1.0 for R == 1.0 and throw otherwise.
 /// @param type Cell-width distribution whose exponent span determines the
 ///             conversion.
 /// @param R Requested largest-to-smallest cell-width ratio; must be
 ///                    finite and greater than or equal to 1.0.
-/// @return The finite per-exponent-step ratio to pass to `make_1d_faces`.
+/// @return The finite per-exponent-step ratio to pass to `Make_Faces`.
 /// @throws std::invalid_argument If an input is invalid, Uniform is requested
 ///         with a non-unity total ratio, or the grading pattern has no
-///         positive exponent span.
-[[nodiscard]] double ratio_from_total_ratio(
+///         positive exponent span and R is not 1.0.
+[[nodiscard]] double Convert_R_To_r(
     std::size_t n_cells,
     GradingType type,
     const double R);
@@ -43,7 +45,8 @@ namespace cfd::mesh::grading
 /// finite.
 ///
 /// @param domain Valid, finite domain whose exact endpoints bound the mesh.
-/// @param n_cells Number of cells; must be at least two.
+/// @param n_cells Number of cells; must be at least one. A single cell spans
+///                the whole domain for every grading type.
 /// @param type Cell-width distribution to generate.
 /// @param r Positive finite width-growth factor; graded modes require a
 ///              value greater than or equal to 1.0.
@@ -56,7 +59,7 @@ namespace cfd::mesh::grading
 ///         with distinct interior cell centers.
 /// @throws std::length_error If the requested cell count exceeds the maximum
 ///         size supported by the face or weight vectors.
-[[nodiscard]] std::vector<double> make_1d_faces(
+[[nodiscard]] std::vector<double> Make_Faces(
     const geometry::Domain1D& domain,
     std::size_t n_cells,
     GradingType type,
