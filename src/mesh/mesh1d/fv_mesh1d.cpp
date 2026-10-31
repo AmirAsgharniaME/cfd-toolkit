@@ -1,153 +1,199 @@
 #include "cfd/mesh/mesh1d/fv_mesh1d.hpp"
 
 #include "cfd/geometry/domain/domain1d.hpp"
+#include "cfd/mesh/grading_type.hpp"
+#include "cfd/mesh/mesh1d/grading1d.hpp"
 
 #include <cmath>
 #include <iomanip>
 #include <ostream>
 #include <stdexcept>
-#include <string>
 #include <utility>
+#include <numeric> // Required for std::midpoint in C++20
 
 namespace cfd::mesh
 {
-namespace
-{
 
-std::vector<double> validate_and_compute_widths(const std::vector<double>& faces)
+FvMesh1D::FvMesh1D(std::vector<double> face_coords)
+    : face_coords_(std::move(face_coords))
 {
-    if (faces.size() < 2)
-    {
-        throw std::invalid_argument("FvMesh1D: requires at least two faces (>= 1 cell).");
+    const std::size_t N_Faces = face_coords_.size();
+
+    // At least two faces are required to define a single cell
+    if (N_Faces < 2UL) {
+        throw std::invalid_argument(
+            "FvMesh1D: requires at least two faces (>= 1 cell).");
     }
 
-    // Validate the whole represented interval, even when every individual
-    // width is finite (their total extent can still overflow).
-    (void)cfd::geometry::Domain1D(faces.front(), faces.back());
+    const std::size_t N_Cells = N_Faces - 1UL;
 
-    std::vector<double> widths(faces.size() - 1);
-    for (std::size_t P = 0; P < widths.size(); ++P)
+    // Pre-allocate and resize vectors for direct indexing (more efficient than reserve + push_back)
+    cell_centers_.resize(N_Cells);
+    cell_volumes_.resize(N_Cells);
+
+    for (std::size_t p = 0; p < N_Cells; ++p)
     {
-        if (!std::isfinite(faces[P]) || !std::isfinite(faces[P + 1]))
-        {
-            throw std::invalid_argument("FvMesh1D: non-finite face coordinate at index " + std::to_string(P));
-        }
+        // In a 1D structured mesh: west face is at 'p', east face is at 'p + 1'
+        const double west_face_coord = face_coords_[p];
+        const double east_face_coord = face_coords_[p + 1];
 
-        widths[P] = faces[P + 1] - faces[P];
-        if (!std::isfinite(widths[P]) || !(widths[P] > 0.0))
-        {
-            throw std::invalid_argument("FvMesh1D: cell width must be finite and positive at index " + std::to_string(P));
-        }
-    }
-    return widths;
-}
-
-std::vector<double> compute_cell_centers(const std::vector<double>& faces,
-                                         const std::vector<double>& widths)
-{
-    std::vector<double> centers(widths.size());
-    for (std::size_t P = 0; P < centers.size(); ++P)
-    {
-        // Avoid overflow from adding the two face coordinates directly.
-        centers[P] = faces[P] + widths[P] * 0.5;
-        if (!std::isfinite(centers[P]) || !(faces[P] < centers[P]) ||
-            !(centers[P] < faces[P + 1]) || (P > 0 && !(centers[P] > centers[P - 1])))
-        {
+        // Ensure face coordinates are valid finite numbers (prevent NaN/Inf propagation)
+        if (!std::isfinite(west_face_coord) || !std::isfinite(east_face_coord)) {
             throw std::invalid_argument(
-                "FvMesh1D: coordinate precision cannot represent a distinct interior cell center at index " +
-                std::to_string(P));
+                "FvMesh1D: face coordinates must be finite.");
         }
+
+        const double cell_width = east_face_coord - west_face_coord;
+
+        // Verify strictly increasing coordinates, positive cell width, and valid float state
+        if (cell_width <= 0.0 || !std::isfinite(cell_width)) {
+            throw std::invalid_argument(
+                "FvMesh1D: faces must increase strictly with finite cell widths.");
+        }
+
+        // Use C++20 std::midpoint for highest numerical precision without overflow risk
+        const double cell_center_coord = std::midpoint(west_face_coord, east_face_coord);
+
+        // Ensure the computed center strictly resides inside the cell bounds
+        if (!std::isfinite(cell_center_coord) || cell_center_coord <= west_face_coord || cell_center_coord >= east_face_coord) {
+            throw std::invalid_argument(
+                "FvMesh1D: cell has no distinct representable interior center.");
+        }
+
+        // Guarantee strict monotonic increase of cell centers compared to the previous cell
+        if (p > 0 && cell_center_coord <= cell_centers_[p - 1]) {
+            throw std::invalid_argument(
+                "FvMesh1D: cell centers must be strictly monotonically increasing.");
+        }
+
+        // Direct-index assignment: blazing fast with zero dynamic reallocation overhead
+        cell_centers_[p] = cell_center_coord;
+        cell_volumes_[p] = cell_width;
     }
-    return centers;
 }
 
-}  // namespace
 
-FvMesh1D::FvMesh1D(std::vector<double> faces)
-    : start_(faces.empty() ? 0.0 : faces.front()),
-      end_(faces.empty() ? 0.0 : faces.back()),
-      faces_(std::move(faces)),
-      cell_widths_(validate_and_compute_widths(faces_)),
-      cell_centers_(compute_cell_centers(faces_, cell_widths_))
+FvMesh1D::FvMesh1D(std::initializer_list<double> face_coords)
+    : FvMesh1D(std::vector<double>(face_coords))
 {
 }
 
-double FvMesh1D::face(std::size_t f) const
+FvMesh1D::FvMesh1D(
+    const geometry::Domain1D& domain,
+    std::vector<double> face_coords)
+    : FvMesh1D(std::move(face_coords))
 {
-    return faces_.at(f);
+    if (start() != domain.start() || end() != domain.end())
+        throw std::invalid_argument(
+            "FvMesh1D: face endpoints must match domain bounds.");
 }
 
-double FvMesh1D::cell_center(std::size_t P) const
+FvMesh1D FvMesh1D::create_uniform(
+    double x_min,
+    double x_max,
+    std::size_t num_cells)
 {
-    return cell_centers_.at(P);
-}
+    const geometry::Domain1D domain(x_min, x_max);
 
-double FvMesh1D::cell_width(std::size_t P) const
-{
-    return cell_widths_.at(P);
-}
+    if (num_cells == 0)
+        throw std::invalid_argument(
+            "FvMesh1D: cell count must be at least one.");
 
-double FvMesh1D::distance_to_west_face(std::size_t P) const
-{
-    if (P >= num_cells())
+    std::vector<double> faces;
+    if (num_cells >= faces.max_size())
+        throw std::length_error(
+            "FvMesh1D: requested face count is too large.");
+
+    faces.resize(num_cells + 1);
+
+    const long double first = domain.start();
+    const long double extent = domain.length();
+
+    faces.front() = domain.start();
+    faces.back() = domain.end();
+
+    for (std::size_t i = 1; i < num_cells; ++i)
     {
-        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " is out of range.");
+        faces[i] = static_cast<double>(
+            first + extent * static_cast<long double>(i) /
+                        static_cast<long double>(num_cells));
     }
-    return cell_centers_[P] - faces_[P];
+
+    return FvMesh1D(std::move(faces));
 }
 
-double FvMesh1D::distance_to_east_face(std::size_t P) const
+FvMesh1D FvMesh1D::create_uniform(
+    const geometry::Domain1D& domain,
+    std::size_t num_cells)
 {
-    if (P >= num_cells())
-    {
-        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " is out of range.");
-    }
-    return faces_[P + 1U] - cell_centers_[P];
+    return create_uniform(domain.start(), domain.end(), num_cells);
 }
 
-double FvMesh1D::distance_to_east_neighbor(std::size_t P) const
+FvMesh1D FvMesh1D::create_graded(
+    double x_min,
+    double x_max,
+    std::size_t num_cells,
+    double grading_ratio)
 {
-    if (P >= num_cells() || P + 1 >= num_cells())
-    {
-        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no eastern neighbor.");
-    }
-    return cell_centers_[P + 1] - cell_centers_[P];
+    const geometry::Domain1D domain(x_min, x_max);
+
+    return FvMesh1D(grading::make_1d_faces(
+        domain, num_cells, GradingType::Forward, grading_ratio));
 }
 
-double FvMesh1D::distance_to_west_neighbor(std::size_t P) const
+double FvMesh1D::distance_to_west_face(std::size_t cell_idx) const
 {
-    if (P >= num_cells() || P == 0)
-    {
-        throw std::out_of_range("FvMesh1D: cell " + std::to_string(P) + " has no western neighbor.");
-    }
-    return cell_centers_[P] - cell_centers_[P - 1];
+    return cell_center(cell_idx) - face_coord(cell_idx);
+}
+
+double FvMesh1D::distance_to_east_face(std::size_t cell_idx) const
+{
+    const double center = cell_center(cell_idx);
+    return face_coord(cell_idx + 1) - center;
+}
+
+double FvMesh1D::distance_to_west_neighbor(std::size_t cell_idx) const
+{
+    if (cell_idx == 0 || cell_idx >= num_cells())
+        throw std::out_of_range(
+            "FvMesh1D: cell has no western neighbor.");
+
+    return cell_centers_[cell_idx] - cell_centers_[cell_idx - 1];
+}
+
+double FvMesh1D::distance_to_east_neighbor(std::size_t cell_idx) const
+{
+    if (cell_idx >= num_cells() || cell_idx == num_cells() - 1)
+        throw std::out_of_range(
+            "FvMesh1D: cell has no eastern neighbor.");
+
+    return cell_centers_[cell_idx + 1] - cell_centers_[cell_idx];
 }
 
 void FvMesh1D::print_details(std::ostream& output) const
 {
-    const std::ios::fmtflags original_flags = output.flags();
-    const std::streamsize original_precision = output.precision();
+    const auto flags = output.flags();
+    const auto precision = output.precision();
 
     output << std::fixed << std::setprecision(6)
            << "FvMesh1D Geometry Details\n"
            << "=========================\n"
-           << "Domain bounds: [" << start_ << ", " << end_ << "]\n"
+           << "Domain bounds: [" << start() << ", " << end() << "]\n"
            << "Cells (N):     " << num_cells() << '\n'
            << "Faces (N+1):   " << num_faces() << "\n\n"
-           << "Topology:\n"
            << "Cell    Face_W           Center_P         Face_E           Volume (dx)\n";
 
-    for (std::size_t P = 0; P < num_cells(); ++P)
+    for (std::size_t i = 0; i < num_cells(); ++i)
     {
-        output << std::setw(4) << P << "    "
-               << std::setw(14) << faces_[P] << "    "
-               << std::setw(14) << cell_centers_[P] << "    "
-               << std::setw(14) << faces_[P + 1] << "    "
-               << std::setw(14) << cell_widths_[P] << '\n';
+        output << std::setw(4) << i << "    "
+               << std::setw(14) << face_coords_[i] << "    "
+               << std::setw(14) << cell_centers_[i] << "    "
+               << std::setw(14) << face_coords_[i + 1] << "    "
+               << std::setw(14) << cell_volumes_[i] << '\n';
     }
 
-    output.flags(original_flags);
-    output.precision(original_precision);
+    output.flags(flags);
+    output.precision(precision);
 }
 
 }  // namespace cfd::mesh

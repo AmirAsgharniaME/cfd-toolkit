@@ -5,8 +5,8 @@
 
 #include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
-#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
-#include <cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 #include <type_traits>
 
@@ -34,7 +34,7 @@ int main()
     try
     {
         const cfd::geometry::Domain1D domain(-1.0, 1.0);
-        const cfd::mesh::UniformMesh1D mesh(domain, 4);
+        const cfd::mesh::FvMesh1D mesh(domain, 4);
 
         // Cell location is the default and allocates one value per cell.
         cfd::field::field1d::ScalarField1D temperature("temperature", mesh);
@@ -71,13 +71,13 @@ int main()
         static_assert(!std::is_copy_assignable_v<cfd::field::field1d::VolScalarField1D>);
         static_assert(!std::is_move_assignable_v<cfd::field::field1d::VolScalarField1D>);
 
-        const cfd::mesh::NonUniformFvMesh1D graded(domain, {-1.0, -0.5, 0.0, 1.0});
+        const cfd::mesh::FvMesh1D graded(domain, {-1.0, -0.5, 0.0, 1.0});
         const cfd::field::field1d::VolScalarField1D graded_field("graded", graded);
         require(graded_field.size() == graded.num_cells(),
                 "A field should bind to a non-uniform base mesh.");
         require(&graded_field.mesh() == &graded, "mesh() should return the bound mesh.");
 
-        const cfd::mesh::UniformFvMesh1D twin(domain, 4);
+        const cfd::mesh::FvMesh1D twin(domain, 4);
         const cfd::field::field1d::VolScalarField1D twin_field("twin", twin);
         bool identity_checked = false;
         try

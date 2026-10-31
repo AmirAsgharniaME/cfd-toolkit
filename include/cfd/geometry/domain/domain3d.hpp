@@ -23,9 +23,9 @@ public:
 
     /// Return true if (x, y, z) lies within the closed cuboid domain.
     [[nodiscard]] bool contains(double x, double y, double z) const noexcept {
-        return x_domain_.contains(x) &&
-               y_domain_.contains(y) &&
-               z_domain_.contains(z);
+        return x_domain_.IsContain(x) &&
+               y_domain_.IsContain(y) &&
+               z_domain_.IsContain(z);
     }
 
     /// Replace all axes after argument construction succeeds.

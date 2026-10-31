@@ -12,10 +12,10 @@ namespace cfd::geometry {
 class Domain1D {
 public:
     /// Construct the interval [0, length].
-    explicit Domain1D(double length);
+    explicit Domain1D(double domain_length);
 
     /// Construct an interval from its start and end coordinates.
-    Domain1D(double start, double end);
+    Domain1D(double start_coord, double end_coord);
 
     /// Construct an interval from its start coordinate and length.
     /// The end is computed as start + length in floating-point arithmetic.
@@ -23,41 +23,41 @@ public:
     /// from the request, especially at large coordinate magnitudes. Throws
     /// std::invalid_argument for a nonfinite/nonpositive length, nonfinite bounds
     /// or extent, or an end that rounds back to the start.
-    [[nodiscard]] static Domain1D from_start_and_length(double start, double length);
+    [[nodiscard]] static Domain1D from_start_and_length(double start_coord, double domain_length);
 
-    [[nodiscard]] constexpr double start() const noexcept { return start_; }
-    [[nodiscard]] constexpr double end() const noexcept { return end_; }
+    [[nodiscard]] constexpr double Get_Start_coord() const noexcept { return start_coord_; }
+    [[nodiscard]] constexpr double Get_end_coord() const noexcept { return end_coord_; }
     /// Represented endpoint difference; may differ from a requested input length.
-    [[nodiscard]] constexpr double length() const noexcept { return end_ - start_; }
+    [[nodiscard]] constexpr double Get_length() const noexcept { return end_coord_ - start_coord_; }
 
     /// Exact closed-interval membership; NaN and infinities return false.
     /// No tolerance is applied; this does not assign points to mesh cells.
-    [[nodiscard]] bool contains(double coordinate) const noexcept {
-        return coordinate >= start_ && coordinate <= end_;
+    [[nodiscard]] bool IsContain(double coordinate) const noexcept {
+        return coordinate >= start_coord_ && coordinate <= end_coord_;
     }
 
     /// Replace both bounds after validation; throws std::invalid_argument for
     /// nonfinite bounds, nonincreasing bounds, or a nonfinite difference.
     /// Every rejected update leaves the domain unchanged.
-    void set_bounds(double start, double end);
-    void set_start(double start);
-    void set_end(double end);
+    void Set_Bounds(double start_coord, double end_coord);
+    void Set_Start_Coord(double start_coord);
+    void set_End_Coord(double end_coord);
     /// Preserve the start and compute the end as start() + length.
     /// Endpoints remain authoritative: finite-precision rounding can make
     /// length() differ from the request. Uses the same validation and rounding
     /// contract as from_start_and_length(); rejected updates leave bounds unchanged.
-    void set_length(double length);
+    void Set_Length(double domain_length);
 
     // Equality for tests and configuration comparisons (exact float compare).
     friend bool operator==(const Domain1D& a, const Domain1D& b) noexcept {
-        return a.start_ == b.start_ && a.end_ == b.end_;
+        return a.start_coord_ == b.start_coord_ && a.end_coord_ == b.end_coord_;
     }
     friend bool operator!=(const Domain1D& a, const Domain1D& b) noexcept {
         return !(a == b);
     }
 private:
-    double start_;
-    double end_;
+    double start_coord_;
+    double end_coord_;
 };
 
 } // namespace cfd::geometry

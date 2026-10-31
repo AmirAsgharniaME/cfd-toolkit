@@ -22,21 +22,19 @@ H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
 H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
 H | Domain 3D header | include/cfd/geometry/domain/domain3d.hpp
 H | Boundary types header | include/cfd/boundary/types.hpp
-H | FV mesh 1D base header | include/cfd/mesh/mesh1d/fv_mesh1d.hpp
+H | FV mesh 1D header | include/cfd/mesh/mesh1d/fv_mesh1d.hpp
 H | Grading type header | include/cfd/mesh/grading_type.hpp
 H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp
 H | Neumann boundary 1D header | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp
-H | Uniform FV mesh 1D header | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp
 H | Uniform FV mesh 2D header | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp
 H | Uniform FV Mesh 3D Header | include/cfd/mesh/mesh3d/uniform_fv_mesh3d.hpp
-H | Non Uniform FV Mesh 1D Header | include/cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp
 H | Grading 1D Header | include/cfd/mesh/mesh1d/grading1d.hpp
 H | Vector 1D header | include/cfd/vector/vector1d.hpp
 H | Vector 2D header | include/cfd/vector/vector2d.hpp
 H | Vector 3D header | include/cfd/vector/vector3d.hpp
 
 # Source
-CPP | FV mesh 1D base source | src/mesh/mesh1d/fv_mesh1d.cpp
+CPP | FV mesh 1D source | src/mesh/mesh1d/fv_mesh1d.cpp
 CPP | Volume scalar field 1D source | src/field/field1d/vol_scalar_field1d.cpp
 CPP | Volume vector field 1D source | src/field/field1d/vol_vector_field1d.cpp
 CPP | Dirichlet boundary 1D source | src/boundary/boundary1d/dirichlet_boundary1d.cpp
@@ -44,20 +42,16 @@ CPP | Neumann boundary 1D source | src/boundary/boundary1d/neumann_boundary1d.cp
 CPP | Domain 1D source | src/geometry/domain/domain1d.cpp
 CPP | Domain 2D source | src/geometry/domain/domain2d.cpp
 CPP | Domain 3D source | src/geometry/domain/domain3d.cpp
-CPP | Uniform FV mesh 1D source | src/mesh/mesh1d/uniform_fv_mesh1d.cpp
 CPP | Uniform FV mesh 2D source | src/mesh/mesh2d/uniform_fv_mesh2d.cpp
 CPP | Uniform FV Mesh 3D Source | src/mesh/mesh3d/uniform_fv_mesh3d.cpp
-CPP | Non Uniform FV Mesh 1D Source | src/mesh/mesh1d/non_uniform_fv_mesh1d.cpp
 CPP | Grading 1D Source | src/mesh/mesh1d/grading1d.cpp
 
 # Classes (header and source)
-CLASS | FV mesh 1D base class | include/cfd/mesh/mesh1d/fv_mesh1d.hpp and src/mesh/mesh1d/fv_mesh1d.cpp
+CLASS | FV mesh 1D class | include/cfd/mesh/mesh1d/fv_mesh1d.hpp and src/mesh/mesh1d/fv_mesh1d.cpp
 CLASS | Volume scalar field 1D class | include/cfd/field/field1d/vol_scalar_field1d.hpp and src/field/field1d/vol_scalar_field1d.cpp
 CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geometry/domain/domain1d.cpp
 CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
 CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geometry/domain/domain3d.cpp
-CLASS | Uniform FV mesh 1D class | include/cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp and src/mesh/mesh1d/uniform_fv_mesh1d.cpp
-CLASS | Non Uniform FV mesh 1D class | include/cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp and src/mesh/mesh1d/non_uniform_fv_mesh1d.cpp
 CLASS | Uniform FV mesh 2D class | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp and src/mesh/mesh2d/uniform_fv_mesh2d.cpp
 CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp and src/boundary/boundary1d/dirichlet_boundary1d.cpp
 CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp

@@ -1,7 +1,7 @@
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/geometry/domain/domain2d.hpp>
 #include <cfd/geometry/domain/domain3d.hpp>
-#include <cfd/mesh/mesh1d/uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 #include <cmath>
 #include <type_traits>
@@ -123,7 +123,9 @@ void check_contracts()
     require(!rectangle.contains(nan, 1.0) && !rectangle.contains(0.0, inf) &&
             !cuboid.contains(0.0, nan, 1.0) && !cuboid.contains(0.0, 1.0, inf) &&
             !cuboid.contains(2.0, 1.0, 1.0), "Invalid composed containment accepted");
-    cfd::mesh::UniformFvMesh1D mesh(rectangle.x_domain(), 2);
+    const auto x_domain = rectangle.x_domain();
+    cfd::mesh::FvMesh1D mesh = cfd::mesh::FvMesh1D::create_uniform(
+        x_domain.start(), x_domain.end(), 2);
     rectangle.set_domains(interval, original);
     cuboid.set_domains(interval, original, original);
     require(snapshot == original && mesh.x_start() == -1.0 && mesh.x_end() == 1.0,

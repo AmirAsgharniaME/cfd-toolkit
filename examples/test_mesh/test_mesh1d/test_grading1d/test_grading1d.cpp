@@ -13,14 +13,14 @@
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/grading_type.hpp>
 #include <cfd/mesh/mesh1d/grading1d.hpp>
-#include <cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 namespace
 {
 
 using cfd::geometry::Domain1D;
 using cfd::mesh::GradingType;
-using cfd::mesh::NonUniformFvMesh1D;
+using cfd::mesh::FvMesh1D;
 
 constexpr std::array<GradingType, 5> grading_types{
     GradingType::Uniform,
@@ -100,9 +100,9 @@ void check_generated_geometry(const Domain1D& domain,
         }
     }
 
-    const NonUniformFvMesh1D mesh(domain, faces);
+    const FvMesh1D mesh(domain, faces);
     require(mesh.num_cells() == cell_count && mesh.num_faces() == faces.size(),
-            context + ": generated faces are incompatible with NonUniformFvMesh1D");
+            context + ": generated faces are incompatible with FvMesh1D");
     for (std::size_t face = 0; face < faces.size(); ++face) {
         require(mesh.face(face) == faces[face],
                 context + ": consumer changed a generated face");

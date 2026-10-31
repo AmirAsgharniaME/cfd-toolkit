@@ -59,8 +59,6 @@ add_library(cfd_toolkit STATIC
     # Finite volume meshes
     src/mesh/mesh1d/fv_mesh1d.cpp
     src/mesh/mesh1d/grading1d.cpp
-    src/mesh/mesh1d/non_uniform_fv_mesh1d.cpp
-    src/mesh/mesh1d/uniform_fv_mesh1d.cpp
     src/mesh/mesh2d/uniform_fv_mesh2d.cpp
     src/mesh/mesh3d/uniform_fv_mesh3d.cpp
 

@@ -28,7 +28,7 @@ public:
 
     /// Return true if (x, y) lies within the closed rectangular domain.
     [[nodiscard]] bool contains(double x, double y) const noexcept {
-        return x_domain_.contains(x) && y_domain_.contains(y);
+        return x_domain_.IsContain(x) && y_domain_.IsContain(y);
     }
 
     /// Replace both axes after argument construction succeeds.

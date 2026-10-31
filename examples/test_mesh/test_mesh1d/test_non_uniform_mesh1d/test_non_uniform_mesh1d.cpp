@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <cfd/geometry/domain/domain1d.hpp>
-#include <cfd/mesh/mesh1d/non_uniform_fv_mesh1d.hpp>
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 
 namespace
 {
@@ -33,11 +33,11 @@ void require_exception(Operation operation)
 void check_contracts()
 {
     using cfd::geometry::Domain1D;
-    using cfd::mesh::NonUniformFvMesh1D;
+    using cfd::mesh::FvMesh1D;
 
     Domain1D domain(-2.0, 4.0);
     std::vector<double> faces{-2.0, -1.5, 0.5, 4.0};
-    const NonUniformFvMesh1D mesh(domain, faces);
+    const FvMesh1D mesh(domain, faces);
     require(mesh.start() == -2.0 && mesh.end() == 4.0 && mesh.length() == 6.0,
             "Mesh bounds do not match the domain snapshot");
     require(mesh.num_cells() == 3 && mesh.num_faces() == 4,
@@ -63,21 +63,21 @@ void check_contracts()
 
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const double inf = std::numeric_limits<double>::infinity();
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0, 20.0, 19.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0, 10.0, 20.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {9.0, 15.0, 20.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0, 15.0, 21.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0, nan, 20.0}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {10.0, inf}); });
-    require_exception<std::invalid_argument>([&] { (void)NonUniformFvMesh1D(domain, {-inf, 20.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0, 20.0, 19.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0, 10.0, 20.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{9.0, 15.0, 20.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0, 15.0, 21.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0, nan, 20.0}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{10.0, inf}); });
+    require_exception<std::invalid_argument>([&] { (void)FvMesh1D(domain, std::vector<double>{-inf, 20.0}); });
 
     const Domain1D adjacent_bounds(1.0, std::nextafter(1.0, inf));
     require_exception<std::invalid_argument>([&] {
-        (void)NonUniformFvMesh1D(adjacent_bounds, {1.0, std::nextafter(adjacent_bounds.end(), inf)});
+        (void)FvMesh1D(adjacent_bounds, std::vector<double>{1.0, std::nextafter(adjacent_bounds.end(), inf)});
     });
-    std::cout << "NonUniformFvMesh1D contract checks passed\n";
+    std::cout << "FvMesh1D contract checks passed\n";
 }
 
 }  // namespace
