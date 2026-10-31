@@ -9,153 +9,107 @@
 namespace cfd::field
 {
 
-VolScalarField1D::VolScalarField1D(std::string name,
-                                   const cfd::mesh::FvMesh1D& mesh,
-                                   FieldLocation location,
+VolScalarField1D::VolScalarField1D(std::string name, const cfd::mesh::FvMesh1D& mesh,
                                    double initial_val)
-    : name_(std::move(name)),
-      mesh_(mesh),
-      location_(location)
+    : name_(std::move(name)), mesh_(mesh), data_(mesh.N_Cells(), initial_val)
 {
-    switch (location_)
+}
+
+VolScalarField1D& VolScalarField1D::operator=(const VolScalarField1D& rhs)
+{
+    if (&mesh_ != &rhs.mesh_)
     {
-    case FieldLocation::Cell_Center:
-        data_.assign(mesh_.N_Cells(), initial_val);
-        break;
-    case FieldLocation::Cell_Face:
-        data_.assign(mesh_.N_Faces(), initial_val);
-        break;
-    default:
-        throw std::invalid_argument("VolScalarField1D: invalid field location");
+        throw std::invalid_argument("VolScalarField1D::operator=: mesh mismatch");
     }
+    name_ = rhs.name_;
+    data_ = rhs.data_;
+    return *this;
+}
+
+VolScalarField1D& VolScalarField1D::operator=(VolScalarField1D&& rhs)
+{
+    if (this == &rhs) return *this;
+    if (&mesh_ != &rhs.mesh_)
+    {
+        throw std::invalid_argument("VolScalarField1D::operator=: mesh mismatch");
+    }
+    name_ = std::move(rhs.name_);
+    data_ = std::move(rhs.data_);
+    return *this;
 }
 
 double& VolScalarField1D::at(std::size_t index)
 {
-    if (index >= data_.size())
-    {
-        throw std::out_of_range("VolScalarField1D::at: index out of range");
-    }
-
+    if (index >= data_.size()) throw std::out_of_range("VolScalarField1D::at: index out of range");
     return data_[index];
 }
 
 const double& VolScalarField1D::at(std::size_t index) const
 {
-    if (index >= data_.size())
-    {
-        throw std::out_of_range("VolScalarField1D::at: index out of range");
-    }
-
+    if (index >= data_.size()) throw std::out_of_range("VolScalarField1D::at: index out of range");
     return data_[index];
 }
 
-void VolScalarField1D::Fill(double value)
-{
-    std::fill(data_.begin(), data_.end(), value);
-}
+void VolScalarField1D::Fill(double value) { std::fill(data_.begin(), data_.end(), value); }
 
 VolScalarField1D& VolScalarField1D::operator+=(const VolScalarField1D& rhs)
 {
-    // Strict physics/mesh safety checks for FVM
-    if (&mesh_ != &rhs.mesh_)
-    {
-        throw std::invalid_argument("VolScalarField1D::operator+=: mesh mismatch");
-    }
-    if (location_ != rhs.location_)
-    {
-        throw std::invalid_argument("VolScalarField1D::operator+=: location mismatch (Cell_Center vs Cell_Face)");
-    }
-    if (data_.size() != rhs.Size())
-    {
-        throw std::invalid_argument("VolScalarField1D::operator+=: size mismatch");
-    }
-
-    for (std::size_t index = 0; index < data_.size(); ++index)
-    {
-        data_[index] += rhs[index];
-    }
-
+    if (&mesh_ != &rhs.mesh_) throw std::invalid_argument("VolScalarField1D::operator+=: mesh mismatch");
+    if (data_.size() != rhs.data_.size()) throw std::invalid_argument("VolScalarField1D::operator+=: size mismatch");
+    for (std::size_t i = 0; i < data_.size(); ++i) data_[i] += rhs.data_[i];
     return *this;
 }
 
 VolScalarField1D& VolScalarField1D::operator-=(const VolScalarField1D& rhs)
 {
-    // Strict physics/mesh safety checks for FVM
-    if (&mesh_ != &rhs.mesh_)
-    {
-        throw std::invalid_argument("VolScalarField1D::operator-=: mesh mismatch");
-    }
-    if (location_ != rhs.location_)
-    {
-        throw std::invalid_argument("VolScalarField1D::operator-=: location mismatch (Cell_Center vs Cell_Face)");
-    }
-    if (data_.size() != rhs.Size())
-    {
-        throw std::invalid_argument("VolScalarField1D::operator-=: size mismatch");
-    }
+    if (&mesh_ != &rhs.mesh_) throw std::invalid_argument("VolScalarField1D::operator-=: mesh mismatch");
+    if (data_.size() != rhs.data_.size()) throw std::invalid_argument("VolScalarField1D::operator-=: size mismatch");
+    for (std::size_t i = 0; i < data_.size(); ++i) data_[i] -= rhs.data_[i];
+    return *this;
+}
 
-    for (std::size_t index = 0; index < data_.size(); ++index)
-    {
-        data_[index] -= rhs[index];
-    }
+VolScalarField1D& VolScalarField1D::operator*=(const VolScalarField1D& rhs)
+{
+    if (&mesh_ != &rhs.mesh_) throw std::invalid_argument("VolScalarField1D::operator*=: mesh mismatch");
+    if (data_.size() != rhs.data_.size()) throw std::invalid_argument("VolScalarField1D::operator*=: size mismatch");
+    for (std::size_t i = 0; i < data_.size(); ++i) data_[i] *= rhs.data_[i];
+    return *this;
+}
 
+VolScalarField1D& VolScalarField1D::operator/=(const VolScalarField1D& rhs)
+{
+    if (&mesh_ != &rhs.mesh_) throw std::invalid_argument("VolScalarField1D::operator/=: mesh mismatch");
+    if (data_.size() != rhs.data_.size()) throw std::invalid_argument("VolScalarField1D::operator/=: size mismatch");
+    if (std::find(rhs.data_.begin(), rhs.data_.end(), 0.0) != rhs.data_.end())
+    {
+        throw std::invalid_argument("VolScalarField1D::operator/=: division by zero");
+    }
+    for (std::size_t i = 0; i < data_.size(); ++i)
+    {
+        data_[i] /= rhs.data_[i];
+    }
     return *this;
 }
 
 VolScalarField1D& VolScalarField1D::operator*=(double scalar)
 {
-    for (double& entry : data_)
-    {
-        entry *= scalar;
-    }
-
+    for (double& value : data_) value *= scalar;
     return *this;
 }
 
 VolScalarField1D& VolScalarField1D::operator/=(double scalar)
 {
-    if (scalar == 0.0)
-    {
-        throw std::invalid_argument("VolScalarField1D::operator/=: division by zero");
-    }
-
-    for (double& entry : data_)
-    {
-        entry /= scalar;
-    }
-
+    if (scalar == 0.0) throw std::invalid_argument("VolScalarField1D::operator/=: division by zero");
+    for (double& value : data_) value /= scalar;
     return *this;
 }
 
-VolScalarField1D operator+(VolScalarField1D lhs, const VolScalarField1D& rhs)
-{
-    lhs += rhs;
-    return lhs;
-}
-
-VolScalarField1D operator-(VolScalarField1D lhs, const VolScalarField1D& rhs)
-{
-    lhs -= rhs;
-    return lhs;
-}
-
-VolScalarField1D operator*(VolScalarField1D lhs, double scalar)
-{
-    lhs *= scalar;
-    return lhs;
-}
-
-VolScalarField1D operator*(double scalar, VolScalarField1D rhs)
-{
-    rhs *= scalar;
-    return rhs;
-}
-
-VolScalarField1D operator/(VolScalarField1D lhs, double scalar)
-{
-    lhs /= scalar;
-    return lhs;
-}
+VolScalarField1D operator+(VolScalarField1D lhs, const VolScalarField1D& rhs) { return lhs += rhs; }
+VolScalarField1D operator-(VolScalarField1D lhs, const VolScalarField1D& rhs) { return lhs -= rhs; }
+VolScalarField1D operator*(VolScalarField1D lhs, const VolScalarField1D& rhs) { return lhs *= rhs; }
+VolScalarField1D operator/(VolScalarField1D lhs, const VolScalarField1D& rhs) { return lhs /= rhs; }
+VolScalarField1D operator*(VolScalarField1D lhs, double scalar) { return lhs *= scalar; }
+VolScalarField1D operator*(double scalar, VolScalarField1D rhs) { return rhs *= scalar; }
+VolScalarField1D operator/(VolScalarField1D lhs, double scalar) { return lhs /= scalar; }
 
 }  // namespace cfd::field

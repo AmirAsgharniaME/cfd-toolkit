@@ -16,6 +16,7 @@ MD | field 1D README | include/cfd/field/field1d/README.md
 
 # Headers
 H | Volume scalar field 1D header | include/cfd/field/field1d/vol_scalar_field1d.hpp
+H | Surface scalar field 1D header | include/cfd/field/field1d/surface_scalar_field1d.hpp
 H | Volume vector field 1D header | include/cfd/field/field1d/vol_vector_field1d.hpp
 H | Field types header | include/cfd/field/types.hpp
 H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
@@ -36,6 +37,7 @@ H | Vector 3D header | include/cfd/vector/vector3d.hpp
 # Source
 CPP | FV mesh 1D source | src/mesh/mesh1d/fv_mesh1d.cpp
 CPP | Volume scalar field 1D source | src/field/field1d/vol_scalar_field1d.cpp
+CPP | Surface scalar field 1D source | src/field/field1d/surface_scalar_field1d.cpp
 CPP | Volume vector field 1D source | src/field/field1d/vol_vector_field1d.cpp
 CPP | Dirichlet boundary 1D source | src/boundary/boundary1d/dirichlet_boundary1d.cpp
 CPP | Neumann boundary 1D source | src/boundary/boundary1d/neumann_boundary1d.cpp
@@ -49,6 +51,7 @@ CPP | Grading 1D Source | src/mesh/mesh1d/grading1d.cpp
 # Classes (header and source)
 CLASS | FV mesh 1D class | include/cfd/mesh/mesh1d/fv_mesh1d.hpp and src/mesh/mesh1d/fv_mesh1d.cpp
 CLASS | Volume scalar field 1D class | include/cfd/field/field1d/vol_scalar_field1d.hpp and src/field/field1d/vol_scalar_field1d.cpp
+CLASS | Surface scalar field 1D class | include/cfd/field/field1d/surface_scalar_field1d.hpp and src/field/field1d/surface_scalar_field1d.cpp
 CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geometry/domain/domain1d.cpp
 CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
 CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geometry/domain/domain3d.cpp
@@ -144,7 +147,6 @@ CFG | VS Code task configuration | .vscode/tasks.json
 CFG | File manager | FILEPATH.md
 
 # Surface fields, patch boundaries, and explicit operators
-H | surface scalar field1d header | include/cfd/field/field1d/surface_scalar_field1d.hpp
 H | surface vector field1d header | include/cfd/field/field1d/surface_vector_field1d.hpp
 H | patch boundary1d header | include/cfd/boundary/boundary1d/patch_boundary1d.hpp
 H | div1d header | include/cfd/finite_volume/fvc/fvc1d/div1d.hpp
