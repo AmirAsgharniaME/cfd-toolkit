@@ -1,10 +1,12 @@
-#include "cfd/field/field1d/vol_scalar_field1d.hpp"
+#include <cfd/field/field1d/vol_scalar_field1d.hpp>
 
 #include <algorithm>
 #include <stdexcept>
 #include <utility>
 
-namespace cfd::field::field1d
+#include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
+
+namespace cfd::field
 {
 
 VolScalarField1D::VolScalarField1D(std::string name,
@@ -17,10 +19,10 @@ VolScalarField1D::VolScalarField1D(std::string name,
 {
     switch (location_)
     {
-    case FieldLocation::Cell:
+    case FieldLocation::Cell_Center:
         data_.assign(mesh_.N_Cells(), initial_val);
         break;
-    case FieldLocation::Face:
+    case FieldLocation::Cell_Face:
         data_.assign(mesh_.N_Faces(), initial_val);
         break;
     default:
@@ -48,7 +50,7 @@ const double& VolScalarField1D::at(std::size_t index) const
     return data_[index];
 }
 
-void VolScalarField1D::fill(double value)
+void VolScalarField1D::Fill(double value)
 {
     std::fill(data_.begin(), data_.end(), value);
 }
@@ -62,9 +64,9 @@ VolScalarField1D& VolScalarField1D::operator+=(const VolScalarField1D& rhs)
     }
     if (location_ != rhs.location_)
     {
-        throw std::invalid_argument("VolScalarField1D::operator+=: location mismatch (Cell vs Face)");
+        throw std::invalid_argument("VolScalarField1D::operator+=: location mismatch (Cell_Center vs Cell_Face)");
     }
-    if (data_.size() != rhs.size())
+    if (data_.size() != rhs.Size())
     {
         throw std::invalid_argument("VolScalarField1D::operator+=: size mismatch");
     }
@@ -86,9 +88,9 @@ VolScalarField1D& VolScalarField1D::operator-=(const VolScalarField1D& rhs)
     }
     if (location_ != rhs.location_)
     {
-        throw std::invalid_argument("VolScalarField1D::operator-=: location mismatch (Cell vs Face)");
+        throw std::invalid_argument("VolScalarField1D::operator-=: location mismatch (Cell_Center vs Cell_Face)");
     }
-    if (data_.size() != rhs.size())
+    if (data_.size() != rhs.Size())
     {
         throw std::invalid_argument("VolScalarField1D::operator-=: size mismatch");
     }
@@ -156,4 +158,4 @@ VolScalarField1D operator/(VolScalarField1D lhs, double scalar)
     return lhs;
 }
 
-}  // namespace cfd::field::field1d
+}  // namespace cfd::field

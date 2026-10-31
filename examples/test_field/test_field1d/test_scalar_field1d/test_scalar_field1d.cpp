@@ -2,12 +2,11 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
 #include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
-
-#include <type_traits>
 
 namespace
 {
@@ -35,25 +34,25 @@ int main()
         const cfd::geometry::Domain1D domain(-1.0, 1.0);
         const cfd::mesh::FvMesh1D mesh(domain, 4);
 
-        // Cell location is the default and allocates one value per cell.
-        cfd::field::field1d::ScalarField1D temperature("temperature", mesh);
-        require(temperature.location() == cfd::field::FieldLocation::Cell,
-                "The default field location should be Cell.");
-        require(temperature.size() == mesh.N_Cells(),
+        // Cell_Center is the default and allocates one value per cell.
+        cfd::field::ScalarField1D temperature("temperature", mesh);
+        require(temperature.Location() == cfd::field::FieldLocation::Cell_Center,
+                "The default field location should be Cell_Center.");
+        require(temperature.Size() == mesh.N_Cells(),
                 "A cell field should have one entry per mesh cell.");
         require_near(temperature[0], 0.0, "The default initial value should be zero.");
-        require(temperature.name() == "temperature", "The field name should be retained.");
+        require(temperature.Name() == "temperature", "The field name should be retained.");
 
-        // Face fields contain one more value than cell fields in a 1D mesh.
-        cfd::field::field1d::ScalarField1D face_flux(
-            "face_flux", mesh, cfd::field::FieldLocation::Face, 2.0);
-        require(face_flux.size() == mesh.N_Faces(),
+        // Cell_Face fields contain one more value than Cell_Center fields in a 1D mesh.
+        cfd::field::ScalarField1D face_flux(
+            "face_flux", mesh, cfd::field::FieldLocation::Cell_Face, 2.0);
+        require(face_flux.Size() == mesh.N_Faces(),
                 "A face field should have one entry per mesh face.");
-        require(face_flux.location() == cfd::field::FieldLocation::Face,
-                "The requested Face location should be retained.");
+        require(face_flux.Location() == cfd::field::FieldLocation::Cell_Face,
+                "The requested Cell_Face location should be retained.");
         require_near(face_flux[0], 2.0, "The supplied initial value should fill the face field.");
 
-        temperature.fill(3.0);
+        temperature.Fill(3.0);
         temperature[1] = 4.0;
         require_near(temperature.at(1), 4.0, "Indexed writes should update field values.");
 
@@ -67,17 +66,22 @@ int main()
         const auto divided = scaled / 2.0;
         require_near(divided[1], 4.0, "Scalar division should scale every entry.");
 
-        static_assert(!std::is_copy_assignable_v<cfd::field::field1d::VolScalarField1D>);
-        static_assert(!std::is_move_assignable_v<cfd::field::field1d::VolScalarField1D>);
+        static_assert(!std::is_copy_assignable_v<cfd::field::VolScalarField1D>);
+        static_assert(!std::is_move_assignable_v<cfd::field::VolScalarField1D>);
+        using Field = cfd::field::VolScalarField1D;
+        using Mesh = cfd::mesh::FvMesh1D;
+        static_assert(std::is_constructible_v<Field, std::string, Mesh&>);
+        static_assert(!std::is_constructible_v<Field, std::string, Mesh&&>);
+        static_assert(!std::is_constructible_v<Field, std::string, const Mesh&&>);
 
         const cfd::mesh::FvMesh1D graded(domain, 4, cfd::mesh::GradingType::Forward, 2.0);
-        const cfd::field::field1d::VolScalarField1D graded_field("graded", graded);
-        require(graded_field.size() == graded.N_Cells(),
+        const cfd::field::VolScalarField1D graded_field("graded", graded);
+        require(graded_field.Size() == graded.N_Cells(),
                 "A field should bind to a non-uniform base mesh.");
-        require(&graded_field.mesh() == &graded, "mesh() should return the bound mesh.");
+        require(&graded_field.Mesh() == &graded, "Mesh() should return the bound mesh.");
 
         const cfd::mesh::FvMesh1D twin(domain, 4);
-        const cfd::field::field1d::VolScalarField1D twin_field("twin", twin);
+        const cfd::field::VolScalarField1D twin_field("twin", twin);
         bool identity_checked = false;
         try
         {
@@ -89,15 +93,15 @@ int main()
         }
         require(identity_checked, "Equal geometry on distinct meshes should still be rejected.");
 
-        auto view = temperature.values();
+        auto view = temperature.Values();
         view[2] = 9.0;
         require_near(temperature[2], 9.0, "values() should alias the field storage.");
-        require(view.size() == temperature.size(), "values() should span all entries.");
+        require(view.size() == temperature.Size(), "Values() should span all entries.");
 
         bool location_checked = false;
         try
         {
-            const cfd::field::field1d::VolScalarField1D bad(
+            const cfd::field::VolScalarField1D bad(
                 "bad", mesh, static_cast<cfd::field::FieldLocation>(7));
         }
         catch (const std::invalid_argument&)
@@ -109,7 +113,7 @@ int main()
         bool bounds_checked = false;
         try
         {
-            (void)temperature.at(temperature.size());
+            (void)temperature.at(temperature.Size());
         }
         catch (const std::out_of_range&)
         {
@@ -140,8 +144,8 @@ int main()
         require(division_checked, "Division by zero should throw.");
 
         std::cout << "ScalarField1D example checks passed.\n"
-                  << "  Cell entries: " << temperature.size() << '\n'
-                  << "  Face entries: " << face_flux.size() << '\n';
+                  << "  Cell entries: " << temperature.Size() << '\n'
+                  << "  Face entries: " << face_flux.Size() << '\n';
 
         std::cin.get();
         return 0;
