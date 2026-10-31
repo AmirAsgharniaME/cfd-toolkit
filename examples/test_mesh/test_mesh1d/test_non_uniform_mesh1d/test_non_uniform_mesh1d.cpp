@@ -38,19 +38,19 @@ void check_contracts()
     Domain1D domain(-2.0, 4.0);
     std::vector<double> faces{-2.0, -1.5, 0.5, 4.0};
     const FvMesh1D mesh(domain, faces);
-    require(mesh.start() == -2.0 && mesh.end() == 4.0 && mesh.length() == 6.0,
+    require(mesh.start() == -2.0 && mesh.end() == 4.0 && mesh.Length() == 6.0,
             "Mesh bounds do not match the domain snapshot");
-    require(mesh.num_cells() == 3 && mesh.num_faces() == 4,
+    require(mesh.N_Cells() == 3 && mesh.N_Faces() == 4,
             "Incorrect non-uniform mesh counts");
 
     const double expected_faces[]{-2.0, -1.5, 0.5, 4.0};
     const double expected_centers[]{-1.75, -0.5, 2.25};
     const double expected_widths[]{0.5, 2.0, 3.5};
-    for (std::size_t face = 0; face < mesh.num_faces(); ++face)
+    for (std::size_t face = 0; face < mesh.N_Faces(); ++face)
         require(mesh.face(face) == expected_faces[face], "Face snapshot differs from input");
-    for (std::size_t cell = 0; cell < mesh.num_cells(); ++cell)
+    for (std::size_t cell = 0; cell < mesh.N_Cells(); ++cell)
     {
-        require(mesh.cell_center(cell) == expected_centers[cell], "Incorrect cell center");
+        require(mesh.Cell_Center_Coord(cell) == expected_centers[cell], "Incorrect cell center");
         require(mesh.cell_width(cell) == expected_widths[cell], "Incorrect cell width");
         require(mesh.cell_volume(cell) == expected_widths[cell], "Incorrect unit-area cell volume");
     }
@@ -58,7 +58,7 @@ void check_contracts()
     faces[1] = -1.0;
     domain.set_bounds(10.0, 20.0);
     require(mesh.start() == -2.0 && mesh.end() == 4.0 &&
-            mesh.face(1) == -1.5 && mesh.cell_center(1) == -0.5,
+            mesh.face(1) == -1.5 && mesh.Cell_Center_Coord(1) == -0.5,
             "Input mutation changed the mesh snapshot");
 
     const double nan = std::numeric_limits<double>::quiet_NaN();

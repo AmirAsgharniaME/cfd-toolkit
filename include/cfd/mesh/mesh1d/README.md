@@ -13,6 +13,10 @@ representable strictly inside its cell. Indexed geometry access checks bounds;
 spans expose read-only views. Meshes own their geometry and do not track later
 changes to any source domain.
 
+The global bounds and represented extent are available through
+`Start_Coord()`, `End_Coord()`, and `Length()`. The legacy `start()` and `end()`
+aliases remain available for the bounds.
+
 `grading1d.hpp` and `grading1d.cpp` provide the independent face-generation
 functions `grading::make_1d_faces` and `grading::ratio_from_total_ratio`.
 Fields bind to a mesh by object reference, so the mesh must outlive each field;

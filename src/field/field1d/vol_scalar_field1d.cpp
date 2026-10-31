@@ -18,10 +18,10 @@ VolScalarField1D::VolScalarField1D(std::string name,
     switch (location_)
     {
     case FieldLocation::Cell:
-        data_.assign(mesh_.num_cells(), initial_val);
+        data_.assign(mesh_.N_Cells(), initial_val);
         break;
     case FieldLocation::Face:
-        data_.assign(mesh_.num_faces(), initial_val);
+        data_.assign(mesh_.N_Faces(), initial_val);
         break;
     default:
         throw std::invalid_argument("VolScalarField1D: invalid field location");

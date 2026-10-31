@@ -101,7 +101,7 @@ void check_generated_geometry(const Domain1D& domain,
     }
 
     const FvMesh1D mesh(domain, faces);
-    require(mesh.num_cells() == cell_count && mesh.num_faces() == faces.size(),
+    require(mesh.N_Cells() == cell_count && mesh.N_Faces() == faces.size(),
             context + ": generated faces are incompatible with FvMesh1D");
     for (std::size_t face = 0; face < faces.size(); ++face) {
         require(mesh.face(face) == faces[face],

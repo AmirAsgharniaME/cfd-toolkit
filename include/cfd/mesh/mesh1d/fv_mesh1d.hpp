@@ -25,18 +25,18 @@ public:
     (
         double x_min,
         double x_max,
-        std::size_t num_cells
+        std::size_t n_cells
     );
     [[nodiscard]] static FvMesh1D create_uniform
     (
         const geometry::Domain1D& domain,
-        std::size_t num_cells
+        std::size_t n_cells
     );
     [[nodiscard]] static FvMesh1D create_graded
     (
         double x_min,
         double x_max,
-        std::size_t num_cells,
+        std::size_t n_cells,
         double grading_ratio
     );
 
@@ -48,38 +48,40 @@ public:
     ~FvMesh1D() = default;
 
     // --- Topology & Global Extents ---
-    [[nodiscard]] std::size_t num_cells() const noexcept { return cell_centers_.size(); }
-    [[nodiscard]] std::size_t num_faces() const noexcept { return face_coords_.size(); }
-    [[nodiscard]] double x_min() const noexcept { return face_coords_.front(); }
-    [[nodiscard]] double x_max() const noexcept { return face_coords_.back(); }
-    [[nodiscard]] double length() const noexcept { return x_max() - x_min(); }
+    [[nodiscard]] std::size_t N_Cells() const noexcept { return cell_center_coords_.size(); }
+    [[nodiscard]] std::size_t N_Faces() const noexcept { return face_coords_.size(); }
+    [[nodiscard]] double Start_Coord() const noexcept { return face_coords_.front(); }
+    [[nodiscard]] double End_Coord() const noexcept { return face_coords_.back(); }
+    [[nodiscard]] double Length() const noexcept { return End_Coord() - Start_Coord(); }
 
     // --- Bulk Span Accessors (Modern C++ Views) ---
-    [[nodiscard]] std::span<const double> face_coords() const noexcept { return face_coords_; }
-    [[nodiscard]] std::span<const double> cell_centers() const noexcept { return cell_centers_; }
-    [[nodiscard]] std::span<const double> cell_volumes() const noexcept { return cell_volumes_; }
+    [[nodiscard]] std::span<const double> Face_Coords() const noexcept { return face_coords_; }
+    [[nodiscard]] std::span<const double> Cell_Center_Coords() const noexcept { return cell_center_coords_; }
+    [[nodiscard]] std::span<const double> Cell_Volumes() const noexcept { return cell_volumes_; }
 
     // --- Indexed Queries ---
-    [[nodiscard]] double face_coord(std::size_t face_idx) const { return face_coords_.at(face_idx); }
-    [[nodiscard]] double cell_center(std::size_t cell_idx) const { return cell_centers_.at(cell_idx); }
-    [[nodiscard]] double cell_volume(std::size_t cell_idx) const { return cell_volumes_.at(cell_idx); }
+    [[nodiscard]] double Face_Coord(std::size_t f) const { return face_coords_.at(f); }
+    [[nodiscard]] double Cell_Center_Coord(std::size_t p) const { return cell_center_coords_.at(p); }
+    [[nodiscard]] double Cell_Volume(std::size_t p) const { return cell_volumes_.at(p); }
+    [[nodiscard]] double eFace_Coord(std::size_t p) const { return face_coords_.at(p+1); }
+    [[nodiscard]] double wFace_Coord(std::size_t p) const { return face_coords_.at(p); }
 
     // --- FVM Stencil Geometric Distances ---
-    [[nodiscard]] double distance_to_west_face(std::size_t cell_idx) const;
-    [[nodiscard]] double distance_to_east_face(std::size_t cell_idx) const;
-    [[nodiscard]] double distance_to_west_neighbor(std::size_t cell_idx) const;
-    [[nodiscard]] double distance_to_east_neighbor(std::size_t cell_idx) const;
+    [[nodiscard]] double wFaceDx(std::size_t p) const;
+    [[nodiscard]] double eFaceDx(std::size_t p) const;
+    [[nodiscard]] double wCellDx(std::size_t p) const;
+    [[nodiscard]] double eCellDx(std::size_t p) const;
 
-    void print_details(std::ostream& output) const;
+    void Print_Details(std::ostream& output) const;
 
     // Backward compatibility aliases (if existing tests use them, can be pruned later)
-    [[nodiscard]] double start() const noexcept { return x_min(); }
-    [[nodiscard]] double end() const noexcept { return x_max(); }
-    [[nodiscard]] double cell_width(std::size_t cell_idx) const { return cell_volume(cell_idx); }
+    [[nodiscard]] double Start() const noexcept { return Start_Coord(); }
+    [[nodiscard]] double End() const noexcept { return End_Coord(); }
+    [[nodiscard]] double Cell_Width(std::size_t p) const { return Cell_Volume(p); }
 
 private:
     std::vector<double> face_coords_;
-    std::vector<double> cell_centers_;
+    std::vector<double> cell_center_coords_;
     std::vector<double> cell_volumes_;
 };
 

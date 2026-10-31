@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <limits>
 #include <locale>
+#include <numeric>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -20,9 +21,9 @@ namespace
                                              const std::vector<long double>& exponents,
                                              const long double log_r)
 {
-    const double start = domain.start();
-    const double end = domain.end();
-    const double length = domain.length();
+    const double start = domain.Start_Coord();
+    const double end = domain.End_Coord();
+    const double length = domain.Length();
     if (!std::isfinite(start) || !std::isfinite(end) || !std::isfinite(length) ||
         length <= 0.0) {
         throw std::invalid_argument("1D grading requires a finite positive domain");
@@ -73,7 +74,7 @@ namespace
 
     for (std::size_t f = 0; f < cell_count; ++f) {
         const double width = faces[f + 1U] - faces[f];
-        const double center = faces[f] + width * 0.5;
+        const double center = std::midpoint(faces[f], faces[f + 1U]);
         if (!std::isfinite(center) || !(faces[f] < center) ||
             !(center < faces[f + 1U])) {
             std::ostringstream message;

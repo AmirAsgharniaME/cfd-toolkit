@@ -40,7 +40,7 @@ int main()
         cfd::field::field1d::ScalarField1D temperature("temperature", mesh);
         require(temperature.location() == cfd::field::FieldLocation::Cell,
                 "The default field location should be Cell.");
-        require(temperature.size() == mesh.num_cells(),
+        require(temperature.size() == mesh.N_Cells(),
                 "A cell field should have one entry per mesh cell.");
         require_near(temperature[0], 0.0, "The default initial value should be zero.");
         require(temperature.name() == "temperature", "The field name should be retained.");
@@ -48,7 +48,7 @@ int main()
         // Face fields contain one more value than cell fields in a 1D mesh.
         cfd::field::field1d::ScalarField1D face_flux(
             "face_flux", mesh, cfd::field::FieldLocation::Face, 2.0);
-        require(face_flux.size() == mesh.num_faces(),
+        require(face_flux.size() == mesh.N_Faces(),
                 "A face field should have one entry per mesh face.");
         require(face_flux.location() == cfd::field::FieldLocation::Face,
                 "The requested Face location should be retained.");
@@ -73,7 +73,7 @@ int main()
 
         const cfd::mesh::FvMesh1D graded(domain, {-1.0, -0.5, 0.0, 1.0});
         const cfd::field::field1d::VolScalarField1D graded_field("graded", graded);
-        require(graded_field.size() == graded.num_cells(),
+        require(graded_field.size() == graded.N_Cells(),
                 "A field should bind to a non-uniform base mesh.");
         require(&graded_field.mesh() == &graded, "mesh() should return the bound mesh.");
 
