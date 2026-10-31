@@ -17,12 +17,12 @@ public:
     Domain3D(Domain1D x_domain, Domain1D y_domain, Domain1D z_domain) noexcept;
 
     /// Return independent snapshots of the axis domains.
-    [[nodiscard]] Domain1D x_domain() const noexcept { return x_domain_; }
-    [[nodiscard]] Domain1D y_domain() const noexcept { return y_domain_; }
-    [[nodiscard]] Domain1D z_domain() const noexcept { return z_domain_; }
+    [[nodiscard]] Domain1D X_Domain() const noexcept { return x_domain_; }
+    [[nodiscard]] Domain1D Y_Domain() const noexcept { return y_domain_; }
+    [[nodiscard]] Domain1D Z_Domain() const noexcept { return z_domain_; }
 
     /// Return true if (x, y, z) lies within the closed cuboid domain.
-    [[nodiscard]] bool contains(double x, double y, double z) const noexcept {
+    [[nodiscard]] bool IsContain(double x, double y, double z) const noexcept {
         return x_domain_.IsContain(x) &&
                y_domain_.IsContain(y) &&
                z_domain_.IsContain(z);
@@ -30,11 +30,11 @@ public:
 
     /// Replace all axes after argument construction succeeds.
     /// Invalid Domain1D arguments throw before entry and leave this unchanged.
-    void set_domains(Domain1D x_domain, Domain1D y_domain, Domain1D z_domain) noexcept;
+    void Set_Domains(Domain1D x_domain, Domain1D y_domain, Domain1D z_domain) noexcept;
 
-    void set_x_domain(Domain1D x_domain) noexcept;
-    void set_y_domain(Domain1D y_domain) noexcept;
-    void set_z_domain(Domain1D z_domain) noexcept;
+    void Set_X_Domain(Domain1D x_domain) noexcept;
+    void Set_Y_Domain(Domain1D y_domain) noexcept;
+    void Set_Z_Domain(Domain1D z_domain) noexcept;
 
     // Exact endpoint equality, without a geometric tolerance.
     friend bool operator==(const Domain3D& a, const Domain3D& b) noexcept {

@@ -25,10 +25,10 @@ public:
     /// or extent, or an end that rounds back to the start.
     [[nodiscard]] static Domain1D from_start_and_length(double start_coord, double domain_length);
 
-    [[nodiscard]] constexpr double Get_Start_coord() const noexcept { return start_coord_; }
-    [[nodiscard]] constexpr double Get_end_coord() const noexcept { return end_coord_; }
+    [[nodiscard]] constexpr double Start_Coord() const noexcept { return start_coord_; }
+    [[nodiscard]] constexpr double End_Coord() const noexcept { return end_coord_; }
     /// Represented endpoint difference; may differ from a requested input length.
-    [[nodiscard]] constexpr double Get_length() const noexcept { return end_coord_ - start_coord_; }
+    [[nodiscard]] constexpr double Length() const noexcept { return end_coord_ - start_coord_; }
 
     /// Exact closed-interval membership; NaN and infinities return false.
     /// No tolerance is applied; this does not assign points to mesh cells.

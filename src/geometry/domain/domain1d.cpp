@@ -13,7 +13,7 @@ namespace cfd::geometry {
 namespace {
 
 // Preserve distinguishable double values in validation diagnostics.
-std::string format_coordinate(double coord_value) {
+std::string Format_Coordinate(double coord_value) {
     std::ostringstream output;
     output.imbue(std::locale::classic());
     output << std::setprecision(std::numeric_limits<double>::max_digits10) << coord_value;
@@ -24,25 +24,25 @@ std::string format_coordinate(double coord_value) {
 inline void Validate_Bounds(double start_coord, double end_coord) {
     if (!std::isfinite(start_coord) || !std::isfinite(end_coord)) {
         throw std::invalid_argument(
-            "Domain1D bounds must be finite: start=" + format_coordinate(start_coord) +
-            ", end=" + format_coordinate(end_coord));
+            "Domain1D bounds must be finite: start=" + Format_Coordinate(start_coord) +
+            ", end=" + Format_Coordinate(end_coord));
     }
     if (end_coord <= start_coord) {
         throw std::invalid_argument(
-            "Domain1D bounds must be strictly increasing: start=" + format_coordinate(start_coord) +
-            ", end=" + format_coordinate(end_coord));
+            "Domain1D bounds must be strictly increasing: start=" + Format_Coordinate(start_coord) +
+            ", end=" + Format_Coordinate(end_coord));
     }
     if (!std::isfinite(end_coord - start_coord)) {
         throw std::invalid_argument(
-            "Domain1D interval length must be finite: start=" + format_coordinate(start_coord) +
-            ", end=" + format_coordinate(end_coord));
+            "Domain1D interval length must be finite: start=" + Format_Coordinate(start_coord) +
+            ", end=" + Format_Coordinate(end_coord));
     }
 }
 
 inline void Validate_Length(double domain_length) {
     if (!std::isfinite(domain_length) || domain_length <= 0.0) {
         throw std::invalid_argument(
-            "Domain1D length must be finite and > 0: length=" + format_coordinate(domain_length));
+            "Domain1D length must be finite and > 0: length=" + Format_Coordinate(domain_length));
     }
 }
 
