@@ -61,6 +61,7 @@ CLASS | FV matrix 1D class | include/cfd/fv_matrix/fv_matrix1d.hpp and src/fv_ma
 
 # Functions (header and source)
 FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
+FUNCTION | 1D Implicit Laplacian Assembly | include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp and src/finite_volume/fvm/fvm1d/laplacian1d.cpp
 
 
 # Time management

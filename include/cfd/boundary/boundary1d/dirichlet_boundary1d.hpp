@@ -1,8 +1,14 @@
 #pragma once
 
 #include "cfd/boundary/types.hpp"
+#include "cfd/field/field1d/field1d.hpp"
 
 #include <string>
+
+namespace cfd::fv_matrix
+{
+class FvMatrix1D;
+}
 
 namespace cfd::boundary
 {
@@ -15,6 +21,11 @@ public:
     [[nodiscard]] const std::string& name() const noexcept;
     [[nodiscard]] BoundarySide1D side() const noexcept;
     [[nodiscard]] double value() const noexcept;
+
+    /// Accumulate the fixed-value diffusion contribution into the boundary row.
+    /// The coefficient field and matrix must refer to the same mesh object.
+    void apply(const field::VolScalarField1D& gamma,
+               fv_matrix::FvMatrix1D& matrix) const;
 
 private:
     std::string name_;
