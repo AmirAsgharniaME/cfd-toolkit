@@ -62,6 +62,7 @@ CLASS | FV matrix 1D class | include/cfd/fv_matrix/fv_matrix1d.hpp and src/fv_ma
 # Functions (header and source)
 FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
 FUNCTION | 1D Implicit Laplacian Assembly | include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp and src/finite_volume/fvm/fvm1d/laplacian1d.cpp
+FUNCTION | Central Difference Gradient Scheme | include/cfd/schemes/gradient/central_difference.hpp and src/schemes/gradient/central_difference.cpp
 FUNCTION | Distance-Weighted Arithmetic Mean Interpolation | include/cfd/schemes/interpolation/arithmetic_mean.hpp and src/schemes/interpolation/arithmetic_mean.cpp
 
 
@@ -70,8 +71,8 @@ H | Simulation time header | include/cfd/time/time.hpp
 CPP | Simulation time source | src/time/time.cpp
 
 # Numerical schemes
-H | Central difference gradient scheme placeholder | include/cfd/schemes/gradient/central_difference.hpp
-CPP | Central difference gradient scheme placeholder | src/schemes/gradient/central_difference.cpp
+H | Central difference gradient scheme header | include/cfd/schemes/gradient/central_difference.hpp
+CPP | Central difference gradient scheme implementation | src/schemes/gradient/central_difference.cpp
 H | Distance-weighted arithmetic mean interpolation for finite field values | include/cfd/schemes/interpolation/arithmetic_mean.hpp
 CPP | Distance-weighted arithmetic mean interpolation implementation | src/schemes/interpolation/arithmetic_mean.cpp
 H | Resistance-weighted harmonic mean interpolation for positive diffusivities and distances | include/cfd/schemes/interpolation/harmonic_mean.hpp
