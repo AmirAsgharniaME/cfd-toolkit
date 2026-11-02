@@ -7,6 +7,7 @@
 #include <utility>
 
 #include <cfd/field/field1d/field1d.hpp>
+#include <cfd/field/field1d/field1d_operators.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
 

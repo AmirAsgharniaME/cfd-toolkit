@@ -26,10 +26,46 @@
             "preLaunchTask": "CMake: Build (Debug)"
         },
         {
-            "name": "Run test_scalar_field1d",
+            "name": "Run test_non_uniform_mesh1d",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/test_scalar_field1d",
+            "program": "${workspaceFolder}/build/bin/test_non_uniform_mesh1d",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "CMake: Build (Debug)"
+        },
+        {
+            "name": "Run test_grading1d",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/test_grading1d",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "CMake: Build (Debug)"
+        },
+        {
+            "name": "Run test_field1d",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/test_field1d",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "CMake: Build (Debug)"
+        },
+        {
+            "name": "Run steady_heat_conduction_rod1d",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/steady_heat_conduction_rod1d",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

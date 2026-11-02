@@ -46,6 +46,8 @@ by component and dimension:
 - `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
 - `test_field1d`: `examples/test_field/test_field1d/test_field1d.cpp` (checks scalar and vector field allocation, access, assignment, and arithmetic).
 
+`steady_heat_conduction_rod1d` is registered under `BUILD_EXAMPLES` from `examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp`. It creates a uniform 1D mesh and initializes a volume scalar temperature field; matrix assembly and boundary-condition integration remain TODOs, so it does not implement a heat-conduction solve.
+
 The root `FILEPATH.md` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::Make_Faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
@@ -60,6 +62,7 @@ cmake --build build --parallel
 ./build/bin/test_non_uniform_mesh1d
 ./build/bin/test_grading1d
 ./build/bin/test_field1d < /dev/null
+./build/bin/steady_heat_conduction_rod1d
 ```
 
 Configuration enables examples by default through `BUILD_EXAMPLES`; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_field1d`. The domain, uniform-mesh, and field examples call `std::cin.get()`, so redirect stdin for unattended runs; the non-uniform mesh contract check exits directly.
@@ -80,7 +83,7 @@ Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds en
 
 ## Testing Guidelines
 
-Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Follow the `test_<component>` naming pattern and register new executables in CMake. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
+Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Follow the `test_<component>` naming pattern and register new executables in CMake. Whenever an executable file is created, deleted, or renamed, update both `CMakeLists.txt` and `.vscode/launch.json` accordingly so the executable build entries and launch configurations stay in sync. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
 
 `test_domain1d` checks `Domain1D` contracts including invalid values, floating-point limits, containment, equality, and rejected updates. The separate 2D and 3D domain APIs are implemented but are not covered by the current domain example. `test_field1d` checks scalar and vector field allocation and arithmetic, uniform and nonuniform mesh binding, mesh identity, copy/move construction and assignment, mutable and const span access, location-specific types, checked indexing, incompatible fields, and zero division. The mesh examples check explicit and generated geometry, represented interval lengths, storage sizes, invalid faces and inputs, floating-point limits, all grading distributions, symmetric patterns, ratio-one limits, exact endpoint anchoring, center representability, and total-ratio conversion. These checks return nonzero on failed contracts.
 

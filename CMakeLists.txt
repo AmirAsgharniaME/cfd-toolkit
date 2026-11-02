@@ -182,4 +182,12 @@ if(BUILD_EXAMPLES)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
+    add_executable(steady_heat_conduction_rod1d
+        examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp
+    )
+    target_link_libraries(steady_heat_conduction_rod1d PRIVATE cfd_toolkit)
+    set_target_properties(steady_heat_conduction_rod1d PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
 endif()

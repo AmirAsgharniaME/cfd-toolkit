@@ -133,6 +133,7 @@ EXE | Test field 1D executable source | examples/test_field/test_field1d/test_fi
 EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
 EXE | Test non uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
 EXE | Test grading 1D executable source | examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
+EXE | Steady heat conduction rod 1D executable source | examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp
 
 
 # Project configuration
