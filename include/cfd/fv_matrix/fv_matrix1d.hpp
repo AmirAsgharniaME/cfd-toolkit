@@ -16,7 +16,7 @@ namespace cfd::fv_matrix {
 /// refers to it.
 class FvMatrix1D {
 public:
-    explicit FvMatrix1D(const mesh::FvMesh1D& mesh);
+    explicit FvMatrix1D(const cfd::mesh::FvMesh1D& mesh);
 
     FvMatrix1D(const FvMatrix1D&) = default;
     FvMatrix1D(FvMatrix1D&&) = default;
@@ -24,7 +24,7 @@ public:
     FvMatrix1D& operator=(FvMatrix1D&&) = delete;
     ~FvMatrix1D() = default;
 
-    [[nodiscard]] const mesh::FvMesh1D& Mesh() const noexcept;
+    [[nodiscard]] const cfd::mesh::FvMesh1D& Mesh() const noexcept;
     [[nodiscard]] std::size_t Size() const noexcept;
 
     /// Access the algebraic system for assembly and linear-solver integration.

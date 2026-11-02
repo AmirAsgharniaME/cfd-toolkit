@@ -69,12 +69,14 @@ H | Simulation time header | include/cfd/time/time.hpp
 CPP | Simulation time source | src/time/time.cpp
 
 # Numerical schemes
-H | Interpolation scheme header | include/cfd/schemes/interpolation_scheme.hpp
-H | Upwind scheme header | include/cfd/schemes/upwind_scheme.hpp
-H | Central difference scheme header | include/cfd/schemes/central_difference_scheme.hpp
-CPP | Interpolation scheme source | src/schemes/interpolation_scheme.cpp
-CPP | Upwind scheme source | src/schemes/upwind_scheme.cpp
-CPP | Central difference scheme source | src/schemes/central_difference_scheme.cpp
+H | Central difference gradient scheme placeholder | include/cfd/schemes/gradient/central_difference.hpp
+CPP | Central difference gradient scheme placeholder | src/schemes/gradient/central_difference.cpp
+H | Arithmetic mean interpolation scheme placeholder | include/cfd/schemes/interpolation/arithmetic_mean.hpp
+CPP | Arithmetic mean interpolation scheme placeholder | src/schemes/interpolation/arithmetic_mean.cpp
+H | Harmonic mean interpolation scheme placeholder | include/cfd/schemes/interpolation/harmonic_mean.hpp
+CPP | Harmonic mean interpolation scheme placeholder | src/schemes/interpolation/harmonic_mean.cpp
+H | Upwind interpolation scheme placeholder | include/cfd/schemes/interpolation/upwind.hpp
+CPP | Upwind interpolation scheme placeholder | src/schemes/interpolation/upwind.cpp
 
 # Implicit finite volume operators
 H | DDT 1D operator header | include/cfd/finite_volume/fvm/fvm1d/ddt1d.hpp

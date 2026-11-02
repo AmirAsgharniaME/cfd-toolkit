@@ -59,10 +59,11 @@ add_library(cfd_toolkit STATIC
     src/mesh/mesh2d/uniform_fv_mesh2d.cpp
     src/mesh/mesh3d/uniform_fv_mesh3d.cpp
 
-    # Interpolation schemes
-    src/schemes/central_difference_scheme.cpp
-    src/schemes/interpolation_scheme.cpp
-    src/schemes/upwind_scheme.cpp
+    # Gradient and interpolation scheme placeholders
+    src/schemes/gradient/central_difference.cpp
+    src/schemes/interpolation/arithmetic_mean.cpp
+    src/schemes/interpolation/harmonic_mean.cpp
+    src/schemes/interpolation/upwind.cpp
 
     # Equation solver workflows
     src/solvers/solvers1d/advection_diffusion_solver1d.cpp
