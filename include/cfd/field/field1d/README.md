@@ -1,15 +1,18 @@
-# field1d
+# 1D fields
 
-`VolScalarField1D` is a scalar field sampled at either the cells or the faces
-of a 1D finite-volume mesh (`FieldLocation::Cell` or `FieldLocation::Face`).
-`ScalarField1D` is a compatibility alias.
+`Field1D<Type, LocationTag>` stores `double` or `Vector1D` values at mesh
+cells or faces. The aliases `VolScalarField1D`, `SurfaceScalarField1D`,
+`VolVectorField1D`, and `SurfaceVectorField1D` cover these combinations.
+Include `field1d.hpp` to use them.
 
-- Binds by reference to the base `cfd::mesh::FvMesh1D`, so uniform and
-  non-uniform meshes are both accepted. The mesh must outlive the field.
-- Copy and move construction keep the same mesh binding; assignment is deleted.
-- Storage is exposed as `values()` spans, so callers cannot resize it.
-- An invalid `FieldLocation` throws `std::invalid_argument`.
-- Field arithmetic requires the same mesh object (pointer identity; equal
-  geometry is not enough), the same location, and the same size, otherwise
-  `std::invalid_argument` is thrown.
-- Scalar division by zero throws `std::invalid_argument`.
+Construct a field with a name, an `FvMesh1D` reference, and an optional initial
+value. The mesh must outlive the field and remain unmoved while the field or
+its views exist. Non-const temporary meshes are rejected. `name()`, `mesh()`,
+`size()`, and `values()` expose the field, and `operator[]` and `at()` provide
+unchecked and checked access, respectively.
+
+Copy and move construction preserve the mesh binding. Assignment and field
+arithmetic require the same mesh object; arithmetic also checks storage size.
+Both value types support field addition and subtraction and scaling by a
+scalar. Scalar fields also support elementwise multiplication and division.
+Division by zero throws `std::invalid_argument`.

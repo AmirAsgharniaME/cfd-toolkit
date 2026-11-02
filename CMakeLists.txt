@@ -20,9 +20,7 @@ add_library(cfd_toolkit STATIC
     src/boundary/boundary1d/patch_boundary1d.cpp
 
     # Volume and surface fields
-    src/field/field1d/scalar_field1d.cpp
-    src/field/field1d/surface_vector_field1d.cpp
-    src/field/field1d/vol_vector_field1d.cpp
+    src/field/field1d/field1d.cpp
 
     # Explicit and implicit finite volume operators
     src/finite_volume/fvc/fvc1d/div1d.cpp
@@ -176,11 +174,11 @@ if(BUILD_EXAMPLES)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
-    add_executable(test_scalar_field1d
-        examples/test_field/test_field1d/test_scalar_field1d/test_scalar_field1d.cpp
+    add_executable(test_field1d
+        examples/test_field/test_field1d/test_field1d.cpp
     )
-    target_link_libraries(test_scalar_field1d PRIVATE cfd_toolkit)
-    set_target_properties(test_scalar_field1d PROPERTIES
+    target_link_libraries(test_field1d PRIVATE cfd_toolkit)
+    set_target_properties(test_field1d PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
