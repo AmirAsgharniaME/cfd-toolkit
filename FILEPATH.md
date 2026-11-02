@@ -55,6 +55,8 @@ CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geome
 CLASS | Uniform FV mesh 2D class | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp and src/mesh/mesh2d/uniform_fv_mesh2d.cpp
 CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp and src/boundary/boundary1d/dirichlet_boundary1d.cpp
 CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp
+CLASS | Tridiagonal matrix class | include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp and src/linear_algebra/matrix/tridiagonal_matrix.cpp
+CLASS | TDMA solver class | include/cfd/linear_algebra/solvers/tdma_solver.hpp and src/linear_algebra/solvers/tdma_solver.cpp
 
 # Functions (header and source)
 FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
