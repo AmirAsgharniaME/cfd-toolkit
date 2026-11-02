@@ -1,5 +1,11 @@
 # Repository Guidelines
 
+## Markdown and README Files
+
+The root `FILEPATH.md` path inventory is the only Markdown file agents may modify unless the user explicitly instructs otherwise. Do not create or modify any other Markdown file, including `AGENTS.md`, as part of routine work.
+
+Do not reference, read, create, modify, or otherwise write to any README file anywhere in the project unless the user explicitly instructs you to do so. This restriction applies throughout all tasks, including documentation updates, searches, and inventories.
+
 ## Project Structure & Module Organization
 
 This repository provides a C++20 library for computational fluid dynamics (CFD) research, focusing on robust Finite Volume Method (FVM) implementations. Public headers live under `include/cfd/`; implementations live under `src/` in corresponding module directories. Keep headers (`.hpp`) and implementations (`.cpp`) together by module, and add implementation files to the explicit source list in `CMakeLists.txt`. File and directory presence does not imply a usable API: much of the architecture is scaffolding.
@@ -19,7 +25,7 @@ Current implementation status:
 
 Field directories for 2D/3D are also reserved with `.gitkeep`. Use the current `finite_volume/fvc` and `finite_volume/fvm` layout and the `field1d` / `fv_mesh1d` filenames when adding code or includes. Mesh grading strategy names are dimension-agnostic and belong in `mesh/`; concrete 1D face-generation helpers belong in `mesh/mesh1d/`.
 
-The 1D mesh is constructed as `FvMesh1D(domain, n_cells)` for uniform faces or `FvMesh1D(domain, n_cells, grading_type, ratio)` for generated grading. Uniform and graded meshes share this value type; the old separate `UniformFvMesh1D` and `NonUniformFvMesh1D` classes and sources have been removed. `FvMesh1D` owns its generated faces and derives cell centers and cell volumes. `grading::Make_Faces` remains available as a separate helper for callers that need generated face coordinates. The mesh header is `include/cfd/mesh/mesh1d/fv_mesh1d.hpp`; there is currently no mesh1d README.
+The 1D mesh is constructed as `FvMesh1D(domain, n_cells)` for uniform faces or `FvMesh1D(domain, n_cells, grading_type, ratio)` for generated grading. Uniform and graded meshes share this value type; the old separate `UniformFvMesh1D` and `NonUniformFvMesh1D` classes and sources have been removed. `FvMesh1D` owns its generated faces and derives cell centers and cell volumes. `grading::Make_Faces` remains available as a separate helper for callers that need generated face coordinates. The mesh header is `include/cfd/mesh/mesh1d/fv_mesh1d.hpp`.
 
 `FvMesh1D` requires at least one cell; generated faces must be finite and strictly increasing, with positive finite cell lengths and representable interior centers. The domain endpoints are preserved exactly. Cell volumes equal cell lengths under the unit cross-sectional area convention.
 
@@ -40,7 +46,7 @@ by component and dimension:
 - `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
 - `test_field1d`: `examples/test_field/test_field1d/test_field1d.cpp` (checks scalar and vector field allocation, access, assignment, and arithmetic).
 
-Component documentation currently lives beside public headers at `include/cfd/geometry/domain/README.md` and `include/cfd/field/field1d/README.md`. The root `FILEPATH.md` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::Make_Faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
+The root `FILEPATH.md` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::Make_Faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
 ## Build, Test, and Development Commands
 
@@ -82,17 +88,14 @@ Checks are standalone executables; no testing framework, CTest registration, or 
 
 History uses short, imperative subjects such as `Update domain1d mesh1d`; no formal prefix convention is established. Name the affected component and keep each commit focused.
 
-Pull requests should describe the behavior change, affected modules, and validation commands with results. Link relevant issues and update component documentation when public contracts change. Keep generated build output out of commits.
+Pull requests should describe the behavior change, affected modules, and validation commands with results. Link relevant issues. Keep generated build output out of commits.
 
 ## Document Maintenance
 
-Always update this `AGENTS.md` in the same turn/commit whenever a significant or fundamental project change affects its architecture, supported behavior, public API, module status, build workflow, or development conventions. Do not wait for an explicit reminder. Keep the description accurate and concise.
-
-Also update the root `FILEPATH.md` inventory whenever you (the AI) perform any of the following tasks:
+Update the root `FILEPATH.md` inventory whenever you (the AI) perform any of the following tasks:
 
 - Add a new module, directory, or test executable
 - Modify CMake configurations, build flags, or dependencies
 - Introduce new coding standards or architectural patterns
 - Add, remove, or rename a project file, or change a file's path.
 
-When a change meets both conditions, update both documents in the same turn/commit.
