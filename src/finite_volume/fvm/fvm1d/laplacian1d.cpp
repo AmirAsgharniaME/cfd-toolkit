@@ -2,6 +2,8 @@
 
 #include "cfd/fv_matrix/fv_matrix1d.hpp"
 #include "cfd/mesh/mesh1d/fv_mesh1d.hpp"
+#include "cfd/schemes/gradient/central_difference.hpp"
+#include "cfd/schemes/interpolation/harmonic_mean.hpp"
 
 #include <cmath>
 #include <cstddef>
@@ -9,26 +11,6 @@
 
 namespace cfd::fvm {
 namespace {
-
-double face_diffusivity(double gamma_p, double gamma_n,
-                        double distance_p, double distance_n)
-{
-    if (gamma_p == 0.0 || gamma_n == 0.0) {
-        return 0.0;
-    }
-
-    // Resistance-weighted harmonic interpolation, with the cell-center to
-    // face distances serving as the interpolation weights.
-    const double distance = distance_p + distance_n;
-    const double resistance = distance_p / gamma_p + distance_n / gamma_n;
-    const double value = distance / resistance;
-
-    if (!std::isfinite(value)) {
-        throw std::overflow_error("Laplacian face diffusivity is not finite");
-    }
-
-    return value;
-}
 
 void validate_inputs(const field::VolScalarField1D& gamma,
                      const fv_matrix::FvMatrix1D& matrix)
@@ -65,28 +47,42 @@ void laplacian(const field::VolScalarField1D& gamma,
     const cfd::mesh::FvMesh1D& mesh = matrix.Mesh();
     const std::size_t n_cells = mesh.N_Cells();
 
-    // Face between cells p and p + 1. This includes the internal faces
-    // adjacent to the first and last cells, but not the domain boundaries.
+    // Face between cells p and n. The mesh supplies the center-to-face
+    // distances used by harmonic interpolation and the center-to-center
+    // distance used by the central-difference gradient.
     for (std::size_t p = 0; p + 1 < n_cells; ++p)
     {
         const std::size_t n = p + 1;
+        const double distance_p = mesh.eFaceDx(p);
+        const double distance_n = mesh.wFaceDx(n);
+        const double distance_pn = mesh.eCellDx(p);
 
-        const double gamma_face = face_diffusivity(
-            gamma[p], gamma[n], mesh.eFaceDx(p), mesh.wFaceDx(n));
+        // The public harmonic scheme accepts strictly positive diffusivities;
+        // preserve the Laplacian's nonnegative-coefficient contract by
+        // treating a zero on either side as zero face diffusivity.
+        const double gamma_face = (gamma[p] == 0.0 || gamma[n] == 0.0)
+            ? 0.0
+            : schemes::interpolation::harmonic_mean(
+                  gamma[p], gamma[n], distance_p, distance_n);
 
-        const double conductance = gamma_face / mesh.eCellDx(p);
+        // A unit jump across the neighboring cell centers gives the gradient
+        // per unit field difference. In 1D the face area is one, so this is
+        // Gamma_f * Area_f / distance_pn.
+        const double gradient_per_unit_jump =
+            schemes::gradient::central_difference(0.0, 1.0, distance_pn);
+        const double conductance = gamma_face * gradient_per_unit_jump;
 
         if (!std::isfinite(conductance)) {
             throw std::overflow_error(
                 "Laplacian internal-face conductance is not finite");
         }
 
-        // Preserve the existing sign convention for div(gamma grad(phi)):
-        // positive off-diagonals and negative diagonal contributions.
-        matrix.add_a_E(p, conductance);
-        matrix.add_a_P(p, -conductance);
-        matrix.add_a_W(n, conductance);
-        matrix.add_a_P(n, -conductance);
+        // The integrated diffusion flux contributes +coefficients to the
+        // diagonal and -coefficients to the neighboring off-diagonal.
+        matrix.add_a_P(p, conductance);
+        matrix.add_a_E(p, -conductance);
+        matrix.add_a_P(n, conductance);
+        matrix.add_a_W(n, -conductance);
     }
 }
 
