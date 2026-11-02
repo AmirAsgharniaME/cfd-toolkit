@@ -4,6 +4,7 @@
 #include <string>
 #include <type_traits>
 
+#include <cfd/field/field1d/scalar_field1d.hpp>
 #include <cfd/field/field1d/vol_scalar_field1d.hpp>
 #include <cfd/field/field1d/surface_scalar_field1d.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
@@ -11,6 +12,9 @@
 
 namespace
 {
+
+template<class L, class R>
+concept Addable = requires(L lhs, R rhs) { lhs + rhs; };
 
 void require(bool condition, const std::string& message)
 {
@@ -36,7 +40,7 @@ int main()
         const cfd::mesh::FvMesh1D mesh(domain, 4);
 
         // Volume fields allocate one value per cell.
-        cfd::field::ScalarField1D temperature("temperature", mesh);
+        cfd::field::ScalarField1D<cfd::field::CellLocation> temperature("temperature", mesh);
         require(temperature.Size() == mesh.N_Cells(),
                 "A cell field should have one entry per mesh cell.");
         require_near(temperature[0], 0.0, "The default initial value should be zero.");
@@ -69,6 +73,16 @@ int main()
         static_assert(std::is_constructible_v<Field, std::string, Mesh&>);
         static_assert(!std::is_constructible_v<Field, std::string, Mesh&&>);
 
+        using FaceField = cfd::field::SurfaceScalarField1D;
+        static_assert(std::is_same_v<Field, cfd::field::ScalarField1D<cfd::field::CellLocation>>);
+        static_assert(std::is_same_v<FaceField, cfd::field::ScalarField1D<cfd::field::FaceLocation>>);
+        static_assert(!std::is_constructible_v<FaceField, std::string, Mesh&&>);
+        static_assert(!Addable<Field, FaceField>);
+        static_assert(!std::is_assignable_v<Field&, FaceField>);
+        const auto face_sum = face_flux + face_flux;
+        require(face_sum.N_Faces() == mesh.N_Faces(), "Face count should be retained.");
+        require_near(face_sum.at(0), 4.0, "Face field arithmetic should work.");
+
         const cfd::mesh::FvMesh1D graded(domain, 4, cfd::mesh::GradingType::Forward, 2.0);
         const cfd::field::VolScalarField1D graded_field("graded", graded);
         require(graded_field.Size() == graded.N_Cells(),
@@ -87,6 +101,18 @@ int main()
             identity_checked = true;
         }
         require(identity_checked, "Equal geometry on distinct meshes should still be rejected.");
+
+        FaceField twin_face("twin face", twin);
+        bool face_identity_checked = false;
+        try
+        {
+            face_flux = twin_face;
+        }
+        catch (const std::invalid_argument&)
+        {
+            face_identity_checked = true;
+        }
+        require(face_identity_checked, "Face field assignment should check mesh identity.");
 
         auto view = temperature.Values();
         view[2] = 9.0;

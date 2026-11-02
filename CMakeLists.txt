@@ -20,9 +20,8 @@ add_library(cfd_toolkit STATIC
     src/boundary/boundary1d/patch_boundary1d.cpp
 
     # Volume and surface fields
-    src/field/field1d/surface_scalar_field1d.cpp
+    src/field/field1d/scalar_field1d.cpp
     src/field/field1d/surface_vector_field1d.cpp
-    src/field/field1d/vol_scalar_field1d.cpp
     src/field/field1d/vol_vector_field1d.cpp
 
     # Explicit and implicit finite volume operators
