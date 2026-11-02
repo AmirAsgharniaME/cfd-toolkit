@@ -3,7 +3,8 @@
 `Field1D<Type, LocationTag>` stores `double` or `Vector1D` values at mesh
 cells or faces. The aliases `VolScalarField1D`, `SurfaceScalarField1D`,
 `VolVectorField1D`, and `SurfaceVectorField1D` cover these combinations.
-Include `field1d.hpp` to use them.
+Include `field1d.hpp` to use the fields and `field1d_operators.hpp` for
+non-member binary arithmetic operators.
 
 Construct a field with a name, an `FvMesh1D` reference, and an optional initial
 value. The mesh must outlive the field and remain unmoved while the field or

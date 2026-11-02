@@ -72,28 +72,6 @@ private:
     std::vector<Type> values_;
 };
 
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator+(Field1D<Type, LocationTag> lhs, const Field1D<Type, LocationTag>& rhs) 
-{ return lhs += rhs; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator-(Field1D<Type, LocationTag> lhs, const Field1D<Type, LocationTag>& rhs) 
-{ return lhs -= rhs; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator*(Field1D<Type, LocationTag> lhs, const Field1D<Type, LocationTag>& rhs) requires std::is_same_v<Type, double> 
-{ return lhs *= rhs; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator/(Field1D<Type, LocationTag> lhs, const Field1D<Type, LocationTag>& rhs) requires std::is_same_v<Type, double> 
-{ return lhs /= rhs; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator*(Field1D<Type, LocationTag> lhs, double scalar) 
-{ return lhs *= scalar; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator*(double scalar, Field1D<Type, LocationTag> rhs) 
-{ return rhs *= scalar; }
-template<typename Type, typename LocationTag>
-[[nodiscard]] Field1D<Type, LocationTag> operator/(Field1D<Type, LocationTag> lhs, double scalar) 
-{ return lhs /= scalar; }
-
 extern template class Field1D<double, CellLocation>;
 extern template class Field1D<double, FaceLocation>;
 extern template class Field1D<Vector1D, CellLocation>;
