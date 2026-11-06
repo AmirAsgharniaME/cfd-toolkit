@@ -7,7 +7,9 @@
  * For values at neighboring cell centers P and N, this scheme estimates the
  * gradient at the midpoint between them as
  * @f[ \left.\frac{\partial \phi}{\partial x}\right|_f
- *     \approx \frac{\phi_N - \phi_P}{d_{PN}}. @f]
+ *     \approx \frac{\phi_N - \phi_P}{d_P + d_N}, @f]
+ * where @f$d_P@f$ and @f$d_N@f$ are the distances from the neighboring cell
+ * centers to their shared face.
  * For a smooth field on a uniform one-dimensional grid, the estimate has a
  * second-order truncation error, @f$O(\Delta x^2)@f$. It uses both cell-center
  * values symmetrically, making it physically appropriate for diffusion
@@ -26,16 +28,20 @@ namespace cfd::schemes::gradient
  * @brief Computes the central-difference gradient between neighboring cells.
  * @param phi_p Finite field value at cell center P.
  * @param phi_n Finite field value at cell center N.
- * @param distance_pn Finite, strictly positive distance between the centers.
- * @return The estimated gradient, @f$(\phi_N - \phi_P) / d_{PN}@f$.
+ * @param distance_p Finite, strictly positive distance from center P to the
+ *        shared face.
+ * @param distance_n Finite, strictly positive distance from center N to the
+ *        shared face.
+ * @return The estimated gradient, @f$(\phi_N - \phi_P) / (d_P + d_N)@f$.
  * @throws std::invalid_argument if either field value is non-finite, or if
- *         @p distance_pn is non-finite or not strictly positive.
+ *         either distance is non-finite or not strictly positive.
  * @throws std::overflow_error if the computed gradient is not representable
  *         as a finite @c double.
  */
 [[nodiscard]] double central_difference(
     double phi_p,
     double phi_n,
-    double distance_pn);
+    double distance_p,
+    double distance_n);
 
 } // namespace cfd::schemes::gradient
