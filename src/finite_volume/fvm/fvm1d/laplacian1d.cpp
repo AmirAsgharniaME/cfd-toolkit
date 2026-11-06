@@ -44,43 +44,44 @@ void laplacian(const field::VolScalarField1D& gamma,
 {
     validate_inputs(gamma, matrix);
 
-    const cfd::mesh::FvMesh1D& mesh = matrix.Mesh();
-    //const std::size_t n_cells = mesh.N_Cells();
+    const mesh::FvMesh1D& mesh = matrix.Mesh();
     const std::size_t n_face = mesh.N_Faces();
 
-    // Face between cells p and n. The mesh supplies the center-to-face
-    // distances used by harmonic interpolation and the central-difference
-    // gradient.
-    for (std::size_t f = 1; f < n_face-1 ; ++f)
+    // Assemble internal faces only. Boundary contributions are handled
+    // separately by the boundary-condition code.
+    for (mesh::FaceId f = 1; f + 1 < n_face; ++f)
     {
-        const std::size_t p_W = f - 1;
-        const std::size_t p_E = f;
+        const mesh::CellId p_W = mesh.Owner(f);
+        const mesh::CellId p_E = *mesh.Neighbour(f);
+
         const double distance_W = mesh.Dx_W(f);
         const double distance_E = mesh.Dx_E(f);
+        const double face_area = mesh.Face_Area(f);
 
-        // The public harmonic scheme accepts strictly positive diffusivities;
-        // preserve the Laplacian's nonnegative-coefficient contract by
-        // treating a zero on either side as zero face diffusivity.
+        // The harmonic scheme accepts strictly positive diffusivities.
+        // A zero coefficient on either side gives zero face diffusivity.
         const double gamma_face = (gamma[p_W] == 0.0 || gamma[p_E] == 0.0)
             ? 0.0
             : schemes::interpolation::harmonic_mean(
                   gamma[p_W], gamma[p_E], distance_W, distance_E);
 
-        // A unit jump across the neighboring cell centers gives the gradient
-        // per unit field difference. In 1D the face area is one, so this is
-        // Gamma_f * Area_f / the center-to-center distance.
+        // For a unit difference between cell values, this is the
+        // center-to-center gradient. Face conductance includes face area:
+        // D_f = gamma_f * A_f / (distance_W + distance_E).
         const double gradient_per_unit_jump =
             schemes::gradient::central_difference(
                 0.0, 1.0, distance_W, distance_E);
-        const double conductance = gamma_face * gradient_per_unit_jump;
+
+        const double conductance =
+            gamma_face * face_area * gradient_per_unit_jump;
 
         if (!std::isfinite(conductance)) {
             throw std::overflow_error(
                 "Laplacian internal-face conductance is not finite");
         }
 
-        // The integrated diffusion flux contributes +coefficients to the
-        // diagonal and -coefficients to the neighboring off-diagonal.
+        // Owner outward flux: D_f * (phi_owner - phi_neighbour).
+        // The neighbour receives the opposite flux.
         matrix.add_a_P(p_W, conductance);
         matrix.add_a_E(p_W, -conductance);
         matrix.add_a_P(p_E, conductance);

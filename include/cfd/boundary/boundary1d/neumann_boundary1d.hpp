@@ -16,6 +16,8 @@ public:
      * @param name Descriptive identifier (e.g., "adiabatic_wall", "zero_gradient_outlet").
      * @param side Spatial location (BoundarySide1D::Start or BoundarySide1D::End).
      * @param normal_gradient Prescribed outward normal derivative value: d(phi)/dn.
+     * For the negative diffusion operator the outward flux is -gamma times
+     * this derivative (unit face area). Matrix assembly is not provided.
      */
     NeumannBoundary1D(std::string name, BoundarySide1D side, double normal_gradient);
 

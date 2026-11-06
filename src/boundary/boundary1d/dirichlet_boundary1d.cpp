@@ -85,14 +85,14 @@ void DirichletBoundary1D::apply(const field::VolScalarField1D& gamma,
         throw std::overflow_error("Dirichlet boundary contribution is not finite");
     }
 
-    const double updated_diagonal = matrix.a_P(p) - conductance;
+    const double updated_diagonal = matrix.a_P(p) + conductance;
     const double updated_source = matrix.b(p) + source;
     if (!std::isfinite(updated_diagonal) || !std::isfinite(updated_source))
     {
         throw std::overflow_error("Accumulated Dirichlet boundary row is not finite");
     }
 
-    matrix.add_a_P(p, -conductance);
+    matrix.add_a_P(p, conductance);
     matrix.add_b(p, source);
 }
 
