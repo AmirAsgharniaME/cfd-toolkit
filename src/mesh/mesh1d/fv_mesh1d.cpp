@@ -5,6 +5,7 @@
 #include "cfd/mesh/mesh1d/grading1d.hpp"
 
 #include <cmath>
+#include <cstddef>
 #include <iomanip>
 #include <numeric>
 #include <ostream>
@@ -159,6 +160,23 @@ double FvMesh1D::eFaceDx(std::size_t p) const
 {
     return eFace_Coord(p) - Cell_Center_Coord(p);
 }
+
+[[nodiscard]] double FvMesh1D::Dx_W(std::size_t f) const
+{
+    const std::size_t p_W = f - 1;
+    return Face_Coord(f)-Cell_Center_Coord(p_W);
+}
+[[nodiscard]] double FvMesh1D::Dx_E(std::size_t f) const
+{
+    const std::size_t p_E = f;
+    return Cell_Center_Coord(p_E)-Face_Coord(f);
+}
+
+[[nodiscard]] double FvMesh1D::Dx_f(std::size_t f) const
+{
+    return Dx_W(f)+Dx_E(f);
+}
+
 
 double FvMesh1D::wCellDx(std::size_t p) const
 {

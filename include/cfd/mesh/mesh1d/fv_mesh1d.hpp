@@ -76,6 +76,16 @@ public:
     // --- FVM stencil distance metrics (Moukalled / Versteeg) ---
     [[nodiscard]] double wFaceDx(std::size_t p) const;
     [[nodiscard]] double eFaceDx(std::size_t p) const;
+
+    // Distance from the west/owner cell center to face f.
+    [[nodiscard]] double Dx_W(std::size_t f) const;
+    // Distance from face f to the east/neighbour cell center.
+    [[nodiscard]] double Dx_E(std::size_t f) const;
+
+    [[nodiscard]] double Dx_f(std::size_t f) const;
+
+
+
     [[nodiscard]] double wCellDx(std::size_t p) const;
     [[nodiscard]] double eCellDx(std::size_t p) const;
 

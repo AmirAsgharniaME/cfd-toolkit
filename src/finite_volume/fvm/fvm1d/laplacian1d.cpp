@@ -45,31 +45,33 @@ void laplacian(const field::VolScalarField1D& gamma,
     validate_inputs(gamma, matrix);
 
     const cfd::mesh::FvMesh1D& mesh = matrix.Mesh();
-    const std::size_t n_cells = mesh.N_Cells();
+    //const std::size_t n_cells = mesh.N_Cells();
+    const std::size_t n_face = mesh.N_Faces();
 
     // Face between cells p and n. The mesh supplies the center-to-face
     // distances used by harmonic interpolation and the central-difference
     // gradient.
-    for (std::size_t p = 0; p + 1 < n_cells; ++p)
+    for (std::size_t f = 1; f < n_face-1 ; ++f)
     {
-        const std::size_t n = p + 1;
-        const double distance_p = mesh.eFaceDx(p);
-        const double distance_n = mesh.wFaceDx(n);
+        const std::size_t p_W = f - 1;
+        const std::size_t p_E = f;
+        const double distance_W = mesh.Dx_W(f);
+        const double distance_E = mesh.Dx_E(f);
 
         // The public harmonic scheme accepts strictly positive diffusivities;
         // preserve the Laplacian's nonnegative-coefficient contract by
         // treating a zero on either side as zero face diffusivity.
-        const double gamma_face = (gamma[p] == 0.0 || gamma[n] == 0.0)
+        const double gamma_face = (gamma[p_W] == 0.0 || gamma[p_E] == 0.0)
             ? 0.0
             : schemes::interpolation::harmonic_mean(
-                  gamma[p], gamma[n], distance_p, distance_n);
+                  gamma[p_W], gamma[p_E], distance_W, distance_E);
 
         // A unit jump across the neighboring cell centers gives the gradient
         // per unit field difference. In 1D the face area is one, so this is
         // Gamma_f * Area_f / the center-to-center distance.
         const double gradient_per_unit_jump =
             schemes::gradient::central_difference(
-                0.0, 1.0, distance_p, distance_n);
+                0.0, 1.0, distance_W, distance_E);
         const double conductance = gamma_face * gradient_per_unit_jump;
 
         if (!std::isfinite(conductance)) {
@@ -79,10 +81,10 @@ void laplacian(const field::VolScalarField1D& gamma,
 
         // The integrated diffusion flux contributes +coefficients to the
         // diagonal and -coefficients to the neighboring off-diagonal.
-        matrix.add_a_P(p, conductance);
-        matrix.add_a_E(p, -conductance);
-        matrix.add_a_P(n, conductance);
-        matrix.add_a_W(n, -conductance);
+        matrix.add_a_P(p_W, conductance);
+        matrix.add_a_E(p_W, -conductance);
+        matrix.add_a_P(p_E, conductance);
+        matrix.add_a_W(p_E, -conductance);
     }
 }
 
