@@ -173,7 +173,7 @@ Field1D<Type, LocationTag>& Field1D<Type, LocationTag>::operator/=(double scalar
 
 template class Field1D<double, CellLocation>;
 template class Field1D<double, FaceLocation>;
-template class Field1D<Vector1D, CellLocation>;
-template class Field1D<Vector1D, FaceLocation>;
+template class Field1D<cfd::vector::Vector1D, CellLocation>;
+template class Field1D<cfd::vector::Vector1D, FaceLocation>;
 
 }  // namespace cfd::field

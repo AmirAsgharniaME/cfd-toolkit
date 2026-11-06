@@ -10,6 +10,7 @@
 #include <cfd/field/field1d/field1d_operators.hpp>
 #include <cfd/geometry/domain/domain1d.hpp>
 #include <cfd/mesh/mesh1d/fv_mesh1d.hpp>
+#include <cfd/vector/vector1d.hpp>
 
 namespace
 {
@@ -107,48 +108,48 @@ int main()
         using VolVectorField = cfd::field::VolVectorField1D;
         using SurfaceVectorField = cfd::field::SurfaceVectorField1D;
         static_assert(std::is_same_v<VolVectorField,
-                                     cfd::field::Field1D<cfd::field::Vector1D, cfd::field::CellLocation>>);
+                                     cfd::field::Field1D<cfd::vector::Vector1D, cfd::field::CellLocation>>);
         static_assert(std::is_same_v<SurfaceVectorField,
-                                     cfd::field::Field1D<cfd::field::Vector1D, cfd::field::FaceLocation>>);
+                                     cfd::field::Field1D<cfd::vector::Vector1D, cfd::field::FaceLocation>>);
         static_assert(!Addable<VolVectorField, FaceField>);
 
-        VolVectorField cell_velocity("cell_velocity", mesh, cfd::field::Vector1D{1.5});
+        VolVectorField cell_velocity("cell_velocity", mesh, cfd::vector::Vector1D{1.5});
         require(cell_velocity.Size() == mesh.N_Cells(),
                 "A vector cell field should allocate one value per cell.");
-        require(cell_velocity[0] == cfd::field::Vector1D{1.5},
+        require(cell_velocity[0] == cfd::vector::Vector1D{1.5},
                 "The vector cell field should retain its initial value.");
-        cell_velocity.Fill(cfd::field::Vector1D{2.0});
-        cell_velocity[1] = cfd::field::Vector1D{3.0};
+        cell_velocity.Fill(cfd::vector::Vector1D{2.0});
+        cell_velocity[1] = cfd::vector::Vector1D{3.0};
         const auto vector_sum = cell_velocity + cell_velocity;
-        require(vector_sum[1] == cfd::field::Vector1D{6.0},
+        require(vector_sum[1] == cfd::vector::Vector1D{6.0},
                 "Vector field addition should operate entry by entry.");
         const auto vector_difference = vector_sum - cell_velocity;
-        require(vector_difference.at(1) == cfd::field::Vector1D{3.0},
+        require(vector_difference.at(1) == cfd::vector::Vector1D{3.0},
                 "Vector field subtraction should operate entry by entry.");
         const auto vector_scaled = cell_velocity * 2.0;
-        require(vector_scaled[1] == cfd::field::Vector1D{6.0},
+        require(vector_scaled[1] == cfd::vector::Vector1D{6.0},
                 "Vector field scalar multiplication should scale each component.");
         const auto vector_divided = vector_scaled / 2.0;
-        require(vector_divided[1] == cfd::field::Vector1D{3.0},
+        require(vector_divided[1] == cfd::vector::Vector1D{3.0},
                 "Vector field scalar division should scale each component.");
 
-        SurfaceVectorField face_velocity("face_velocity", mesh, cfd::field::Vector1D{4.0});
+        SurfaceVectorField face_velocity("face_velocity", mesh, cfd::vector::Vector1D{4.0});
         require(face_velocity.Size() == mesh.N_Faces() && face_velocity.N_Faces() == mesh.N_Faces(),
                 "A vector face field should expose one value per face.");
-        require(face_velocity[mesh.N_Faces() - 1] == cfd::field::Vector1D{4.0},
+        require(face_velocity[mesh.N_Faces() - 1] == cfd::vector::Vector1D{4.0},
                 "The vector face field should initialize every face.");
-        face_velocity.Fill(cfd::field::Vector1D{5.0});
-        require((face_velocity + face_velocity).at(0) == cfd::field::Vector1D{10.0},
+        face_velocity.Fill(cfd::vector::Vector1D{5.0});
+        require((face_velocity + face_velocity).at(0) == cfd::vector::Vector1D{10.0},
                 "Vector face field arithmetic should work.");
 
         auto vector_view = cell_velocity.values();
-        vector_view[2] = cfd::field::Vector1D{7.0};
-        require(cell_velocity[2] == cfd::field::Vector1D{7.0},
+        vector_view[2] = cfd::vector::Vector1D{7.0};
+        require(cell_velocity[2] == cfd::vector::Vector1D{7.0},
                 "Vector values() should alias the field storage.");
         const auto& const_cell_velocity = cell_velocity;
-        const std::span<const cfd::field::Vector1D> const_vector_span = const_cell_velocity.span();
+        const std::span<const cfd::vector::Vector1D> const_vector_span = const_cell_velocity.span();
         require(const_vector_span.size() == cell_velocity.Size() &&
-                    const_cell_velocity.Values()[2] == cfd::field::Vector1D{7.0},
+                    const_cell_velocity.Values()[2] == cfd::vector::Vector1D{7.0},
                 "Const span accessors should expose read-only field storage.");
 
         const cfd::mesh::FvMesh1D graded(domain, 4, cfd::mesh::GradingType::Forward, 2.0);

@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <cfd/field/field1d/vector1d.hpp>
+#include <cfd/vector/vector1d.hpp>
 
 namespace cfd::mesh
 {
@@ -22,14 +22,15 @@ struct FaceLocation {};
 template<typename Type, typename LocationTag>
 class Field1D
 {
-    static_assert(std::is_same_v<Type, double> || std::is_same_v<Type, Vector1D>, "Unsupported field type");
+    static_assert(std::is_same_v<Type, double> ||
+                  std::is_same_v<Type, cfd::vector::Vector1D>, "Unsupported field type");
     static_assert(std::is_same_v<LocationTag, CellLocation> ||
                   std::is_same_v<LocationTag, FaceLocation>, "Unsupported field location");
 
 public:
     explicit Field1D
     (
-        std::string name, 
+        std::string name,
         const cfd::mesh::FvMesh1D& mesh,
         const Type& initial_val = Type{}
     );
@@ -74,12 +75,12 @@ private:
 
 extern template class Field1D<double, CellLocation>;
 extern template class Field1D<double, FaceLocation>;
-extern template class Field1D<Vector1D, CellLocation>;
-extern template class Field1D<Vector1D, FaceLocation>;
+extern template class Field1D<cfd::vector::Vector1D, CellLocation>;
+extern template class Field1D<cfd::vector::Vector1D, FaceLocation>;
 
 using VolScalarField1D = Field1D<double, CellLocation>;
 using SurfaceScalarField1D = Field1D<double, FaceLocation>;
-using VolVectorField1D = Field1D<Vector1D, CellLocation>;
-using SurfaceVectorField1D = Field1D<Vector1D, FaceLocation>;
+using VolVectorField1D = Field1D<cfd::vector::Vector1D, CellLocation>;
+using SurfaceVectorField1D = Field1D<cfd::vector::Vector1D, FaceLocation>;
 
 }  // namespace cfd::field

@@ -17,7 +17,6 @@ MD | field 1D README | include/cfd/field/field1d/README.md
 # Headers
 H | Field 1D header | include/cfd/field/field1d/field1d.hpp
 H | Field 1D operators header | include/cfd/field/field1d/field1d_operators.hpp
-H | Vector 1D header | include/cfd/field/field1d/vector1d.hpp
 H | Field types header | include/cfd/field/types.hpp
 H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
 H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
