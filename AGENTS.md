@@ -49,7 +49,7 @@ by component and dimension:
 - `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
 - `test_field1d`: `examples/test_field/test_field1d/test_field1d.cpp` (checks scalar and vector field allocation, access, assignment, and arithmetic).
 
-`steady_heat_conduction_rod1d` is registered under `BUILD_EXAMPLES` from `examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp`. It creates a uniform 1D mesh and temperature and diffusivity fields, a mesh-bound `FvMatrix1D`, and start/end Dirichlet boundary objects; it prints the initialized temperature field. Matrix assembly and boundary-condition application remain TODOs, so it does not yet demonstrate a heat-conduction solve. The library separately provides the internal-face 1D implicit Laplacian assembly API described above, while `DirichletBoundary1D::apply` adds a boundary contribution independently.
+`steady_heat_conduction_rod1d` is registered under `BUILD_EXAMPLES` from `examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp`. It creates a uniform 1D mesh, temperature and diffusivity fields, a mesh-bound `FvMatrix1D`, and start/end Dirichlet boundary objects. It assembles internal-face contributions with `fvm::laplacian`, applies both boundary contributions with `DirichletBoundary1D::apply`, solves the tridiagonal system with `TDMASolver`, stores and prints the resulting temperature field, and prints the assembled coefficients. The example pauses for Enter before exiting. The Laplacian assembles internal faces only; Dirichlet boundary assembly remains a separate API.
 
 The root `FILEPATH.md` is the project path inventory, grouped into documentation, headers, sources, class pairs, free-function header/source pairs, and subsystem sections. Record implemented free-function APIs such as `grading::Make_Faces` under `Functions (header and source)`, separately from class pairs. Build directories such as `build/` and `build_release/` contain generated artifacts and are ignored by Git.
 
@@ -65,10 +65,10 @@ cmake --build build --parallel
 ./build/bin/test_non_uniform_mesh1d
 ./build/bin/test_grading1d
 ./build/bin/test_field1d < /dev/null
-./build/bin/steady_heat_conduction_rod1d
+./build/bin/steady_heat_conduction_rod1d < /dev/null
 ```
 
-Configuration enables examples by default through `BUILD_EXAMPLES`; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_field1d`. The domain, uniform-mesh, and field examples call `std::cin.get()`, so redirect stdin for unattended runs; the non-uniform mesh contract check exits directly.
+Configuration enables examples by default through `BUILD_EXAMPLES`; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_field1d`. The domain, uniform-mesh, field, and steady heat conduction examples call `std::cin.get()`, so redirect stdin for unattended runs; the non-uniform mesh contract check exits directly.
 
 The root CMake configuration builds the static `cfd_toolkit` library with the in-tree alias `cfd::toolkit`. C++20 is a public target requirement, and include paths use separate build/install interfaces. No external dependencies are currently declared. Installation uses `GNUInstallDirs` and exports `cfd::toolkit`; consumers call `find_package(cfd-toolkit CONFIG REQUIRED)` and link that target. The package config template is `cmake/cfd-toolkitConfig.cmake.in`; generated config, version, and target files are installed under `${CMAKE_INSTALL_LIBDIR}/cmake/cfd-toolkit`, with `SameMajorVersion` compatibility. To check installation, use `cmake --install build --prefix /tmp/cfd-toolkit-install` after building.
 
