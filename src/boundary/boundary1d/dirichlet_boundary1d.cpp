@@ -15,7 +15,7 @@ DirichletBoundary1D::DirichletBoundary1D(std::string name, BoundarySide1D side, 
 {
 }
 
-const std::string& DirichletBoundary1D::name() const noexcept
+const std::string& DirichletBoundary1D::Name() const noexcept
 {
     return name_;
 }
@@ -25,12 +25,12 @@ BoundarySide1D DirichletBoundary1D::side() const noexcept
     return side_;
 }
 
-double DirichletBoundary1D::value() const noexcept
+double DirichletBoundary1D::Value() const noexcept
 {
     return value_;
 }
 
-void DirichletBoundary1D::apply(const field::VolScalarField1D& gamma,
+void DirichletBoundary1D::Apply(const field::VolScalarField1D& gamma,
                                 fv_matrix::FvMatrix1D& matrix) const
 {
     const cfd::mesh::FvMesh1D& mesh = matrix.Mesh();
@@ -41,7 +41,7 @@ void DirichletBoundary1D::apply(const field::VolScalarField1D& gamma,
     }
 
     const std::size_t n_cells = mesh.N_Cells();
-    if (n_cells == 0 || gamma.Size() != n_cells || matrix.Size() != n_cells)
+    if (n_cells == 0 || gamma.size() != n_cells || matrix.size() != n_cells)
     {
         throw std::invalid_argument(
             "Dirichlet coefficient field and matrix sizes must match a nonempty mesh");
@@ -92,8 +92,8 @@ void DirichletBoundary1D::apply(const field::VolScalarField1D& gamma,
         throw std::overflow_error("Accumulated Dirichlet boundary row is not finite");
     }
 
-    matrix.add_a_P(p, conductance);
-    matrix.add_b(p, source);
+    matrix.Add_a_P(p, conductance);
+    matrix.Add_b(p, source);
 }
 
 }  // namespace cfd::boundary

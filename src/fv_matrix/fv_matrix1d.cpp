@@ -18,7 +18,7 @@ const cfd::mesh::FvMesh1D& FvMatrix1D::Mesh() const noexcept
     return mesh_;
 }
 
-std::size_t FvMatrix1D::Size() const noexcept
+std::size_t FvMatrix1D::size() const noexcept
 {
     return matrix_.size();
 }
@@ -35,67 +35,67 @@ const linear_algebra::TridiagonalMatrix& FvMatrix1D::Matrix() const noexcept
 
 double FvMatrix1D::a_W(std::size_t p) const
 {
-    return matrix_.lower(p);
+    return matrix_.Lower(p);
 }
 
 double FvMatrix1D::a_P(std::size_t p) const
 {
-    return matrix_.diag(p);
+    return matrix_.Diag(p);
 }
 
 double FvMatrix1D::a_E(std::size_t p) const
 {
-    return matrix_.upper(p);
+    return matrix_.Upper(p);
 }
 
 double FvMatrix1D::b(std::size_t p) const
 {
-    return matrix_.source(p);
+    return matrix_.Source(p);
 }
 
-void FvMatrix1D::set_a_W(std::size_t p, double value)
+void FvMatrix1D::Set_a_W(std::size_t p, double value)
 {
-    matrix_.set_lower(p, value);
+    matrix_.Set_Lower(p, value);
 }
 
-void FvMatrix1D::set_a_P(std::size_t p, double value)
+void FvMatrix1D::Set_a_P(std::size_t p, double value)
 {
-    matrix_.set_diag(p, value);
+    matrix_.Set_Diag(p, value);
 }
 
-void FvMatrix1D::set_a_E(std::size_t p, double value)
+void FvMatrix1D::Set_a_E(std::size_t p, double value)
 {
-    matrix_.set_upper(p, value);
+    matrix_.Set_Upper(p, value);
 }
 
-void FvMatrix1D::set_b(std::size_t p, double value)
+void FvMatrix1D::Set_b(std::size_t p, double value)
 {
-    matrix_.set_source(p, value);
+    matrix_.Set_Source(p, value);
 }
 
-void FvMatrix1D::add_a_W(std::size_t p, double value)
+void FvMatrix1D::Add_a_W(std::size_t p, double value)
 {
-    matrix_.add_lower(p, value);
+    matrix_.Add_Lower(p, value);
 }
 
-void FvMatrix1D::add_a_P(std::size_t p, double value)
+void FvMatrix1D::Add_a_P(std::size_t p, double value)
 {
-    matrix_.add_diag(p, value);
+    matrix_.Add_Diag(p, value);
 }
 
-void FvMatrix1D::add_a_E(std::size_t p, double value)
+void FvMatrix1D::Add_a_E(std::size_t p, double value)
 {
-    matrix_.add_upper(p, value);
+    matrix_.Add_Upper(p, value);
 }
 
-void FvMatrix1D::add_b(std::size_t p, double value)
+void FvMatrix1D::Add_b(std::size_t p, double value)
 {
-    matrix_.add_source(p, value);
+    matrix_.Add_Source(p, value);
 }
 
 void FvMatrix1D::Reset() noexcept
 {
-    matrix_.reset();
+    matrix_.Reset();
 }
 
 } // namespace cfd::fv_matrix

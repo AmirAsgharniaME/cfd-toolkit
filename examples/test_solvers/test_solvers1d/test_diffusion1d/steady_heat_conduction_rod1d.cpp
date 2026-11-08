@@ -32,7 +32,7 @@ int main()
               << "Cell size: " << mesh.Cell_Volume(0) << " m\n\n";
 
     std::cout << "Initial temperature field (K):\n";
-    for (std::size_t p = 0; p < T.Size(); ++p)
+    for (std::size_t p = 0; p < T.size(); ++p)
     {
         std::cout << "  cell " << p << ": " << T[p] << '\n';
     }
@@ -56,11 +56,11 @@ int main()
         200.0);
 
     // 4. Assemble internal faces contributions using the Laplacian operator
-    cfd::fvm::laplacian(gamma, matrix);
+    cfd::fvm::Laplacian(gamma, matrix);
 
     // 5. Apply boundary conditions to the matrix
-    left_bc.apply(gamma, matrix);
-    right_bc.apply(gamma, matrix);
+    left_bc.Apply(gamma, matrix);
+    right_bc.Apply(gamma, matrix);
 
     // 7. Solve the linear system
     const std::vector<double> solution =
@@ -68,7 +68,7 @@ int main()
     std::copy(solution.begin(), solution.end(), T.values().begin());
 
     std::cout << "Steady-state temperature solution (K):\n";
-    for (std::size_t p = 0; p < T.Size(); ++p)
+    for (std::size_t p = 0; p < T.size(); ++p)
     {
         std::cout << "  cell " << p
                   << " (x = " << mesh.Cell_Center_Coord(p) << " m): "
@@ -83,10 +83,10 @@ int main()
     for (std::size_t p = 0; p < mesh.N_Cells(); ++p)
     {
         std::cout << std::setw(3) << p << " | "
-                  << std::setw(14) << matrix.Matrix().lower()[p] << " | "
-                  << std::setw(14) << matrix.Matrix().diag()[p]  << " | "
-                  << std::setw(14) << matrix.Matrix().upper()[p] << " | "
-                  << std::setw(14) << matrix.Matrix().source()[p] << '\n';
+                  << std::setw(14) << matrix.Matrix().Lower()[p] << " | "
+                  << std::setw(14) << matrix.Matrix().Diag()[p]  << " | "
+                  << std::setw(14) << matrix.Matrix().Upper()[p] << " | "
+                  << std::setw(14) << matrix.Matrix().Source()[p] << '\n';
     }
     std::cout << "--------------------------------------------------------------------\n\n";
 

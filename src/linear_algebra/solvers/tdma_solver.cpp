@@ -52,10 +52,10 @@ void TDMASolver::solve(TridiagonalMatrix& matrix, std::vector<double>& solution)
         throw std::invalid_argument("TDMASolver requires a non-empty matrix");
     }
 
-    auto& diag = matrix.diag();
-    auto& lower = matrix.lower();
-    auto& upper = matrix.upper();
-    auto& source = matrix.source();
+    auto& diag = matrix.Diag();
+    auto& lower = matrix.Lower();
+    auto& upper = matrix.Upper();
+    auto& source = matrix.Source();
     if (diag.size() != n || lower.size() != n || upper.size() != n || source.size() != n) {
         throw std::invalid_argument("TridiagonalMatrix coefficient vectors must have equal sizes");
     }

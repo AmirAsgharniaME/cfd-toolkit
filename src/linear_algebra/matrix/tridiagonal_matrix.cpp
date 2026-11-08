@@ -27,31 +27,31 @@ std::size_t TridiagonalMatrix::size() const noexcept
     return diag_.size();
 }
 
-double TridiagonalMatrix::diag(std::size_t row) const
+double TridiagonalMatrix::Diag(std::size_t row) const
 {
     check_row(row, size());
     return diag_[row];
 }
 
-void TridiagonalMatrix::set_diag(std::size_t row, double value)
+void TridiagonalMatrix::Set_Diag(std::size_t row, double value)
 {
     check_row(row, size());
     diag_[row] = value;
 }
 
-void TridiagonalMatrix::add_diag(std::size_t row, double value)
+void TridiagonalMatrix::Add_Diag(std::size_t row, double value)
 {
     check_row(row, size());
     diag_[row] += value;
 }
 
-double TridiagonalMatrix::lower(std::size_t row) const
+double TridiagonalMatrix::Lower(std::size_t row) const
 {
     check_row(row, size());
     return lower_[row];
 }
 
-void TridiagonalMatrix::set_lower(std::size_t row, double value)
+void TridiagonalMatrix::Set_Lower(std::size_t row, double value)
 {
     check_row(row, size());
     if (row == 0) {
@@ -60,7 +60,7 @@ void TridiagonalMatrix::set_lower(std::size_t row, double value)
     lower_[row] = value;
 }
 
-void TridiagonalMatrix::add_lower(std::size_t row, double value)
+void TridiagonalMatrix::Add_Lower(std::size_t row, double value)
 {
     check_row(row, size());
     if (row == 0) {
@@ -69,13 +69,13 @@ void TridiagonalMatrix::add_lower(std::size_t row, double value)
     lower_[row] += value;
 }
 
-double TridiagonalMatrix::upper(std::size_t row) const
+double TridiagonalMatrix::Upper(std::size_t row) const
 {
     check_row(row, size());
     return upper_[row];
 }
 
-void TridiagonalMatrix::set_upper(std::size_t row, double value)
+void TridiagonalMatrix::Set_Upper(std::size_t row, double value)
 {
     check_row(row, size());
     if (row + 1 == size()) {
@@ -84,7 +84,7 @@ void TridiagonalMatrix::set_upper(std::size_t row, double value)
     upper_[row] = value;
 }
 
-void TridiagonalMatrix::add_upper(std::size_t row, double value)
+void TridiagonalMatrix::Add_Upper(std::size_t row, double value)
 {
     check_row(row, size());
     if (row + 1 == size()) {
@@ -93,65 +93,65 @@ void TridiagonalMatrix::add_upper(std::size_t row, double value)
     upper_[row] += value;
 }
 
-double TridiagonalMatrix::source(std::size_t row) const
+double TridiagonalMatrix::Source(std::size_t row) const
 {
     check_row(row, size());
     return source_[row];
 }
 
-void TridiagonalMatrix::set_source(std::size_t row, double value)
+void TridiagonalMatrix::Set_Source(std::size_t row, double value)
 {
     check_row(row, size());
     source_[row] = value;
 }
 
-void TridiagonalMatrix::add_source(std::size_t row, double value)
+void TridiagonalMatrix::Add_Source(std::size_t row, double value)
 {
     check_row(row, size());
     source_[row] += value;
 }
 
-std::vector<double>& TridiagonalMatrix::diag() noexcept
+std::vector<double>& TridiagonalMatrix::Diag() noexcept
 {
     return diag_;
 }
 
-const std::vector<double>& TridiagonalMatrix::diag() const noexcept
+const std::vector<double>& TridiagonalMatrix::Diag() const noexcept
 {
     return diag_;
 }
 
-std::vector<double>& TridiagonalMatrix::lower() noexcept
+std::vector<double>& TridiagonalMatrix::Lower() noexcept
 {
     return lower_;
 }
 
-const std::vector<double>& TridiagonalMatrix::lower() const noexcept
+const std::vector<double>& TridiagonalMatrix::Lower() const noexcept
 {
     return lower_;
 }
 
-std::vector<double>& TridiagonalMatrix::upper() noexcept
+std::vector<double>& TridiagonalMatrix::Upper() noexcept
 {
     return upper_;
 }
 
-const std::vector<double>& TridiagonalMatrix::upper() const noexcept
+const std::vector<double>& TridiagonalMatrix::Upper() const noexcept
 {
     return upper_;
 }
 
-std::vector<double>& TridiagonalMatrix::source() noexcept
+std::vector<double>& TridiagonalMatrix::Source() noexcept
 {
     return source_;
 }
 
-const std::vector<double>& TridiagonalMatrix::source() const noexcept
+const std::vector<double>& TridiagonalMatrix::Source() const noexcept
 {
     return source_;
 }
 
-void TridiagonalMatrix::reset() noexcept
+void TridiagonalMatrix::Reset() noexcept
 {
     std::fill(diag_.begin(), diag_.end(), 0.0);
     std::fill(lower_.begin(), lower_.end(), 0.0);

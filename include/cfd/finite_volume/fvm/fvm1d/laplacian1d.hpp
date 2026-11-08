@@ -20,7 +20,7 @@ namespace cfd::fvm
 /// The diffusion coefficient must be finite and nonnegative in every cell.
 /// The field and matrix must refer to the same mesh object.
 /// Contributions are accumulated into existing matrix entries.
-void laplacian(
+void Laplacian(
     const field::VolScalarField1D& gamma,
     cfd::fv_matrix::FvMatrix1D& matrix
 );

@@ -22,12 +22,12 @@ void validate_inputs(const field::VolScalarField1D& gamma,
             "Laplacian coefficient field and matrix must use the same mesh object");
     }
 
-    if (gamma.Size() != mesh.N_Cells() || matrix.Size() != mesh.N_Cells()) {
+    if (gamma.size() != mesh.N_Cells() || matrix.size() != mesh.N_Cells()) {
         throw std::invalid_argument(
             "Laplacian field and matrix sizes must match the mesh");
     }
 
-    for (std::size_t p = 0; p < gamma.Size(); ++p) {
+    for (std::size_t p = 0; p < gamma.size(); ++p) {
         const double value = gamma[p];
 
         if (!std::isfinite(value) || value < 0.0) {
@@ -39,7 +39,7 @@ void validate_inputs(const field::VolScalarField1D& gamma,
 
 } // namespace
 
-void laplacian(const field::VolScalarField1D& gamma,
+void Laplacian(const field::VolScalarField1D& gamma,
                fv_matrix::FvMatrix1D& matrix)
 {
     validate_inputs(gamma, matrix);
@@ -82,10 +82,10 @@ void laplacian(const field::VolScalarField1D& gamma,
 
         // Owner outward flux: D_f * (phi_owner - phi_neighbour).
         // The neighbour receives the opposite flux.
-        matrix.add_a_P(p_W, conductance);
-        matrix.add_a_E(p_W, -conductance);
-        matrix.add_a_P(p_E, conductance);
-        matrix.add_a_W(p_E, -conductance);
+        matrix.Add_a_P(p_W, conductance);
+        matrix.Add_a_E(p_W, -conductance);
+        matrix.Add_a_P(p_E, conductance);
+        matrix.Add_a_W(p_E, -conductance);
     }
 }
 

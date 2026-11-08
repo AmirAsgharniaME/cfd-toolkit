@@ -13,33 +13,33 @@ public:
 
     [[nodiscard]] std::size_t size() const noexcept;
 
-    [[nodiscard]] double diag(std::size_t row) const;
-    void set_diag(std::size_t row, double value);
-    void add_diag(std::size_t row, double value);
+    [[nodiscard]] double Diag(std::size_t row) const;
+    void Set_Diag(std::size_t row, double value);
+    void Add_Diag(std::size_t row, double value);
 
-    [[nodiscard]] double lower(std::size_t row) const;
-    void set_lower(std::size_t row, double value);
-    void add_lower(std::size_t row, double value);
+    [[nodiscard]] double Lower(std::size_t row) const;
+    void Set_Lower(std::size_t row, double value);
+    void Add_Lower(std::size_t row, double value);
 
-    [[nodiscard]] double upper(std::size_t row) const;
-    void set_upper(std::size_t row, double value);
-    void add_upper(std::size_t row, double value);
+    [[nodiscard]] double Upper(std::size_t row) const;
+    void Set_Upper(std::size_t row, double value);
+    void Add_Upper(std::size_t row, double value);
 
-    [[nodiscard]] double source(std::size_t row) const;
-    void set_source(std::size_t row, double value);
-    void add_source(std::size_t row, double value);
+    [[nodiscard]] double Source(std::size_t row) const;
+    void Set_Source(std::size_t row, double value);
+    void Add_Source(std::size_t row, double value);
 
-    [[nodiscard]] std::vector<double>& diag() noexcept;
-    [[nodiscard]] const std::vector<double>& diag() const noexcept;
-    [[nodiscard]] std::vector<double>& lower() noexcept;
-    [[nodiscard]] const std::vector<double>& lower() const noexcept;
-    [[nodiscard]] std::vector<double>& upper() noexcept;
-    [[nodiscard]] const std::vector<double>& upper() const noexcept;
-    [[nodiscard]] std::vector<double>& source() noexcept;
-    [[nodiscard]] const std::vector<double>& source() const noexcept;
+    [[nodiscard]] std::vector<double>& Diag() noexcept;
+    [[nodiscard]] const std::vector<double>& Diag() const noexcept;
+    [[nodiscard]] std::vector<double>& Lower() noexcept;
+    [[nodiscard]] const std::vector<double>& Lower() const noexcept;
+    [[nodiscard]] std::vector<double>& Upper() noexcept;
+    [[nodiscard]] const std::vector<double>& Upper() const noexcept;
+    [[nodiscard]] std::vector<double>& Source() noexcept;
+    [[nodiscard]] const std::vector<double>& Source() const noexcept;
 
     // Reset values in place, preserving vector sizes and capacities.
-    void reset() noexcept;
+    void Reset() noexcept;
 
 private:
     std::vector<double> diag_;
