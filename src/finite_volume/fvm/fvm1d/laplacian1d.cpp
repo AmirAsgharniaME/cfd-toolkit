@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
-
+#include <cassert>
 namespace cfd::fvm {
 namespace {
 
@@ -22,12 +22,14 @@ void validate_inputs(const field::VolScalarField1D& gamma,
             "Laplacian coefficient field and matrix must use the same mesh object");
     }
 
-    if (gamma.size() != mesh.N_Cells() || matrix.size() != mesh.N_Cells()) {
+    if (gamma.size() != mesh.N_Cells() || matrix.size() != mesh.N_Cells()) 
+    {
         throw std::invalid_argument(
             "Laplacian field and matrix sizes must match the mesh");
     }
 
-    for (std::size_t p = 0; p < gamma.size(); ++p) {
+    for (std::size_t p = 0; p < gamma.size(); ++p) 
+    {
         const double value = gamma[p];
 
         if (!std::isfinite(value) || value < 0.0) {
@@ -52,7 +54,10 @@ void Laplacian(const field::VolScalarField1D& gamma,
     for (mesh::FaceId f = 1; f + 1 < n_face; ++f)
     {
         const mesh::CellId p_W = mesh.Owner(f);
-        const mesh::CellId p_E = *mesh.Neighbour(f);
+        const auto neighbour = mesh.Neighbour(f);
+        assert(neighbour.has_value()); 
+        const mesh::CellId p_E = *neighbour;
+        // const mesh::CellId p_E = *mesh.Neighbour(f);
 
         const double distance_W = mesh.Dx_W(f);
         const double distance_E = mesh.Dx_E(f);
@@ -75,7 +80,8 @@ void Laplacian(const field::VolScalarField1D& gamma,
         const double conductance =
             gamma_face * face_area * gradient_per_unit_jump;
 
-        if (!std::isfinite(conductance)) {
+        if (!std::isfinite(conductance)) 
+        {
             throw std::overflow_error(
                 "Laplacian internal-face conductance is not finite");
         }
