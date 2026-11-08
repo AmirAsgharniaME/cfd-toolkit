@@ -21,7 +21,7 @@ std::string Format_Coordinate(double coord_value) {
 }
 
 // Match the finite, increasing bounds and finite-extent invariants in 2D/3D.
-inline void Validate_Bounds(double start_coord, double end_coord) {
+void Validate_Bounds(double start_coord, double end_coord) {
     if (!std::isfinite(start_coord) || !std::isfinite(end_coord)) {
         throw std::invalid_argument(
             "Domain1D bounds must be finite: start=" + Format_Coordinate(start_coord) +
@@ -39,7 +39,7 @@ inline void Validate_Bounds(double start_coord, double end_coord) {
     }
 }
 
-inline void Validate_Length(double domain_length) {
+void Validate_Length(double domain_length) {
     if (!std::isfinite(domain_length) || domain_length <= 0.0) {
         throw std::invalid_argument(
             "Domain1D length must be finite and > 0: length=" + Format_Coordinate(domain_length));
