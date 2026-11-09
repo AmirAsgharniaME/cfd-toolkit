@@ -93,6 +93,23 @@ void FvMatrix1D::Add_b(std::size_t p, double value)
     matrix_.Add_Source(p, value);
 }
 
+void FvMatrix1D::Add_OffDiagonal(std::size_t row, std::size_t col, double value)
+{
+    if (row == col) {
+        throw std::invalid_argument("Diagonal entries must be added with Add_a_P");
+    }
+    if (row >= size() || col >= size()) {
+        throw std::out_of_range("Off-diagonal index is outside the matrix");
+    }
+    if (row > col && row - col == 1) {
+        matrix_.Add_Lower(row, value);
+    } else if (col > row && col - row == 1) {
+        matrix_.Add_Upper(row, value);
+    } else {
+        throw std::out_of_range("Off-diagonal index is outside the tridiagonal stencil");
+    }
+}
+
 void FvMatrix1D::Reset() noexcept
 {
     matrix_.Reset();

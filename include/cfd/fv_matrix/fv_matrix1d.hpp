@@ -46,6 +46,9 @@ public:
     void Add_a_E(std::size_t p, double value);
     void Add_b(std::size_t p, double value);
 
+    /// Route a general off-diagonal entry into the 1D tridiagonal storage.
+    void Add_OffDiagonal(std::size_t row, std::size_t col, double value);
+
     /// Zero all matrix coefficients and source entries without changing size.
     void Reset() noexcept;
 

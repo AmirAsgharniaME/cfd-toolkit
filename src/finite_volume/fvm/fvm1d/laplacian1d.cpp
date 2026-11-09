@@ -49,8 +49,8 @@ void Laplacian(const field::VolScalarField1D& gamma,
     const mesh::FvMesh1D& mesh = matrix.Mesh();
     const std::size_t n_face = mesh.N_Faces();
 
-    // Assemble internal faces only. Boundary contributions are handled
-    // separately by the boundary-condition code.
+    // Assemble internal faces only. Boundary-condition APIs add applicable
+    // diagonal and source contributions to the boundary cell row separately.
     for (mesh::FaceId f = 1; f + 1 < n_face; ++f)
     {
         const mesh::CellId p_W = mesh.Owner(f);
@@ -86,12 +86,11 @@ void Laplacian(const field::VolScalarField1D& gamma,
                 "Laplacian internal-face conductance is not finite");
         }
 
-        // Owner outward flux: D_f * (phi_owner - phi_neighbour).
-        // The neighbour receives the opposite flux.
+        // Add the symmetric internal-face contribution to both rows.
         matrix.Add_a_P(p_W, conductance);
-        matrix.Add_a_E(p_W, -conductance);
         matrix.Add_a_P(p_E, conductance);
-        matrix.Add_a_W(p_E, -conductance);
+        matrix.Add_OffDiagonal(p_W, p_E, -conductance);
+        matrix.Add_OffDiagonal(p_E, p_W, -conductance);
     }
 }
 

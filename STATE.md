@@ -121,17 +121,22 @@
   with the out-of-system off-diagonals unused.
 - Coefficient API on `FvMatrix1D`: read `a_W(p)`, `a_P(p)`, `a_E(p)`, `b(p)`;
   write `Set_a_W`, `Set_a_P`, `Set_a_E`, `Set_b`; accumulate `Add_a_W`,
-  `Add_a_P`, `Add_a_E`, `Add_b`; clear `Reset()`. Also `Mesh()`, `size()`,
+  `Add_a_P`, `Add_a_E`, `Add_b`, and `Add_OffDiagonal(row, col, value)`;
+  clear `Reset()`. Also `Mesh()`, `size()`,
   and `Matrix()` (mutable and const access to the underlying
   `TridiagonalMatrix`). Construction is copyable/movable; assignment is
   deleted.
 - The underlying `TridiagonalMatrix` also exposes indexed and whole-vector
   overloads of `Diag`/`Lower`/`Upper`/`Source` and `Set_*`/`Add_*`.
+- `Add_OffDiagonal(row, col, value)` routes an adjacent column below the row
+  to lower storage and an adjacent column above it to upper storage. Equal
+  indices throw `std::invalid_argument` before bounds are checked; out-of-range
+  or nonadjacent indices throw `std::out_of_range`. Diagonal accumulation uses
+  `Add_a_P`. This row-and-column seam lets face assembly avoid choosing a
+  directional off-diagonal slot, while retaining tridiagonal storage.
 - Known storage/abstraction limitations:
-  - East/West naming is hardcoded in the API. There is no generic
-    `AddCoeff(row, column, value)` or face-indexed `Add_Face(f, ...)` entry
-    point, so an assembly routine must know the local 3-point stencil and map a
-    face to a lower/upper term itself.
+  - Directional coefficient accessors remain available, and there is no
+    face-indexed `Add_Face(f, ...)` entry point.
   - Only one sub- and one super-diagonal exist. Second neighbours, 2D/3D
     connectivity, and reordered cell numbering are not representable.
   - The row-0 lower and last-row upper entries exist in the vectors but are
@@ -162,9 +167,9 @@
   `fvc1d` explicit operators are headers containing only `#pragma once` plus
   empty translation units.
 - Operator assembled: the internal-face contributions of the negative
-  diffusion operator `-div(gamma grad(phi))`, discretized per unit volume
-  (the code applies the conductance directly and does not divide by
-  `Cell_Volume`).
+  diffusion operator `-div(gamma grad(phi))`, integrated over each cell.
+  The code applies the face conductance directly and does not divide by
+  `Cell_Volume`.
 - Validation: the coefficient field and the matrix must reference the same mesh
   object (pointer identity, not equal geometry); field and matrix sizes must
   equal `mesh.N_Cells()`; every cell diffusivity must be finite and
@@ -196,9 +201,9 @@
 - Matrix stencil written per internal face `f` in the loop
   `for (FaceId f = 1; f + 1 < n_face; ++f)`:
   - `matrix.Add_a_P(p_W, +D_f)`
-  - `matrix.Add_a_E(p_W, -D_f)`
   - `matrix.Add_a_P(p_E, +D_f)`
-  - `matrix.Add_a_W(p_E, -D_f)`
+  - `matrix.Add_OffDiagonal(p_W, p_E, -D_f)`
+  - `matrix.Add_OffDiagonal(p_E, p_W, -D_f)`
 
   With unit mesh spacing and unit diffusivity this gives `a_P = 1` for a
   one-sided interior cell, `a_P = 2` for a cell between two faces, and
@@ -257,36 +262,25 @@
   `fvm::Laplacian`, two `DirichletBoundary1D::Apply` calls, and the by-value
   `TDMASolver::solve(matrix.Matrix())`, copies the result into the field, prints
   the solution and the assembled tridiagonal coefficients.
-- Verification status — measured on this checkout:
-  - Library-only configure/build with `-DBUILD_EXAMPLES=OFF` succeeds and
-    produces `libcfd_toolkit.a`.
-  - The default build (examples enabled) fails. Two drivers still call the
-    pre-refactor API and do not compile:
-    - `test_field1d` uses the removed `Size()` accessor (renamed to `size()`);
-      reported as "has no member named 'Size'".
-    - `test_uniform_mesh1d` uses the removed `cfd::fvm::laplacian` and
-      `DirichletBoundary1D::apply` (renamed to `Laplacian` and `Apply`); the
-      compiler suggests the new names.
-    The numeric expectations in `test_uniform_mesh1d` (for example `a_P(0) ==
-    3.0`, `a_P(3) == 3.0`, `b(3) == 8.0`, and the linear solution `p + 0.5`)
-    remain consistent with the current assembly; only the identifiers are
-    stale.
-  - `test_domain1d`, `test_non_uniform_mesh1d`, and `test_grading1d` build and
-    exit with status `0`. `test_grading1d` reports a maximum symmetric-face
-    distance error of `8.882e-16` (tolerance `8.0e-12`) and a maximum
-    generated total-ratio error of `2.132e-14` (tolerance `1.6e-10`).
-  - `steady_heat_conduction_rod1d` builds and runs successfully. Observed
-    output for the 5-cell mesh: cell centers at `x = 0.1, 0.3, 0.5, 0.7, 0.9`
-    with temperatures `380, 340, 300, 260, 220` K, i.e. the exact linear
-    profile between the two Dirichlet values sampled at the cell centers.
-    Assembled rows: row 0 `(a_W 0, a_P 15, a_E -5, b 4000)`, rows 1–3
-    `(-5, 10, -5, 0)`, row 4 `(a_W -5, a_P 15, a_E 0, b 2000)`.
-    These coefficients correspond to `gamma/dx = 5` and boundary distances
-    `0.1`, so the result is the expected discrete analogue rather than an exact
-    comparison with the continuous solution at the boundary.
-  - Stale binaries `test_scalar_field1d` and `test_uniform_mesh2d` exist in
-    `build/bin` but have no corresponding source or CMake target in the current
-    tree; they are leftover artifacts.
+- Verification status — reported in the completed `TASK_PLAN.md` execution log:
+  - The library-only build with `BUILD_EXAMPLES=OFF` passed after the matrix
+    API declaration and implementation. The all-target build passed after the
+    Laplacian refactor; all six existing executables exited with status `0` in
+    the regression sanity check, including the mesh and field contract checks.
+  - The `steady_heat_conduction_rod1d` CMake target rebuilt successfully. Its
+    output after the refactor was compared with a freshly built pre-refactor
+    `HEAD` baseline: stdout was byte-identical (1,148 bytes), and both runs
+    produced empty stderr. This verifies parity for the printed coefficients
+    and temperature profile for that benchmark.
+  - The previously recorded rod profile has cell centers `0.1, 0.3, 0.5, 0.7, 0.9` and
+    temperatures `380, 340, 300, 260, 220` K. Its assembled rows are
+    `(0, 15, -5, 4000)`, `(-5, 10, -5, 0)` for rows 1–3, and
+    `(-5, 15, 0, 2000)`, in `(a_W, a_P, a_E, b)` order.
+- Remaining architectural priorities follow the existing scope: extend boundary
+  assembly beyond Dirichlet, implement the reserved operators and solver
+  workflows, and address the tridiagonal storage limits before supporting
+  multidimensional connectivity. These capabilities are not implemented by the
+  off-diagonal routing seam.
 - Reserved / not usable despite file presence: `fvc1d` explicit gradient and
   divergence, `fvm1d` ddt/div/source, `fv_matrix` 2D/3D, uniform 2D/3D meshes,
   `solvers/solvers1d` workflow classes, conjugate gradient, Gauss–Seidel,
