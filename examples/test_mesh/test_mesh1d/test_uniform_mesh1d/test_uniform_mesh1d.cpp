@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -111,12 +112,12 @@ void check_contracts()
 
     cfd::field::VolScalarField1D gamma("gamma", mesh, 1.0);
     cfd::fv_matrix::FvMatrix1D system(mesh);
-    cfd::fvm::laplacian(gamma, system);
+    cfd::fvm::Laplacian(gamma, system);
     require(system.a_P(0) == 1.0 && system.a_E(0) == -1.0 &&
             system.a_W(1) == -1.0 && system.a_P(1) == 2.0,
             "Internal diffusion stencil is incorrect");
-    cfd::boundary::DirichletBoundary1D("left", cfd::boundary::BoundarySide1D::Start, 0.0).apply(gamma, system);
-    cfd::boundary::DirichletBoundary1D("right", cfd::boundary::BoundarySide1D::End, 4.0).apply(gamma, system);
+    cfd::boundary::DirichletBoundary1D("left", cfd::boundary::BoundarySide1D::Start, 0.0).Apply(gamma, system);
+    cfd::boundary::DirichletBoundary1D("right", cfd::boundary::BoundarySide1D::End, 4.0).Apply(gamma, system);
     require(system.a_P(0) == 3.0 && system.a_P(3) == 3.0 && system.b(3) == 8.0,
             "Dirichlet boundary stencil is incorrect");
     const auto solution = cfd::linear_algebra::TDMASolver::solve(system.Matrix());
@@ -125,9 +126,9 @@ void check_contracts()
                 "Diffusion solution is not linear");
     cfd::field::VolScalarField1D one_gamma("gamma", one, 1.0);
     cfd::fv_matrix::FvMatrix1D one_system(one);
-    cfd::fvm::laplacian(one_gamma, one_system);
-    cfd::boundary::DirichletBoundary1D("left", cfd::boundary::BoundarySide1D::Start, 1.0).apply(one_gamma, one_system);
-    cfd::boundary::DirichletBoundary1D("right", cfd::boundary::BoundarySide1D::End, 3.0).apply(one_gamma, one_system);
+    cfd::fvm::Laplacian(one_gamma, one_system);
+    cfd::boundary::DirichletBoundary1D("left", cfd::boundary::BoundarySide1D::Start, 1.0).Apply(one_gamma, one_system);
+    cfd::boundary::DirichletBoundary1D("right", cfd::boundary::BoundarySide1D::End, 3.0).Apply(one_gamma, one_system);
     require(one_system.a_P(0) == 4.0 && one_system.b(0) == 8.0,
             "Single cell boundary assembly is incorrect");
     require(mesh.eCellDx(0) == 1.0 && mesh.wCellDx(3) == 1.0, "Incorrect cell distance");

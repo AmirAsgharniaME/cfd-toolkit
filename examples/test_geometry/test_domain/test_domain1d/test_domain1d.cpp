@@ -1,6 +1,7 @@
 #include <cfd/geometry/domain/domain1d.hpp>
 
 #include <cmath>
+#include <cstddef>
 #include <type_traits>
 
 #include <iomanip>
