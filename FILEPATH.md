@@ -11,6 +11,7 @@ MD | Repository guidelines | AGENTS.md
 MD | Numeric types cheatsheet | NUMERIC_TYPES_CHEATSHEET.md
 MD | Technical architecture audit report | AGENT_REPORT.md
 MD | Project state | STATE.md
+MD | Dimension-independent finite volume method discretization | Finite_Volume_Method_Discretization.md
 MD | Domain geometry README | include/cfd/geometry/domain/README.md
 MD | mesh 1D README | include/cfd/mesh/mesh1d/README.md
 MD | field 1D README | include/cfd/field/field1d/README.md
