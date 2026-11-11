@@ -4,6 +4,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -81,12 +82,14 @@ void check_contracts()
         const auto owner = mesh.Owner(f);
         const auto neighbour = mesh.Neighbour(f);
         require(owner == (f == 0 ? 0 : f - 1), "Incorrect face owner");
-        require(mesh.Face_Normal(f) == mesh.Outward_Normal(owner, f),
-                "Face normal does not point out of owner");
+        require(mesh.s_f(owner, f) == (f == 0 ? -1.0 : 1.0) &&
+                mesh.e_PN(owner, f) == mesh.s_f(owner, f),
+                "Incorrect owner orientation");
         if (f > 0 && f < mesh.N_Cells())
         {
             require(neighbour && *neighbour == f &&
-                    mesh.Outward_Normal(*neighbour, f) == -mesh.Face_Normal(f),
+                    mesh.s_f(*neighbour, f) == -mesh.s_f(owner, f) &&
+                    mesh.e_PN(*neighbour, f) == mesh.s_f(*neighbour, f),
                     "Incorrect neighbour orientation");
         }
         else require(!neighbour, "Boundary face has a neighbour");
@@ -94,14 +97,14 @@ void check_contracts()
     require_exception<std::out_of_range>([&] { (void)mesh.Owner(5); });
     require_exception<std::out_of_range>([&] { (void)mesh.Face_Area(mesh.N_Faces()); });
     require_exception<std::out_of_range>([&] { (void)mesh.Neighbour(5); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Face_Normal(5); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Outward_Normal(0, 2); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Outward_Normal(4, 4); });
+    require_exception<std::out_of_range>([&] { (void)mesh.s_f(0, 5); });
+    require_exception<std::out_of_range>([&] { (void)mesh.s_f(0, 2); });
+    require_exception<std::out_of_range>([&] { (void)mesh.s_f(4, 4); });
 
     const FvMesh1D one(Domain1D(0.0, 1.0), 1);
     require(one.Owner(0) == 0 && one.Owner(1) == 0 &&
             !one.Neighbour(0) && !one.Neighbour(1) &&
-            one.Outward_Normal(0, 0) == -1.0 && one.Outward_Normal(0, 1) == 1.0,
+            one.s_f(0, 0) == -1.0 && one.s_f(0, 1) == 1.0,
             "Single cell topology is incorrect");
     const cfd::boundary::NeumannBoundary1D left_gradient(
         "left", cfd::boundary::BoundarySide1D::Start, 2.0);
@@ -207,7 +210,7 @@ void check_contracts()
     // NOLINTNEXTLINE(bugprone-use-after-move): the moved-from contract is under test.
     require(source.N_Cells() == 0 && source.N_Faces() == 0, "Moved-from mesh is not empty");
     require_exception<std::out_of_range>([&] { (void)source.Owner(0); });
-    require_exception<std::out_of_range>([&] { (void)source.Outward_Normal(0, 0); });
+    require_exception<std::out_of_range>([&] { (void)source.s_f(0, 0); });
     require_exception<std::logic_error>([&] { (void)source.Start_Coord(); });
     require_exception<std::logic_error>([&] { (void)source.End_Coord(); });
     require_exception<std::logic_error>([&] { (void)source.Length(); });

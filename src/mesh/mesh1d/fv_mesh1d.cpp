@@ -170,14 +170,14 @@ double FvMesh1D::eFaceDx(CellId p) const
     return eFace_Coord(p) - Cell_Center_Coord(p);
 }
 
-[[nodiscard]] double FvMesh1D::Dx_W(FaceId f) const
+[[nodiscard]] double FvMesh1D::Dx_Owner(FaceId f) const
 {
     if (f == 0 || f >= N_Cells())
         throw std::out_of_range("FvMesh1D: face is not internal.");
 
     return Face_Coord(f) - Cell_Center_Coord(Owner(f));
 }
-[[nodiscard]] double FvMesh1D::Dx_E(FaceId f) const
+[[nodiscard]] double FvMesh1D::Dx_Neighbour(FaceId f) const
 {
     if (f == 0 || f >= N_Cells())
         throw std::out_of_range("FvMesh1D: face is not internal.");
@@ -185,9 +185,9 @@ double FvMesh1D::eFaceDx(CellId p) const
     return Cell_Center_Coord(*Neighbour(f)) - Face_Coord(f);
 }
 
-[[nodiscard]] double FvMesh1D::Dx_f(FaceId f) const
+[[nodiscard]] double FvMesh1D::d_PN(FaceId f) const
 {
-    return Dx_W(f) + Dx_E(f);
+    return Dx_Owner(f) + Dx_Neighbour(f);
 }
 
 

@@ -105,17 +105,7 @@ public:
         return CellId{f};
     }
 
-    [[nodiscard]] double Face_Normal(FaceId f) const
-    {
-        if (f >= N_Faces())
-        {
-            throw std::out_of_range("Invalid face index");
-        }
-
-        return (f == 0) ? -1.0 : 1.0;
-    }
-
-    [[nodiscard]] double Outward_Normal(CellId p, FaceId f) const
+    [[nodiscard]] double s_f(CellId p, FaceId f) const
     {
         if (p >= N_Cells() ||
             f >= N_Faces() ||
@@ -128,6 +118,54 @@ public:
 
         return (f == p) ? -1.0 : 1.0;
     }
+
+
+[[nodiscard]] CellId N(CellId p, FaceId f) const
+{
+    if (p >= N_Cells() || f >= N_Faces())
+    {
+        throw std::out_of_range("Invalid cell or face index");
+    }
+
+    // If P is the owner of the face, the neighbour is on the other side
+    if (Owner(f) == p)
+    {
+        auto nb = Neighbour(f);
+        // Boundary faces have no neighbouring cell
+        if (!nb.has_value())
+        {
+            throw std::runtime_error(
+                "Face is a boundary face; no neighbouring cell exists");
+        }
+        return *nb;
+    }
+
+    // If P is the neighbour of the face, the owner is on the other side
+    if (Neighbour(f) == p)
+    {
+        return Owner(f);
+    }
+
+    // Cell P is not incident to face f
+    throw std::invalid_argument(
+        "Cell P is not incident to face f");
+}
+
+
+    [[nodiscard]] double e_PN(CellId p, FaceId f) const
+    {
+        if (p >= N_Cells() ||
+            f >= N_Faces() ||
+            (f != p && f != p + 1))
+        {
+            throw std::out_of_range(
+                "Cell and face are invalid or not incident"
+            );
+        }
+
+        return (f == p) ? -1.0 : 1.0;
+    }
+
 
     // --- Modern span views ---
     [[nodiscard]] std::span<const double> Face_Coords() const noexcept
@@ -177,13 +215,13 @@ public:
     [[nodiscard]] double eFaceDx(CellId p) const;
 
     // Distance from the west/owner cell center to face f.
-    [[nodiscard]] double Dx_W(FaceId f) const;
+    [[nodiscard]] double Dx_Owner(FaceId f) const;
 
     // Distance from face f to the east/neighbour cell center.
-    [[nodiscard]] double Dx_E(FaceId f) const;
+    [[nodiscard]] double Dx_Neighbour(FaceId f) const;
 
     // Total distance between cell centers sharing face f (d_PN).
-    [[nodiscard]] double Dx_f(FaceId f) const;
+    [[nodiscard]] double d_PN(FaceId f) const;
 
     [[nodiscard]] double wCellDx(CellId p) const;
     [[nodiscard]] double eCellDx(CellId p) const;

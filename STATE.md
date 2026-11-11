@@ -1,288 +1,123 @@
-# Project State: CFD Toolkit (1D FVM)
+# Project State & Architecture Ledger (STATE.md)
 
-## 1. Project Overview & Architecture
+This ledger describes the working tree inspected on 2026-11-11, including uncommitted changes. It records implemented behavior separately from intended behavior and placeholders.
 
-- Language standard: C++20, declared as a public requirement via
-  `target_compile_features(cfd_toolkit PUBLIC cxx_std_20)` in `CMakeLists.txt`.
-  CMake 3.20 or newer is required. There are no external dependencies.
-- Build product: the static library `cfd_toolkit`, exported as the in-tree alias
-  `cfd::toolkit` and as the installed package target `cfd::toolkit`
-  (`find_package(cfd-toolkit CONFIG REQUIRED)`, `SameMajorVersion`).
-- Design philosophy: finite-volume quantities are represented by explicit value
-  types (geometry, mesh, field, matrix) with checked access, and discretization
-  is kept in separate free functions rather than fused into a solver object.
-  Matrix assembly operators only accumulate into an existing
-  `FvMatrix1D`; they never allocate, size, or solve a system.
-- Source list: explicit in the root `CMakeLists.txt`, grouped by subsystem.
-  Files are not discovered by globbing, so a new `.cpp` under `src/` is not
-  compiled until it is added to that list.
-- Folder organization:
-  - `include/cfd/` — public headers; `src/` — matching implementations, kept in
-    the same module subdirectory.
-  - `geometry/domain/` — `Domain1D`, `Domain2D`, `Domain3D`.
-  - `mesh/` — dimension-agnostic `GradingType`; `mesh/mesh1d/` — `FvMesh1D` and
-    `grading1d`.
-  - `field/field1d/` — templated `Field1D` plus non-member operators.
-  - `fv_matrix/` — discretized-equation container `FvMatrix1D`.
-  - `finite_volume/fvm/fvm1d/` — implicit operators (`Laplacian` only).
-    `finite_volume/fvc/fvc1d/` — explicit operators (empty placeholders).
-  - `schemes/gradient/`, `schemes/interpolation/` — free-function discretization
-    utilities.
-  - `boundary/boundary1d/` — Dirichlet, Neumann, patch (placeholder).
-  - `linear_algebra/` — `TridiagonalMatrix`, `TDMASolver`, sparse/iterative
-    placeholders.
-  - `io/`, `time/`, `transport_model/`, `solvers/`, `vector/` — mostly reserved;
-    `vector/vector1d.hpp` is a real one-component value type.
-  - `examples/` — standalone driver/contract executables (registered under
-    `BUILD_EXAMPLES`, output to `${CMAKE_BINARY_DIR}/bin`). There is no
-    `applications/` directory in this repository.
-- Namespaces: `cfd::geometry`, `cfd::mesh`, `cfd::mesh::grading`, `cfd::field`,
-  `cfd::fv_matrix`, `cfd::fvm`, `cfd::boundary`, `cfd::schemes::gradient`,
-  `cfd::schemes::interpolation`, `cfd::linear_algebra`, `cfd::vector`.
-- Compiler diagnostics for the library target (GNU/Clang only, private):
-  `-Wall -Wextra -Wpedantic -Wconversion -Wshadow`. No formatter or linter
-  configuration is present.
-- Markdown policy in force: only `FILEPATH.md` may be maintained as project
-  inventory; README files are not to be read or modified.
+## 1. Executive Summary & Design Philosophy
 
-## 2. Mesh & Geometric Entities (`FvMesh1D`)
+`cfd-toolkit` is early-stage C++ infrastructure for finite-volume research. Its implemented path is one-dimensional: an interval supplies bounds to a mesh; fields and an equation matrix reference that mesh; an implicit diffusion routine and a boundary object add coefficients; a tridiagonal solver solves the resulting algebraic system. Components are composed explicitly by client code rather than through a complete equation or simulation framework.
 
-- Header `include/cfd/mesh/mesh1d/fv_mesh1d.hpp`, source
-  `src/mesh/mesh1d/fv_mesh1d.cpp`. `CellId` and `FaceId` are both
-  `std::size_t`.
-- Storage: three owning vectors — `face_coords_` (`N_Faces()` = `N_Cells() + 1`),
-  `cell_center_coords_` (`N_Cells()`), and `cell_volumes_` (`N_Cells()`).
-  Cell volume equals cell length under a unit cross-sectional area; face area is
-  fixed at `1.0` by `Face_Area(f)`.
-- Construction: uniform `FvMesh1D(domain, n_cells)` or graded
-  `FvMesh1D(domain, n_cells, GradingType, ratio)`. `n_cells >= 1`.
-  `FvMesh1D` snapshots the domain endpoints exactly at construction; later
-  `Domain1D` mutation does not alter the mesh. Faces must be finite and strictly
-  increasing; centers must be finite, strictly inside their faces, and strictly
-  increasing; excessive counts throw `std::length_error`.
-- Copy/move construction is available; assignment is deleted. A moved-from mesh
-  is empty (`N_Cells() == 0`), and `Start_Coord()`, `End_Coord()`, `Length()`,
-  and `Print_Details()` throw `std::logic_error`.
-- Cell indexing: cell `p` is bounded by face `p` (west) and face `p + 1` (east).
-  `wFace_Coord(p)`/`eFace_Coord(p)` return those coordinates;
-  `wFaceDx(p)`/`eFaceDx(p)` return the center-to-face distances;
-  `wCellDx(p)`/`eCellDx(p)` return center-to-center distances to the neighbouring
-  cells and throw `std::out_of_range` when that neighbour does not exist.
-- Face indexing: face `0` is the west boundary, face `N_Faces() - 1`
-  (equivalently `N_Cells()`) is the east boundary. Internal faces are
-  `1 <= f < N_Cells()`.
-- Face topology: `Owner(f)` returns `0` for face `0` and `f - 1` otherwise, so
-  the owner is always the cell on the west (lower-index) side. `Neighbour(f)`
-  returns `std::nullopt` for faces `0` and `N_Cells()`, and `CellId{f}` for
-  internal faces, so the neighbour is the cell on the east (higher-index) side.
-  Invalid face indices throw `std::out_of_range`.
-- Unit face normals: `Face_Normal(f)` returns `-1.0` at face `0` and `+1.0` at
-  every other face, i.e. the normal always points out of the owner. Face area is
-  `1.0`, so the normal is a unit normal in the 1D sense.
-- Cell outward normal: `Outward_Normal(p, f)` returns `-1.0` when `f == p`
-  (west face of cell `p`) and `+1.0` when `f == p + 1` (east face). It throws
-  `std::out_of_range` for an invalid index or a non-incident cell-face pair.
-  Consequently the neighbour sees the opposite sign from the owner on a shared
-  internal face.
-- Internal-face stencil distances: `Dx_W(f)` = `Face_Coord(f) -
-  Cell_Center_Coord(Owner(f))`, `Dx_E(f)` = `Cell_Center_Coord(*Neighbour(f)) -
-  Face_Coord(f)`, `Dx_f(f)` = their sum. All three require an internal face and
-  throw `std::out_of_range` for `f == 0` or `f >= N_Cells()`.
-- Read-only geometry views: `Face_Coords()`, `Cell_Center_Coords()`,
-  `Cell_Volumes()` (spans). Indexed access uses checked `.at()`
-  (`Face_Coord`, `Cell_Center_Coord`, `Cell_Volume`). There is no unchecked
-  cell `operator[]` on the mesh.
-- Grading (`include/cfd/mesh/grading_type.hpp`, `mesh1d/grading1d.hpp`):
-  `GradingType` = `Uniform`, `Forward`, `Backward`, `BothEnds`, `Center`;
-  `grading::Make_Faces(domain, n_cells, type, r)` and
-  `grading::Convert_R_To_r(n_cells, type, R)` are free functions. Graded modes
-  require `r >= 1.0`; `r == 1.0` gives uniform widths. Intermediate exponent and
-  weight arithmetic uses `long double`; returned faces are `double` and
-  endpoints are anchored exactly.
+The mesh has owner/neighbour and incident-face queries, but the only implemented spatial assembly is a partially refactored 1D diffusion operator. In particular, its boundary-cell rows lack internal-face contributions. A runnable demonstration is therefore not evidence of a correct complete diffusion solution. Two- and three-dimensional domain values exist; multidimensional meshes, fields and operators do not.
 
-## 3. Matrix Assembly API (`FvMatrix1D`)
+## 2. Technical Stack & Toolchain
 
-- Header `include/cfd/fv_matrix/fv_matrix1d.hpp`, source
-  `src/fv_matrix/fv_matrix1d.cpp`. `FvMatrix1D` is a cell-centered wrapper
-  around `cfd::linear_algebra::TridiagonalMatrix`; it holds a
-  `const FvMesh1D&` and sizes the system from `mesh.N_Cells()` (empty mesh
-  rejected with `std::invalid_argument`). The mesh must outlive the matrix and
-  must not be moved.
-- Storage model (`TridiagonalMatrix`, `include/cfd/linear_algebra/matrix/
-  tridiagonal_matrix.hpp`): four independent `std::vector<double>` of exactly
-  `size()` entries, all row-indexed by cell `p`:
-  - `diag_` — central coefficient `a_P`, main diagonal (`Diag(p)`).
-  - `lower_` — west coefficient `a_W`, sub-diagonal (`Lower(p)`).
-  - `upper_` — east coefficient `a_E`, super-diagonal (`Upper(p)`).
-  - `source_` — right-hand side `b` (`Source(p)`).
-  No sparsity pattern, face indexing, or block structure is stored.
-- Row semantics: row `p` is
-  `a_W(p) * phi[p-1] + a_P(p) * phi[p] + a_E(p) * phi[p+1] = b(p)`,
-  with the out-of-system off-diagonals unused.
-- Coefficient API on `FvMatrix1D`: read `a_W(p)`, `a_P(p)`, `a_E(p)`, `b(p)`;
-  write `Set_a_W`, `Set_a_P`, `Set_a_E`, `Set_b`; accumulate `Add_a_W`,
-  `Add_a_P`, `Add_a_E`, `Add_b`, and `Add_OffDiagonal(row, col, value)`;
-  clear `Reset()`. Also `Mesh()`, `size()`,
-  and `Matrix()` (mutable and const access to the underlying
-  `TridiagonalMatrix`). Construction is copyable/movable; assignment is
-  deleted.
-- The underlying `TridiagonalMatrix` also exposes indexed and whole-vector
-  overloads of `Diag`/`Lower`/`Upper`/`Source` and `Set_*`/`Add_*`.
-- `Add_OffDiagonal(row, col, value)` routes an adjacent column below the row
-  to lower storage and an adjacent column above it to upper storage. Equal
-  indices throw `std::invalid_argument` before bounds are checked; out-of-range
-  or nonadjacent indices throw `std::out_of_range`. Diagonal accumulation uses
-  `Add_a_P`. This row-and-column seam lets face assembly avoid choosing a
-  directional off-diagonal slot, while retaining tridiagonal storage.
-- Known storage/abstraction limitations:
-  - Directional coefficient accessors remain available, and there is no
-    face-indexed `Add_Face(f, ...)` entry point.
-  - Only one sub- and one super-diagonal exist. Second neighbours, 2D/3D
-    connectivity, and reordered cell numbering are not representable.
-  - The row-0 lower and last-row upper entries exist in the vectors but are
-    dead storage: `Set_Lower(0, ...)` and `Add_Lower(0, ...)` return without
-    writing, and `Set_Upper(n-1, ...)` and `Add_Upper(n-1, ...)` do the same.
-    They read back as `0.0`.
-  - There is no per-row clear, no equation-relaxation or under-relaxation
-    support, no symmetry or diagonal-dominance check, and no enforcement of a
-    sign convention — assembly code is responsible for the sign of every
-    coefficient it adds.
-  - `Matrix()` hands out the raw system, so callers can bypass the wrapper's
-    named accessors.
-- `linear_algebra::TDMASolver` solves the system: `solve(TridiagonalMatrix&,
-  std::vector<double>&)` performs forward elimination in place (mutating the
-  matrix), while `solve(TridiagonalMatrix)` takes the matrix by value and
-  returns the solution. It rejects an empty system, inconsistent coefficient
-  vector sizes, and pivots with absolute value below `1.0e-14`
-  (`std::runtime_error`). No convergence control or iteration count is
-  involved.
+- CMake 3.20 or newer builds project version 0.1.0, with C++20 published as a target requirement. A C++20-capable compiler is required; CMake does not declare an exhaustive supported compiler list. The inspection build used GNU C++ 13.3.0.
+- `cfd_toolkit` is a static library, with in-tree alias `cfd::toolkit`. Sources are explicitly listed. GNU and Clang library builds receive private `-Wall -Wextra -Wpedantic -Wconversion -Wshadow` flags.
+- No external dependencies are declared. `BUILD_EXAMPLES` defaults to ON and adds six standalone executables under the build tree's `bin/`. There is no CTest registration or test framework in the root configuration.
+- Installation exports the library and headers and a `cfd::toolkit` CMake package target, using `GNUInstallDirs` and same-major-version compatibility. Installed placeholder headers do not imply implemented APIs.
 
-## 4. Current Operators & Discretization (`Laplacian1D`)
+## 3. Architecture & Directory Topology
 
-- Entry point: `cfd::fvm::Laplacian(const VolScalarField1D& gamma,
-  FvMatrix1D& matrix)` in
-  `include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp` and
-  `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`. It is the only implemented
-  implicit FVM operator; `ddt1d`, `fvm::div1d`, `fvm::source1d`, and the
-  `fvc1d` explicit operators are headers containing only `#pragma once` plus
-  empty translation units.
-- Operator assembled: the internal-face contributions of the negative
-  diffusion operator `-div(gamma grad(phi))`, integrated over each cell.
-  The code applies the face conductance directly and does not divide by
-  `Cell_Volume`.
-- Validation: the coefficient field and the matrix must reference the same mesh
-  object (pointer identity, not equal geometry); field and matrix sizes must
-  equal `mesh.N_Cells()`; every cell diffusivity must be finite and
-  nonnegative. Violations throw `std::invalid_argument`. A non-finite
-  assembled conductance throws `std::overflow_error`.
-- Flux definition and sign convention: for internal face `f` with owner
-  `p_W = Owner(f)` and neighbour `p_E = *Neighbour(f)`, the owner-side outward
-  flux is defined as
-  `D_f * (phi[p_W] - phi[p_E])`, where
-  `D_f = gamma_f * A_f / (Dx_W(f) + Dx_E(f))` and `A_f = Face_Area(f) = 1.0`.
-  The neighbour receives the equal and opposite flux `-D_f * (phi[p_W] -
-  phi[p_E])`. Summing over faces therefore produces a positive diagonal and
-  negative off-diagonals.
-- Scheme composition inside the face loop:
-  - Diffusivity interpolation uses
-    `schemes::interpolation::harmonic_mean(gamma[p_W], gamma[p_E],
-    Dx_W(f), Dx_E(f))`, i.e.
-    `gamma_f = (d_P + d_N) / (d_P/gamma_P + d_N/gamma_N)` with distances
-    measured from each center to the shared face.
-  - Because `harmonic_mean` requires strictly positive diffusivities, a zero
-    diffusivity on either side is short-circuited to `gamma_f = 0.0` before the
-    call; no face contribution is added in that case.
-  - The geometric factor is obtained from
-    `schemes::gradient::central_difference(0.0, 1.0, Dx_W(f), Dx_E(f))`,
-    i.e. `1 / (Dx_W(f) + Dx_E(f))`, and multiplied by `gamma_f * face_area`.
-  - `arithmetic_mean` (distance-weighted linear interpolation) exists and is
-    tested, but is not used by `Laplacian`. `upwind` is an empty placeholder
-    (header and source contain no declaration or definition).
-- Matrix stencil written per internal face `f` in the loop
-  `for (FaceId f = 1; f + 1 < n_face; ++f)`:
-  - `matrix.Add_a_P(p_W, +D_f)`
-  - `matrix.Add_a_P(p_E, +D_f)`
-  - `matrix.Add_OffDiagonal(p_W, p_E, -D_f)`
-  - `matrix.Add_OffDiagonal(p_E, p_W, -D_f)`
+Public interfaces are under `include/cfd/`; corresponding implementations are under `src/`. Namespaces and directories organize the components as follows:
 
-  With unit mesh spacing and unit diffusivity this gives `a_P = 1` for a
-  one-sided interior cell, `a_P = 2` for a cell between two faces, and
-  `a_W = a_E = -1`, matching the 3-point central-difference stencil.
-- Boundary condition strategy — boundary faces are not touched by
-  `Laplacian`; they are applied by a separate API:
-  - Dirichlet: `DirichletBoundary1D::Apply(gamma, matrix)` selects cell `0`
-    for `BoundarySide1D::Start` with distance `wFaceDx(0)`, or cell
-    `N_Cells()-1` for `BoundarySide1D::End` with distance `eFaceDx(...)`, and
-    adds `D = gamma[p] / distance` to `a_P(p)` (unit face area) and
-    `D * value` to `b(p)`. This is consistent with the negative diffusion
-    operator's sign convention. It validates the boundary value, the side, the
-    boundary-cell diffusivity, and the distance, and throws
-    `std::overflow_error` if the contribution or the accumulated row is not
-    finite. It requires the coefficient field and matrix to share a mesh
-    object.
-  - Neumann: `NeumannBoundary1D` stores an outward normal gradient and exposes
-    `outward_normal()` (`-1.0` at `Start`, `+1.0` at `End`) and
-    `coordinate_gradient()` (= `normal_gradient * outward_normal`, so the
-    coordinate derivative is negated at the start). Its header explicitly
-    states matrix assembly is not provided, and no `Apply` method exists.
-    Assembly of a Neumann flux into the RHS is therefore unimplemented.
-  - Patch: `patch_boundary1d.hpp` contains only `#pragma once`, and its source
-    only includes that header.
-  - Robin is declared in `BoundaryType` but has no implementation.
-- Consequence of the current coverage: interior rows are fully assembled by
-  `Laplacian`, and boundary rows receive a diagonal/source contribution only
-  from a Dirichlet object. Without a Dirichlet condition on a side, that side's
-  boundary face contributes nothing, so the system can become singular (the
-  pure-Neumann case is not handled).
+| Layer | Paths | Actual scope |
+| --- | --- | --- |
+| Geometry | `geometry/domain/` | Validated 1D interval and Cartesian 2D/3D domain values. |
+| Mesh | `mesh/mesh1d/`, `mesh/mesh2d/`, `mesh/mesh3d/` | Concrete 1D uniform and graded mesh and face generator; multidimensional mesh files are reserved. |
+| Values and fields | `vector/`, `field/field1d/` | One-component vector and cell/face scalar and vector fields; multidimensional field and vector capabilities are reserved. |
+| Boundary | `boundary/boundary1d/` | Fixed-value diffusion assembly and stored normal-gradient data; patch files are placeholders. |
+| Discretization | `schemes/`, `finite_volume/fvc/`, `finite_volume/fvm/` | Independent two-point gradient and interpolation functions; incomplete implicit 1D Laplacian; remaining operator files are placeholders. |
+| Assembly and algebra | `fv_matrix/`, `linear_algebra/` | 1D mesh-bound tridiagonal system and TDMA; other matrix and solver files are placeholders. |
+| Workflow and services | `solvers/`, `io/`, `time/`, `transport_model/` | Reserved workflow, output, time and transport modules. |
+| Clients | `examples/` | Standalone contract checks and a rod demonstration. No separate `apps/` or `tests/` target layout is configured. |
 
-## 5. Working Applications & Drivers
+`cmake/` contains the package configuration template. Domain values own coordinates independently of meshes; meshes own geometry; fields and FV matrices hold non-owning mesh references. Numerical operators write into the FV matrix, while TDMA accepts its underlying algebraic matrix.
 
-- Drivers live in `examples/` (there is no `applications/` directory) and are
-  standalone executables, not a CTest suite. Six targets are registered in
-  `CMakeLists.txt` under `BUILD_EXAMPLES` (default `ON`) and mirrored in
-  `.vscode/launch.json`:
-  - `test_domain1d` — `examples/test_geometry/test_domain/test_domain1d/
-    test_domain1d.cpp`; `Domain1D` contract checks; waits on `std::cin`.
-  - `test_uniform_mesh1d` — `examples/test_mesh/test_mesh1d/
-    test_uniform_mesh1d/test_uniform_mesh1d.cpp`; mesh topology, normals,
-    distances, and diffusion/Dirichlet assembly including a linear TDMA
-    solution; waits on `std::cin`.
-  - `test_non_uniform_mesh1d` — same directory tree; graded/explicit geometry
-    contract checks; exits directly.
-  - `test_grading1d` — `examples/test_mesh/test_mesh1d/test_grading1d/`; grading
-    distribution and ratio-conversion checks; exits directly.
-  - `test_field1d` — `examples/test_field/test_field1d/test_field1d.cpp`;
-    scalar/vector field allocation, access, assignment, and arithmetic; waits on
-    `std::cin`.
-  - `steady_heat_conduction_rod1d` — `examples/test_solvers/test_solvers1d/
-    test_diffusion1d/steady_heat_conduction_rod1d.cpp`; the working end-to-end
-    demonstration driver; waits on `std::cin`.
-- Working driver description: 5 uniform cells on `[0, 1]` m, `gamma = 1.0`,
-  initial `T = 300`, Dirichlet `400` at `Start` and `200` at `End`. It composes
-  `fvm::Laplacian`, two `DirichletBoundary1D::Apply` calls, and the by-value
-  `TDMASolver::solve(matrix.Matrix())`, copies the result into the field, prints
-  the solution and the assembled tridiagonal coefficients.
-- Verification status — reported in the completed `TASK_PLAN.md` execution log:
-  - The library-only build with `BUILD_EXAMPLES=OFF` passed after the matrix
-    API declaration and implementation. The all-target build passed after the
-    Laplacian refactor; all six existing executables exited with status `0` in
-    the regression sanity check, including the mesh and field contract checks.
-  - The `steady_heat_conduction_rod1d` CMake target rebuilt successfully. Its
-    output after the refactor was compared with a freshly built pre-refactor
-    `HEAD` baseline: stdout was byte-identical (1,148 bytes), and both runs
-    produced empty stderr. This verifies parity for the printed coefficients
-    and temperature profile for that benchmark.
-  - The previously recorded rod profile has cell centers `0.1, 0.3, 0.5, 0.7, 0.9` and
-    temperatures `380, 340, 300, 260, 220` K. Its assembled rows are
-    `(0, 15, -5, 4000)`, `(-5, 10, -5, 0)` for rows 1–3, and
-    `(-5, 15, 0, 2000)`, in `(a_W, a_P, a_E, b)` order.
-- Remaining architectural priorities follow the existing scope: extend boundary
-  assembly beyond Dirichlet, implement the reserved operators and solver
-  workflows, and address the tridiagonal storage limits before supporting
-  multidimensional connectivity. These capabilities are not implemented by the
-  off-diagonal routing seam.
-- Reserved / not usable despite file presence: `fvc1d` explicit gradient and
-  divergence, `fvm1d` ddt/div/source, `fv_matrix` 2D/3D, uniform 2D/3D meshes,
-  `solvers/solvers1d` workflow classes, conjugate gradient, Gauss–Seidel,
-  sparse matrix, `io` writers, `time`, `transport_model`, and 2D/3D vector
-  types all exist only as empty or placeholder files.
+## 4. Mathematical & FVM Discretization State
+
+### Equation and face conventions
+
+The intended assembled term is the cell-integrated negative diffusion operator
+
+\[
+\int_{V_P}-\nabla\!\cdot(\Gamma\nabla\phi)\,dV
+= \sum_{f\in\partial V_P}(-\Gamma\nabla\phi\cdot n_{P,f}) A_f,
+\qquad A\phi=b.
+\]
+
+Only its described subset is implemented. The mesh is a line with unit cross-sectional face area, so cell volume is cell length. Faces are numbered from 0 to `N_Cells()`, with the west and east boundary at the endpoints. An internal face's owner is its west cell and neighbour its east cell. The canonical owner-outward orientation is negative at the west boundary and positive at other faces. `s_f(p,f)` and `e_PN(p,f)` each return -1 for an incident west face and +1 for an incident east face; these are scalar 1D signs, not multidimensional normal vectors.
+
+For an internal face between west owner P and east neighbour N, with positive center-to-face distances \(d_P,d_N\), the code uses
+
+\[
+\Gamma_f=\frac{d_P+d_N}{d_P/\Gamma_P+d_N/\Gamma_N},\qquad
+D_f=\frac{\Gamma_f A_f}{d_P+d_N},\qquad
+q_{P,f}=D_f(\phi_P-\phi_N).
+\]
+
+If either cell diffusivity is zero, it sets \(\Gamma_f=0\); otherwise the harmonic interpolation requires positive finite values. `fvm::Laplacian` validates finite nonnegative cell diffusivities and mesh identity, then accumulates \(+D_f\) on the visited row's diagonal and \(-D_f\) in the adjacent column. It uses `Add_a_P(p, D_f)` and `Add_OffDiagonal(p, N(p, f), -D_f)` without directional off-diagonal calls. The orientation factor `s_f(p,f) * e_PN(p,f)` is +1 for each incident face. It currently loops over cells `1 <= p < N_Cells()-1` and their two faces: both boundary rows are omitted, including all rows on a two-cell mesh. Thus the actual matrix is generally nonsymmetric and does not represent the complete internal-face balance. It adds no boundary-face term. A non-finite computed conductance throws; accumulated internal matrix entries are not separately checked for overflow.
+
+For a fixed value \(\phi_b\), `DirichletBoundary1D::Apply` separately adds \(D_b=\Gamma_P/d_{Pb}\) to the boundary diagonal and \(D_b\phi_b\) to the RHS, for unit area. It validates mesh identity, size, side, value, diffusivity, distance and finite resulting entries. `NeumannBoundary1D` stores \(g_n=\partial\phi/\partial n\), with coordinate derivative \(-g_n\) at Start and \(+g_n\) at End; the associated outward diffusive flux would be \(-\Gamma g_n\). No Neumann matrix contribution is implemented. `BoundaryType::Robin` exists as an enum value, without a mixed-boundary implementation.
+
+There is no implemented convection/divergence, transient derivative, source assembly or full governing-equation solver. The rod example attempts steady source-free conduction, but the present assembled system is incomplete.
+
+### Independent numerical schemes
+
+For finite field values and finite positive distances, `schemes::gradient::central_difference(phi_p, phi_n, distance_p, distance_n)` returns \((\phi_N-\phi_P)/(d_P+d_N)\). It is a center-to-center secant; on a nonuniform mesh the shared face need not be the center midpoint. `schemes::interpolation::arithmetic_mean` returns \((d_N\phi_P+d_P\phi_N)/(d_P+d_N)\), and `harmonic_mean` returns the resistance-weighted coefficient above. The latter requires strictly positive diffusivities. These routines validate inputs, use `long double` intermediates and report unrepresentable results via exceptions. The Laplacian calls harmonic interpolation but computes conductance directly; it does not call the gradient function. Upwind is a placeholder.
+
+## 5. Data Structures & Assembly Seam
+
+The following signatures use their enclosing `cfd` namespace and capture the principal public entry points; the referenced headers are authoritative for overloads and exception details.
+
+### Domains and mesh
+
+- `geometry::Domain1D(double length)`, `Domain1D(double start_coord, double end_coord)` and `static Domain1D from_start_and_length(double start_coord, double domain_length)` store two authoritative `double` endpoints. `Start_Coord()`, `End_Coord()`, `Length()` and `IsContain(double)` are const queries; `Set_Bounds(double,double)`, `Set_Start_Coord(double)`, `set_End_Coord(double)` and `Set_Length(double)` validate updates. Bounds and represented positive extent must be finite. Containment is closed and equality exact. `Domain2D` and `Domain3D` store independent axis intervals, expose `X_Domain()` / `Y_Domain()` / `Z_Domain()` snapshots, `IsContain(...)`, axis setters and `Set_Domains(...)`.
+- `mesh::FvMesh1D(const geometry::Domain1D&, std::size_t)` constructs uniform geometry; the overload with `(const geometry::Domain1D&, std::size_t, GradingType, double)` constructs generated geometry. At least one cell is required. It snapshots endpoints and owns three `std::vector<double>` arrays: faces, centers and cell volumes. Faces are strictly increasing with representable interior centers; endpoints are preserved. Copy/move construction is supported; assignment is deleted. A moved-from mesh is empty and extent queries throw.
+- Counts and extent are `N_Cells()`, `N_Faces()`, `Start_Coord()`, `End_Coord()`, `Length()`. Read-only spans are `Face_Coords()`, `Cell_Center_Coords()`, `Cell_Volumes()`; checked scalar access is `Face_Coord(FaceId)`, `Cell_Center_Coord(CellId)`, `Cell_Volume(CellId)`. `CellId` and `FaceId` alias `std::size_t`.
+- Connectivity is `Owner(FaceId) -> CellId`, `Neighbour(FaceId) -> std::optional<CellId>`, `N(CellId, FaceId) -> CellId`, and `s_f(CellId, FaceId)` / `e_PN(CellId, FaceId) -> double`. Boundary faces have no neighbour. `Face_Area(FaceId)` returns 1. Geometry helpers include `wFace_Coord`, `eFace_Coord`, `wFaceDx`, `eFaceDx`, `wCellDx`, `eCellDx`, `Dx_Owner`, `Dx_Neighbour` and `d_PN`, each taking the relevant cell or internal-face index. Indexed and incidence checks reject invalid requests. `Print_Details(std::ostream&) const` prints geometry.
+- `mesh::grading::Make_Faces(const geometry::Domain1D&, std::size_t, GradingType, double) -> std::vector<double>` supports `Uniform`, `Forward`, `Backward`, `BothEnds`, `Center`. `Convert_R_To_r(std::size_t, GradingType, double) -> double` converts total width ratio to exponent-step ratio. Both validate inputs and representability.
+
+### Fields and boundary objects
+
+`field::Field1D<ValueType, LocationTag>(std::string, const mesh::FvMesh1D&, const ValueType& initial_val = ValueType{})` owns a name and contiguous `std::vector<ValueType>` and references the mesh. The supported value types are `double` and `vector::Vector1D` (one `double x`); tags are `CellLocation` and `FaceLocation`. The aliases are `VolScalarField1D`, `SurfaceScalarField1D`, `VolVectorField1D` and `SurfaceVectorField1D`. The mesh must outlive the field and remain unmoved; non-const mesh rvalue construction is deleted.
+
+`Name()`, `Mesh()`, `size()`, face-only `N_Faces()`, `operator[](std::size_t)`, checked `at(std::size_t)`, mutable/const `values()`, `span()` and legacy `Values()`, and `Fill(const ValueType&)` expose storage. Copy/move construction is available; assignment and field arithmetic require the same mesh object and matching size. Both value types support field addition/subtraction and scalar scaling; scalar fields also support elementwise field multiplication/division. Field division rejects zero. Binary operators are in `field1d_operators.hpp`.
+
+`boundary::DirichletBoundary1D(std::string, BoundarySide1D, double)` exposes `Name()`, `side()`, `Value()` and `Apply(const field::VolScalarField1D&, fv_matrix::FvMatrix1D&) const`. `boundary::NeumannBoundary1D(std::string, BoundarySide1D, double)` exposes `name()`, `side()`, `type()`, `normal_gradient()`, `outward_normal()`, `coordinate_gradient()` and `set_normal_gradient(double)`. They are separate concrete types, not a shared polymorphic patch interface.
+
+### Matrix, operator and solver
+
+`fv_matrix::FvMatrix1D(const mesh::FvMesh1D&)` stores a mesh reference and a `linear_algebra::TridiagonalMatrix` sized to its cells. The mesh must outlive it and remain unmoved. Copy/move construction is available; assignment is deleted. `Mesh() const`, `size() const` and mutable/const `Matrix()` provide access. `a_W(std::size_t)`, `a_P(std::size_t)`, `a_E(std::size_t)`, `b(std::size_t)` read row coefficients; matching `Set_a_W`, `Set_a_P`, `Set_a_E`, `Set_b` and `Add_a_W`, `Add_a_P`, `Add_a_E`, `Add_b` accept `(std::size_t, double)`. `Add_OffDiagonal(std::size_t row, std::size_t col, double value)` provides a row/column assembly seam over tridiagonal storage: an adjacent column below the row maps to lower storage and one above maps to upper storage. Equal indices throw `std::invalid_argument` before bounds checks; out-of-range and nonadjacent indices throw `std::out_of_range`. `Reset() noexcept` zeros storage.
+
+`linear_algebra::TridiagonalMatrix(std::size_t)` owns four row-indexed `std::vector<double>` arrays of length N: diagonal, lower, upper and RHS. `Diag`, `Lower`, `Upper`, `Source` each have indexed read and mutable/const vector overloads, with indexed `Set_*` and `Add_*`; `size()` and `Reset()` complete the storage API. Boundary lower/upper slots exist even though they do not correspond to neighboring unknowns. Mutable vector access can change sizes, which TDMA checks.
+
+`void fvm::Laplacian(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix)` and Dirichlet `Apply` accumulate on the same mesh-bound matrix; neither resets it. The caller controls assembly order and passes `matrix.Matrix()` to either `static void linear_algebra::TDMASolver::solve(TridiagonalMatrix&, std::vector<double>&)` or `static std::vector<double> solve(TridiagonalMatrix)`. The first eliminates in place; the second solves a copy when passed an lvalue. TDMA rejects empty or inconsistent storage and pivots with absolute value below `1.0e-14`; it has no pivoting or preconditioner.
+
+## 6. Verification Status & Verified Baselines
+
+The execution log in `TASK_PLAN.md` records successful library builds for the matrix API, an all-target `make` and six executable exits of 0 at Step 1.3, and all-target builds after Steps 2.1 and 2.2. It also records a successful rod-target rebuild and a comparison against a freshly built pre-refactor `HEAD`: stdout was byte-identical at 1,148 bytes and both stderr streams were empty. This is a parity observation for those runs, not evidence that the current diffusion operator is complete. The planned `applications/` driver Makefile was not present; the CMake target was used.
+
+On 2026-11-11, `cmake --build build --parallel` completed all configured targets in the current working tree. The updated uniform-mesh example uses `s_f` and `e_PN` in place of the removed normal accessors, so the earlier compilation failure is resolved. However, `./build/bin/test_uniform_mesh1d < /dev/null` exited 1 with `Internal diffusion stencil is incorrect`. The log's Step 2.1 description of symmetric contributions to both rows does not match the current interior-row loop, and its earlier passing check cannot establish the present numerical result.
+
+| Executable | Observed result and scope |
+| --- | --- |
+| `test_domain1d` | Earlier inspection: exit 0; interval construction, updates, invalid inputs, containment and floating-point contracts. |
+| `test_non_uniform_mesh1d` | Earlier inspection: exit 0; 1D mesh and generated-geometry contracts. |
+| `test_grading1d` | Earlier inspection: exit 0; distribution, invalid-input, symmetry and ratio checks. Reported maximum symmetry distance error `8.882e-16` (tolerance `8.000e-12`) and total-ratio error `2.132e-14` (tolerance `1.600e-10`). |
+| `test_field1d` | Earlier inspection: exit 0; scalar/vector allocation, access, mesh identity, assignment and arithmetic contracts. |
+| `test_uniform_mesh1d` | Current run: exit 1 on the internal diffusion stencil assertion; later checks in that run are not established. |
+| `steady_heat_conduction_rod1d` | Current run: exit 0; demonstration without a numerical assertion. Five cells on [0,1], \(\Gamma=1\), boundary values 400 and 200. It printed `[400, 350, 300, 250, 200]`; the complete constant-coefficient linear solution at the five cell centers is `[380, 340, 300, 260, 220]`. The omitted boundary-row internal couplings explain the difference. |
+
+No dedicated executable benchmark for 2D/3D domains or independently verified convergence study is configured. Passing the above standalone checks does not validate the complete diffusion operator.
+
+## 7. Known Technical Debt & Immediate Roadmap
+
+**Implemented foundations:** validated interval/domain values; generated 1D geometry and connectivity; mesh-bound scalar/vector fields; interpolation and two-point gradient functions; tridiagonal storage and TDMA; fixed-value boundary contribution. Their contracts and limits are described above.
+
+**Unfinished or absent:** the Laplacian omits boundary-cell internal couplings and its header's internal-face description is broader than the implementation; the uniform-mesh check now builds but fails its internal diffusion stencil assertion. Neumann assembly, mixed boundaries and patch infrastructure are absent. Multidimensional meshes/fields/operators, explicit FVC operators, convection, transient and source terms, upwind, equation workflows, sparse and iterative solvers, transport, simulation time and output writers are reserved or placeholders. The rod demonstration has no solution assertion and currently prints a nonphysical discrete baseline for its stated boundary problem.
+
+**Candidate next milestones:**
+
+1. Complete internal-face assembly for both incident rows, including two-cell meshes, using the row/column matrix seam.
+2. Verify coefficients, conservation, symmetry, single/two-cell cases, nonuniform and discontinuous/zero diffusivity, boundary contributions and the linear rod solution; then run the full default build and checks.
+3. Implement and verify Neumann and, if needed, mixed boundary assembly before relying on those boundary types in equation workflows.
+4. Develop remaining operators and higher-dimensional geometry, storage and solver workflows only alongside explicit discretization and verification contracts.
