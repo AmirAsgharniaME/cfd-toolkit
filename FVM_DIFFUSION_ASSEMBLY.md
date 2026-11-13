@@ -199,10 +199,14 @@ Instead, loop over each internal face exactly once. The already-derived flux $F_
 Equivalently, insert the local block
 
 $$
-A^{(f)}=D_f
-\begin{bmatrix}1&-1\\-1&1\end{bmatrix}
+A^{(f)} = D_f
+\begin{bmatrix}
+1 & -1\\
+-1 & 1
+\end{bmatrix}
 \quad\text{on rows/columns }(O,N).
 $$
+
 
 The neighbour's entire face flux is the negative of the owner's. Nevertheless, **both diagonal entries are positive and both off-diagonal entries are negative**: negating $D_f(\phi_O-\phi_N)$ gives $D_f(\phi_N-\phi_O)$. Do not negate only one coefficient or confuse a signed flux with the positive conductance $D_f$.
 
