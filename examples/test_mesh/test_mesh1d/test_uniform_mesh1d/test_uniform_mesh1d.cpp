@@ -84,15 +84,15 @@ void check_contracts()
         const auto neighbour = mesh.Neighbour(f);
         require(owner == (f == 0 ? 0 : f - 1), "Incorrect face owner");
         require(mesh.s_f(owner, f) == 1.0 &&
-                mesh.Dx_Owner(f) == mesh.Cell_Face_Distance(owner, f),
+                mesh.Distance_Owner_face(f) == mesh.Cell_Face_Distance(owner, f),
                 "Incorrect owner orientation");
         if (f > 0 && f < mesh.N_Cells())
         {
             require(neighbour && *neighbour == f &&
                     mesh.s_f(*neighbour, f) == -mesh.s_f(owner, f) &&
                     mesh.e_ON(f) == 1.0 &&
-                    mesh.Dx_Neighbour(f) == mesh.Cell_Face_Distance(*neighbour, f) &&
-                    mesh.d_ON(f) == mesh.Dx_Owner(f) + mesh.Dx_Neighbour(f),
+                    mesh.Distance_Neighbour_face(f) == mesh.Cell_Face_Distance(*neighbour, f) &&
+                    mesh.d_ON(f) == mesh.Distance_Owner_face(f) + mesh.Distance_Neighbour_face(f),
                     "Incorrect neighbour orientation");
         }
         else require(!neighbour, "Boundary face has a neighbour");
@@ -106,10 +106,10 @@ void check_contracts()
     require_exception<std::out_of_range>([&] { (void)mesh.e_ON(0); });
     require_exception<std::out_of_range>([&] { (void)mesh.e_ON(4); });
     require_exception<std::out_of_range>([&] { (void)mesh.e_ON(5); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Dx_Owner(5); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Dx_Neighbour(0); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Dx_Neighbour(4); });
-    require_exception<std::out_of_range>([&] { (void)mesh.Dx_Neighbour(5); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Distance_Owner_face(5); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Distance_Neighbour_face(0); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Distance_Neighbour_face(4); });
+    require_exception<std::out_of_range>([&] { (void)mesh.Distance_Neighbour_face(5); });
 
     const FvMesh1D one(Domain1D(0.0, 1.0), 1);
     require(one.Owner(0) == 0 && one.Owner(1) == 0 &&
@@ -117,10 +117,10 @@ void check_contracts()
             one.Cell_Faces(0)[0] == 0 && one.Cell_Faces(0)[1] == 1 &&
             one.Cell_Face_Distance(0, 0) == 0.5 && one.Cell_Face_Distance(0, 1) == 0.5 &&
             one.s_f(0, 0) == 1.0 && one.s_f(0, 1) == 1.0 &&
-            one.Dx_Owner(0) == 0.5 && one.Dx_Owner(1) == 0.5,
+            one.Distance_Owner_face(0) == 0.5 && one.Distance_Owner_face(1) == 0.5,
             "Single cell topology is incorrect");
     require_exception<std::out_of_range>([&] { (void)one.e_ON(0); });
-    require_exception<std::out_of_range>([&] { (void)one.Dx_Neighbour(1); });
+    require_exception<std::out_of_range>([&] { (void)one.Distance_Neighbour_face(1); });
     const cfd::boundary::NeumannBoundary1D left_gradient(
         "left", cfd::boundary::BoundarySide1D::Start, 2.0);
     const cfd::boundary::NeumannBoundary1D right_gradient(
@@ -203,9 +203,9 @@ void check_contracts()
     {
         const auto owner = graded.Owner(f);
         const auto neighbour = *graded.Neighbour(f);
-        require(graded.Dx_Owner(f) == graded.Cell_Face_Distance(owner, f) &&
-                graded.Dx_Neighbour(f) == graded.Cell_Face_Distance(neighbour, f) &&
-                graded.d_ON(f) == graded.Dx_Owner(f) + graded.Dx_Neighbour(f) &&
+        require(graded.Distance_Owner_face(f) == graded.Cell_Face_Distance(owner, f) &&
+                graded.Distance_Neighbour_face(f) == graded.Cell_Face_Distance(neighbour, f) &&
+                graded.d_ON(f) == graded.Distance_Owner_face(f) + graded.Distance_Neighbour_face(f) &&
                 graded.s_f(owner, f) == 1.0 && graded.s_f(neighbour, f) == -1.0 &&
                 graded.e_ON(f) == 1.0,
                 "Graded mesh face geometry is inconsistent");
