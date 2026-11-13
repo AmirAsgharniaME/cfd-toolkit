@@ -59,8 +59,8 @@ for (mesh::FaceId f = 1; f < n_face - 1; ++f)
     const mesh::CellId neighbour = *mesh.Neighbour(f);
 
     // Face geometry: independent of the direction from which we look at it.
-    const double d_owner     = mesh.Dx_Owner(f);
-    const double d_neighbour = mesh.Dx_Neighbour(f);
+    const double d_owner     = mesh.Distance_Owner_face(f);
+    const double d_neighbour = mesh.Distance_Neighbour_face(f);
     const double face_area   = mesh.Face_Area(f);
 
     // Face diffusivity by harmonic (distance-weighted) interpolation
@@ -70,12 +70,11 @@ for (mesh::FaceId f = 1; f < n_face - 1; ++f)
             : schemes::interpolation::harmonic_mean(
                   gamma[owner], gamma[neighbour], d_owner, d_neighbour);
 
-    // Geometric orientation factor: s_f . e_PN (always +1 on a 1D Cartesian mesh,
-    // kept explicit for dimension-independent, unstructured-mesh readiness).
-    const double geom_factor = mesh.s_f(owner, f) * mesh.e_PN(owner, f);
+    // The owner-side orientation factor is +1 for an internal 1D face.
+    const double geom_factor = mesh.s_f(owner, f) * mesh.e_ON(f);
 
-    // Face conductance: D_f = (Gamma_f * A_f) / d_PN
-    const double D_f = geom_factor * gamma_face * face_area / mesh.d_PN(f);
+    // Face conductance: D_f = (Gamma_f * A_f) / d_ON
+    const double D_f = geom_factor * gamma_face * face_area / mesh.d_ON(f);
 
     if (!std::isfinite(D_f))
     {

@@ -114,6 +114,13 @@ FvMesh1D::FvMesh1D(
     build_cell_geometry(face_coords_, cell_center_coords_, cell_volumes_);
 }
 
+FvMesh1D::FvMesh1D(FvMesh1D&& other) noexcept
+{
+    face_coords_.swap(other.face_coords_);
+    cell_center_coords_.swap(other.cell_center_coords_);
+    cell_volumes_.swap(other.cell_volumes_);
+}
+
 double FvMesh1D::Start_Coord() const
 {
     if (face_coords_.empty())
@@ -144,70 +151,41 @@ double FvMesh1D::Face_Area(FaceId f) const
     return 1.0;
 }
 
-double FvMesh1D::wFace_Coord(CellId p) const
+std::array<FaceId, 2> FvMesh1D::Cell_Faces(CellId p) const
 {
     if (p >= N_Cells())
         throw std::out_of_range("FvMesh1D: cell index out of range.");
 
-    return face_coords_[p];
+    return {p, p + 1};
 }
 
-double FvMesh1D::eFace_Coord(CellId p) const
+double FvMesh1D::Cell_Face_Distance(CellId p, FaceId f) const
 {
-    if (p >= N_Cells())
-        throw std::out_of_range("FvMesh1D: cell index out of range.");
+    const auto faces = Cell_Faces(p);
+    if (f != faces[0] && f != faces[1])
+        throw std::out_of_range("FvMesh1D: face is not incident to cell.");
 
-    return face_coords_[p + 1];
+    return f == faces[0] ? Cell_Center_Coord(p) - Face_Coord(f)
+                         : Face_Coord(f) - Cell_Center_Coord(p);
 }
 
-double FvMesh1D::wFaceDx(CellId p) const
+[[nodiscard]] double FvMesh1D::Distance_Owner_face(FaceId f) const
 {
-    return Cell_Center_Coord(p) - wFace_Coord(p);
+    return Cell_Face_Distance(Owner(f), f);
 }
-
-double FvMesh1D::eFaceDx(CellId p) const
-{
-    return eFace_Coord(p) - Cell_Center_Coord(p);
-}
-
-[[nodiscard]] double FvMesh1D::Dx_Owner(FaceId f) const
+[[nodiscard]] double FvMesh1D::Distance_Neighbour_face(FaceId f) const
 {
     if (f == 0 || f >= N_Cells())
         throw std::out_of_range("FvMesh1D: face is not internal.");
 
-    return Face_Coord(f) - Cell_Center_Coord(Owner(f));
+    return Cell_Face_Distance(*Neighbour(f), f);
 }
-[[nodiscard]] double FvMesh1D::Dx_Neighbour(FaceId f) const
+
+[[nodiscard]] double FvMesh1D::d_ON(FaceId f) const
 {
-    if (f == 0 || f >= N_Cells())
-        throw std::out_of_range("FvMesh1D: face is not internal.");
-
-    return Cell_Center_Coord(*Neighbour(f)) - Face_Coord(f);
+    return Distance_Owner_face(f) + Distance_Neighbour_face(f);
 }
 
-[[nodiscard]] double FvMesh1D::d_PN(FaceId f) const
-{
-    return Dx_Owner(f) + Dx_Neighbour(f);
-}
-
-
-double FvMesh1D::wCellDx(CellId p) const
-{
-    if (p == 0 || p >= N_Cells())
-        throw std::out_of_range(
-            "FvMesh1D: cell has no western neighbor.");
-
-    return cell_center_coords_[p] - cell_center_coords_[p - 1];
-}
-
-double FvMesh1D::eCellDx(CellId p) const
-{
-    if (p >= N_Cells() || p == N_Cells() - 1)
-        throw std::out_of_range(
-            "FvMesh1D: cell has no eastern neighbor.");
-
-    return cell_center_coords_[p + 1] - cell_center_coords_[p];
-}
 
 void FvMesh1D::Print_Details(std::ostream& output) const
 {

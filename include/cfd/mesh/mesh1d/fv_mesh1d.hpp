@@ -2,6 +2,7 @@
 
 #include "cfd/mesh/grading_type.hpp"
 
+#include <array>
 #include <cstddef>
 #include <iosfwd>
 #include <optional>
@@ -50,9 +51,9 @@ public:
 
     // Copy/move construction only: fields bind to a mesh by reference, so a
     // constructed mesh is never reassigned. A moved-from mesh is empty and
-    // its extent queries throw std::logic_error.
+    // its counts are zero and its extent queries throw std::logic_error.
     FvMesh1D(const FvMesh1D&) = default;
-    FvMesh1D(FvMesh1D&&) noexcept = default;
+    FvMesh1D(FvMesh1D&& other) noexcept;
     FvMesh1D& operator=(const FvMesh1D&) = delete;
     FvMesh1D& operator=(FvMesh1D&&) = delete;
     ~FvMesh1D() = default;
@@ -77,9 +78,10 @@ public:
     /// \throws std::logic_error If the mesh is moved-from (empty).
     [[nodiscard]] double Length() const;
 
-    // Canonical face orientation points out of the owner:
-    // left at the start boundary and right at all other faces.
-    // Invalid indices or non-incident cell-face pairs throw.
+    /// Internal faces point from owner to neighbour along +x. Boundary faces
+    /// point outward: -x at face 0 and +x at face N_Cells(). The owner of
+    /// face 0 is cell 0; every other face has owner f - 1.
+    /// Throws std::out_of_range for an invalid face.
     [[nodiscard]] CellId Owner(FaceId f) const
     {
         if (f >= N_Faces())
@@ -90,6 +92,8 @@ public:
         return (f == 0) ? 0 : f - 1;
     }
 
+    /// Returns the cell across an internal face, or nullopt at a boundary.
+    /// Throws std::out_of_range for an invalid face.
     [[nodiscard]] std::optional<CellId> Neighbour(FaceId f) const
     {
         if (f >= N_Faces())
@@ -105,6 +109,9 @@ public:
         return CellId{f};
     }
 
+    /// Dot product of the cell's outward unit normal and the canonical face
+    /// orientation: +1 for the owner and -1 for an internal neighbour.
+    /// Throws std::out_of_range for invalid or non-incident indices.
     [[nodiscard]] double s_f(CellId p, FaceId f) const
     {
         if (p >= N_Cells() ||
@@ -116,54 +123,19 @@ public:
             );
         }
 
-        return (f == p) ? -1.0 : 1.0;
+        return (f == 0 || f == p + 1) ? 1.0 : -1.0;
     }
 
-
-[[nodiscard]] CellId N(CellId p, FaceId f) const
-{
-    if (p >= N_Cells() || f >= N_Faces())
+    /// Coordinate component of the unit vector from owner to neighbour.
+    /// Returns +1 for internal faces; boundary or invalid faces throw
+    /// std::out_of_range because no owner-to-neighbour vector exists.
+    [[nodiscard]] double e_ON(FaceId f) const
     {
-        throw std::out_of_range("Invalid cell or face index");
-    }
-
-    // If P is the owner of the face, the neighbour is on the other side
-    if (Owner(f) == p)
-    {
-        auto nb = Neighbour(f);
-        // Boundary faces have no neighbouring cell
-        if (!nb.has_value())
+        if (f == 0 || f >= N_Cells())
         {
-            throw std::runtime_error(
-                "Face is a boundary face; no neighbouring cell exists");
+            throw std::out_of_range("FvMesh1D: face is not internal.");
         }
-        return *nb;
-    }
-
-    // If P is the neighbour of the face, the owner is on the other side
-    if (Neighbour(f) == p)
-    {
-        return Owner(f);
-    }
-
-    // Cell P is not incident to face f
-    throw std::invalid_argument(
-        "Cell P is not incident to face f");
-}
-
-
-    [[nodiscard]] double e_PN(CellId p, FaceId f) const
-    {
-        if (p >= N_Cells() ||
-            f >= N_Faces() ||
-            (f != p && f != p + 1))
-        {
-            throw std::out_of_range(
-                "Cell and face are invalid or not incident"
-            );
-        }
-
-        return (f == p) ? -1.0 : 1.0;
+        return 1.0;
     }
 
 
@@ -206,25 +178,27 @@ public:
         return cell_volumes_.at(p);
     }
 
-    // Bounding face coordinates for cell P.
-    [[nodiscard]] double wFace_Coord(CellId p) const;
-    [[nodiscard]] double eFace_Coord(CellId p) const;
+    /// Returns the two bounding faces in increasing coordinate order.
+    /// Throws std::out_of_range for an invalid cell.
+    [[nodiscard]] std::array<FaceId, 2> Cell_Faces(CellId p) const;
+
+    /// Distance from a cell center to an incident face.
+    /// Throws std::out_of_range for invalid or non-incident indices.
+    [[nodiscard]] double Cell_Face_Distance(CellId p, FaceId f) const;
 
     // --- FVM stencil distance metrics ---
-    [[nodiscard]] double wFaceDx(CellId p) const;
-    [[nodiscard]] double eFaceDx(CellId p) const;
 
-    // Distance from the west/owner cell center to face f.
-    [[nodiscard]] double Dx_Owner(FaceId f) const;
+    /// Distance between the owner cell center and face f, including boundaries.
+    /// Throws std::out_of_range for an invalid face.
+    [[nodiscard]] double Distance_Owner_face(FaceId f) const;
 
-    // Distance from face f to the east/neighbour cell center.
-    [[nodiscard]] double Dx_Neighbour(FaceId f) const;
+    /// Distance between face f and the neighbour cell center.
+    /// Throws std::out_of_range for boundary or invalid faces.
+    [[nodiscard]] double Distance_Neighbour_face(FaceId f) const;
 
-    // Total distance between cell centers sharing face f (d_PN).
-    [[nodiscard]] double d_PN(FaceId f) const;
-
-    [[nodiscard]] double wCellDx(CellId p) const;
-    [[nodiscard]] double eCellDx(CellId p) const;
+    /// Distance between the owner and neighbour cell centers for an internal face.
+    /// Throws std::out_of_range for boundary or invalid faces.
+    [[nodiscard]] double d_ON(FaceId f) const;
 
     /// \brief Prints a human-readable table of face and cell-center coordinates.
     void Print_Details(std::ostream& output) const;

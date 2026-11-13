@@ -57,11 +57,11 @@ void DirichletBoundary1D::Apply(const field::VolScalarField1D& gamma,
     {
         case BoundarySide1D::Start:
             p = 0;
-            distance = mesh.wFaceDx(p);
+            distance = mesh.Cell_Face_Distance(p, mesh.Cell_Faces(p)[0]);
             break;
         case BoundarySide1D::End:
             p = n_cells - 1;
-            distance = mesh.eFaceDx(p);
+            distance = mesh.Cell_Face_Distance(p, mesh.Cell_Faces(p)[1]);
             break;
         default:
             throw std::invalid_argument("Invalid Dirichlet boundary side");
