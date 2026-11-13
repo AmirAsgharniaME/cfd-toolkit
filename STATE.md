@@ -66,7 +66,7 @@ Construction takes a name, mesh reference, and optional initial value. Storage s
 
 ### Boundary objects
 
-`DirichletBoundary1D` stores a side and fixed value. `Apply(gamma, matrix)` validates the mesh identity, side, boundary-cell diffusivity, distance, boundary value and finite accumulated results, then adds `D = gamma_p / distance` to the boundary diagonal and `D * boundary_value` to the source, for unit face area and the negative diffusion operator. It is a separate accumulation step from `fvm::Laplacian`.
+`DirichletBoundary1D` stores a name, side and fixed value, and exposes `Name()`, `Side()`, and `Value()`. `Apply(gamma, matrix)` validates that the coefficient field and matrix reference the same mesh object, the side and boundary data, owner-cell diffusivity, boundary-face distance and area, and finite accumulated results. It selects the boundary face (face 0 at Start, final face at End), gets that face's owner, and adds `D_b = gamma_owner * face_area / distance` to the owner's diagonal and `D_b * boundary_value` to its source, consistent with the negative diffusion operator. It is a separate accumulation step from `fvm::Laplacian`. With the current 1D mesh, face area is 1.0.
 
 `NeumannBoundary1D` stores an outward normal derivative and exposes its normal, side, type, and coordinate gradient. Coordinate gradient is `-normal_gradient` at Start and `+normal_gradient` at End. It does not assemble matrix entries. Patch boundaries are placeholders. `BoundaryType::Robin` exists as an enum value only; no mixed-boundary assembly is implemented. Shared boundary enums are in `boundary/types.hpp`; field location tags are in `field/types.hpp`.
 
@@ -106,7 +106,7 @@ The examples are:
 | Target | Role |
 | --- | --- |
 | `test_domain1d` | `Domain1D` construction, update, containment, invalid-input and floating-point contracts. |
-| `test_uniform_mesh1d` | Uniform mesh, topology, orientation, distances, Neumann orientation, diffusion assembly, Dirichlet assembly, and linear TDMA checks. Its distance-query calls now match the mesh API; latest source change is not yet built or run. |
+| `test_uniform_mesh1d` | Uniform mesh, topology, orientation, distances, Neumann orientation, diffusion assembly, Dirichlet assembly, and linear TDMA checks. It also checks both boundary faces and independent start/end Dirichlet accumulation on a single-cell mesh, rejection of negative diffusivity, and reproduction of an analytical linear field in a nonuniform boundary row. The current working-tree additions have not been built or run. |
 | `test_non_uniform_mesh1d` | Generated/nonuniform geometry contracts. |
 | `test_grading1d` | Grading distributions, symmetry, ratio conversion, endpoint anchoring and representability. |
 | `test_field1d` | Scalar/vector field allocation, access, assignment, arithmetic, views and mesh binding. |
@@ -114,11 +114,11 @@ The examples are:
 
 Historical records in the previous state notes: library/all-target builds succeeded at earlier development steps; earlier runs of `test_domain1d`, `test_non_uniform_mesh1d`, `test_grading1d`, and `test_field1d` exited 0. On November 11, 2026, a `test_uniform_mesh1d` run exited 1 with `Internal diffusion stencil is incorrect`. A rod demo run on that date exited 0 and printed `[400, 350, 300, 250, 200]` for five cells on `[0,1]`, unit diffusivity and endpoint values 400/200, but this was before the current mesh/API refactor and was not an assertion-based validation. Earlier output parity against a prior revision was also recorded, but does not validate current operator behavior.
 
-**Current verification status:** no build or executable was run after the current uncommitted source edits. Those edits clarify interpolation parameter names as owner/neighbour in declarations and implementations, update the Laplacian to use that terminology, and remove its unused central-difference include. The earlier mesh distance-query mismatch is resolved, but the current working tree has not been compiled or exercised. Do not treat historical results as validation of the current tree. Useful follow-up checks are a build of all targets and all six standalone executables, with stdin redirected for examples that pause.
+**Current verification status:** no build or executable was run after the current uncommitted changes. The working tree changes `DirichletBoundary1D::side()` to `Side()`, makes boundary assembly explicitly use the selected boundary face's owner, area, and owner-to-face distance, and extends `test_uniform_mesh1d` with single-cell accumulation, invalid-diffusivity, and nonuniform analytical-row checks. The earlier mesh distance-query mismatch is resolved, but the current working tree has not been compiled or exercised. Do not treat historical results as validation of the current tree. Useful follow-up checks are a build of all targets and all six standalone executables, with stdin redirected for examples that pause.
 
 ## 7. Practical investigation priorities
 
-1. Build the current tree and run the uniform-mesh target now that its distance-query calls match the declared mesh API; address any further compile or contract failures found.
+1. Build the current tree and run the uniform-mesh target to validate the updated boundary accessor and assembly behavior; address any compile or contract failures found.
 2. Verify internal stencil signs and coefficients for both rows and on one-cell, two-cell, uniform, graded, discontinuous-diffusivity and zero-diffusivity cases. Check symmetry/conservation where applicable, and test the Dirichlet contributions plus the linear rod solution.
 3. Run all configured examples after the API/build issue is fixed; record exact commands and outcomes. Avoid presenting a demo's successful exit as proof of numerical correctness.
 4. Extend boundary conditions, operators, dimensions, and solver workflows only with explicit contracts and numerical checks alongside the implementation.

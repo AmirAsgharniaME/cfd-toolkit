@@ -145,10 +145,61 @@ void check_contracts()
     cfd::field::VolScalarField1D one_gamma("gamma", one, 1.0);
     cfd::fv_matrix::FvMatrix1D one_system(one);
     cfd::fvm::Laplacian(one_gamma, one_system);
-    cfd::boundary::DirichletBoundary1D("left", cfd::boundary::BoundarySide1D::Start, 1.0).Apply(one_gamma, one_system);
-    cfd::boundary::DirichletBoundary1D("right", cfd::boundary::BoundarySide1D::End, 3.0).Apply(one_gamma, one_system);
+    require(one.Owner(0) == 0 && one.Owner(one.N_Cells()) == 0 &&
+                one.Distance_Owner_face(0) == 0.5 &&
+                one.Distance_Owner_face(one.N_Cells()) == 0.5 &&
+                one.Face_Area(0) == 1.0 && one.Face_Area(one.N_Cells()) == 1.0,
+            "Boundary geometry accessors must be valid on both faces of a single-cell mesh");
+    cfd::boundary::DirichletBoundary1D left_one(
+        "left", cfd::boundary::BoundarySide1D::Start, 1.0);
+    cfd::boundary::DirichletBoundary1D right_one(
+        "right", cfd::boundary::BoundarySide1D::End, 3.0);
+    left_one.Apply(one_gamma, one_system);
+    require(one_system.a_P(0) == 2.0 && one_system.b(0) == 2.0,
+            "Start Dirichlet condition must add its conductance and source to the only cell");
+    right_one.Apply(one_gamma, one_system);
     require(one_system.a_P(0) == 4.0 && one_system.b(0) == 8.0,
-            "Single cell boundary assembly is incorrect");
+            "End Dirichlet condition must accumulate its conductance and source in the only cell");
+
+    cfd::field::VolScalarField1D negative_gamma("negative gamma", one, -1.0);
+    cfd::fv_matrix::FvMatrix1D invalid_system(one);
+    require_exception<std::invalid_argument>([&] { left_one.Apply(negative_gamma, invalid_system); });
+
+    // The public mesh constructor guarantees finite, positive cell-face distances,
+    // and the 1D unit-area convention makes every valid face area exactly 1.0.
+    // Therefore invalid distances or zero/negative areas cannot be injected into
+    // DirichletBoundary1D through its supported mesh API.
+
+    const FvMesh1D non_uniform(Domain1D(0.0, 1.0), 3,
+                               cfd::mesh::GradingType::Forward, 2.0);
+    cfd::field::VolScalarField1D non_uniform_gamma("gamma", non_uniform, 2.0);
+    cfd::fv_matrix::FvMatrix1D non_uniform_system(non_uniform);
+    cfd::fvm::Laplacian(non_uniform_gamma, non_uniform_system);
+    constexpr double analytic_slope = 3.0;
+    constexpr double analytic_intercept = 2.0;
+    const double analytic_boundary_value = analytic_intercept;
+    const double analytic_owner_value =
+        analytic_intercept + analytic_slope * non_uniform.Cell_Center_Coord(0);
+    const double analytic_neighbour_value =
+        analytic_intercept + analytic_slope * non_uniform.Cell_Center_Coord(1);
+    const double boundary_distance = non_uniform.Distance_Owner_face(0);
+    const double boundary_conductance =
+        non_uniform_gamma[0] * non_uniform.Face_Area(0) / boundary_distance;
+    const double internal_conductance =
+        non_uniform_gamma[0] * non_uniform.Face_Area(1) / non_uniform.d_ON(1);
+    cfd::boundary::DirichletBoundary1D(
+        "non-uniform start", cfd::boundary::BoundarySide1D::Start,
+        analytic_boundary_value).Apply(non_uniform_gamma, non_uniform_system);
+    require(std::abs(non_uniform_system.a_P(0) -
+                     (boundary_conductance + internal_conductance)) < 1e-12 &&
+                std::abs(non_uniform_system.a_E(0) + internal_conductance) < 1e-12 &&
+                std::abs(non_uniform_system.b(0) -
+                         boundary_conductance * analytic_boundary_value) < 1e-12,
+            "Non-uniform boundary row must combine internal diffusion with the analytical Dirichlet contribution");
+    require(std::abs(non_uniform_system.a_P(0) * analytic_owner_value +
+                     non_uniform_system.a_E(0) * analytic_neighbour_value -
+                     non_uniform_system.b(0)) < 1e-12,
+            "Non-uniform boundary row must reproduce the analytical linear field");
     require(mesh.d_ON(1) == 1.0 && mesh.d_ON(3) == 1.0, "Incorrect cell distance");
     require_exception<std::out_of_range>([&] { (void)mesh.d_ON(0); });
     require_exception<std::out_of_range>([&] { (void)mesh.d_ON(4); });

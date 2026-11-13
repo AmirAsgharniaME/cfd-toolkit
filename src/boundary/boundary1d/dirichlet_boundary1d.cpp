@@ -20,7 +20,7 @@ const std::string& DirichletBoundary1D::Name() const noexcept
     return name_;
 }
 
-BoundarySide1D DirichletBoundary1D::side() const noexcept
+BoundarySide1D DirichletBoundary1D::Side() const noexcept
 {
     return side_;
 }
@@ -51,49 +51,53 @@ void DirichletBoundary1D::Apply(const field::VolScalarField1D& gamma,
         throw std::invalid_argument("Dirichlet boundary value must be finite");
     }
 
-    std::size_t p = 0;
-    double distance = 0.0;
+    std::size_t face_id = 0;
     switch (side_)
     {
         case BoundarySide1D::Start:
-            p = 0;
-            distance = mesh.Cell_Face_Distance(p, mesh.Cell_Faces(p)[0]);
+            face_id = 0;
             break;
         case BoundarySide1D::End:
-            p = n_cells - 1;
-            distance = mesh.Cell_Face_Distance(p, mesh.Cell_Faces(p)[1]);
+            face_id = mesh.N_Faces() - 1;
             break;
         default:
             throw std::invalid_argument("Invalid Dirichlet boundary side");
     }
 
-    const double gamma_p = gamma[p];
-    if (!std::isfinite(gamma_p) || gamma_p < 0.0)
+    const std::size_t owner = mesh.Owner(face_id);
+    const double distance = mesh.Distance_Owner_face(face_id);
+    const double face_area = mesh.Face_Area(face_id);
+    const double gamma_owner = gamma[owner];
+    if (!std::isfinite(gamma_owner) || gamma_owner < 0.0)
     {
         throw std::invalid_argument(
             "Dirichlet diffusion coefficient must be finite and nonnegative");
     }
-    if (!std::isfinite(distance) || distance <= 0.0)
+    if (!std::isfinite(distance) || !(distance > 0.0))
     {
         throw std::invalid_argument("Dirichlet boundary distance must be finite and positive");
     }
+    if (!std::isfinite(face_area) || face_area <= 0.0)
+    {
+        throw std::invalid_argument("Dirichlet boundary face area must be finite and positive");
+    }
 
-    const double conductance = gamma_p / distance;
-    const double source = conductance * value_;
-    if (!std::isfinite(conductance) || !std::isfinite(source))
+    const double D_b = (gamma_owner * face_area) / distance;
+    const double boundary_source = D_b * value_;
+    if (!std::isfinite(D_b) || !std::isfinite(boundary_source))
     {
         throw std::overflow_error("Dirichlet boundary contribution is not finite");
     }
 
-    const double updated_diagonal = matrix.a_P(p) + conductance;
-    const double updated_source = matrix.b(p) + source;
+    const double updated_diagonal = matrix.a_P(owner) + D_b;
+    const double updated_source = matrix.b(owner) + boundary_source;
     if (!std::isfinite(updated_diagonal) || !std::isfinite(updated_source))
     {
         throw std::overflow_error("Accumulated Dirichlet boundary row is not finite");
     }
 
-    matrix.Add_a_P(p, conductance);
-    matrix.Add_b(p, source);
+    matrix.Add_a_P(owner, D_b);
+    matrix.Add_b(owner, boundary_source);
 }
 
 }  // namespace cfd::boundary
