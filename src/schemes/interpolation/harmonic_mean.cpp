@@ -8,42 +8,43 @@ namespace cfd::schemes::interpolation
 {
 
 double harmonic_mean(
-    double gamma_p,
-    double gamma_n,
-    double distance_p,
-    double distance_n)
+    double gamma_owner,
+    double gamma_neighbour,
+    double d_owner,
+    double d_neighbour)
 {
-    if (!std::isfinite(gamma_p) || gamma_p <= 0.0 ||
-        !std::isfinite(gamma_n) || gamma_n <= 0.0)
+    if (!std::isfinite(gamma_owner) || gamma_owner <= 0.0 ||
+        !std::isfinite(gamma_neighbour) || gamma_neighbour <= 0.0)
     {
         throw std::invalid_argument(
             "harmonic_mean diffusivities must be finite and positive");
     }
 
-    if (!std::isfinite(distance_p) || distance_p <= 0.0 ||
-        !std::isfinite(distance_n) || distance_n <= 0.0)
+    if (!std::isfinite(d_owner) || d_owner <= 0.0 ||
+        !std::isfinite(d_neighbour) || d_neighbour <= 0.0)
     {
         throw std::invalid_argument(
             "harmonic_mean distances must be finite and positive");
     }
 
-    const long double dp = static_cast<long double>(distance_p);
-    const long double dn = static_cast<long double>(distance_n);
+    const long double owner_distance = static_cast<long double>(d_owner);
+    const long double neighbour_distance = static_cast<long double>(d_neighbour);
 
     // Scale distances before adding them to avoid overflow in dp + dn.
-    const long double distance_scale = dp > dn ? dp : dn;
-    const long double scaled_p = dp / distance_scale;
-    const long double scaled_n = dn / distance_scale;
-    const long double scaled_sum = scaled_p + scaled_n;
+    const long double distance_scale =
+        owner_distance > neighbour_distance ? owner_distance : neighbour_distance;
+    const long double scaled_owner = owner_distance / distance_scale;
+    const long double scaled_neighbour = neighbour_distance / distance_scale;
+    const long double scaled_sum = scaled_owner + scaled_neighbour;
 
     // Compute both weights directly. Deriving one as 1 - the other can
     // erase a small but physically important resistance contribution.
-    const long double weight_p = scaled_p / scaled_sum;
-    const long double weight_n = scaled_n / scaled_sum;
+    const long double weight_owner = scaled_owner / scaled_sum;
+    const long double weight_neighbour = scaled_neighbour / scaled_sum;
 
     const long double resistance =
-        weight_p / static_cast<long double>(gamma_p) +
-        weight_n / static_cast<long double>(gamma_n);
+        weight_owner / static_cast<long double>(gamma_owner) +
+        weight_neighbour / static_cast<long double>(gamma_neighbour);
 
     const long double face_gamma = 1.0L / resistance;
 

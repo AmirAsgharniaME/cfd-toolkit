@@ -2,15 +2,17 @@
 
 /**
  * @file central_difference.hpp
- * @brief Two-point gradient estimate from neighboring cell-center values.
+ * @brief Two-point gradient estimate across an internal face.
  *
- * For cell centers P and N separated by a shared face, computes
+ * For the owner and neighbour cell centers separated by an internal face,
+ * computes the directional derivative along the owner-to-neighbour vector:
  *
  * @f[
- *     \frac{\phi_N - \phi_P}{d_P + d_N},
+ *     \frac{\phi_{neighbour} - \phi_{owner}}
+ *          {d_{owner} + d_{neighbour}},
  * @f]
  *
- * where d_P and d_N are the positive center-to-face distances.
+ * where each distance is the positive center-to-face distance for its cell.
  *
  * For a smooth field, this secant approximates the derivative at the
  * midpoint between the two cell centers with second-order accuracy.
@@ -26,20 +28,22 @@ namespace cfd::schemes::gradient
 {
 
 /**
- * @brief Computes the two-point gradient between neighboring cells.
- * @param phi_p Finite field value at cell center P.
- * @param phi_n Finite field value at cell center N.
- * @param distance_p Finite, strictly positive distance from P to the face.
- * @param distance_n Finite, strictly positive distance from N to the face.
- * @return (phi_n - phi_p) / (distance_p + distance_n).
+ * @brief Computes the directional gradient along an internal face's
+ *        owner-to-neighbour vector.
+ * @param phi_owner Finite field value at the owner cell center.
+ * @param phi_neighbour Finite field value at the neighbour cell center.
+ * @param distance_owner Finite, strictly positive owner-center-to-face distance.
+ * @param distance_neighbour Finite, strictly positive neighbour-center-to-face
+ *        distance.
+ * @return (phi_neighbour - phi_owner) / (distance_owner + distance_neighbour).
  * @throws std::invalid_argument for invalid field values or distances.
  * @throws std::overflow_error if an intermediate calculation or the
  *         resulting gradient is not finite or representable as a double.
  */
 [[nodiscard]] double central_difference(
-    double phi_p,
-    double phi_n,
-    double distance_p,
-    double distance_n);
+    double phi_owner,
+    double phi_neighbour,
+    double distance_owner,
+    double distance_neighbour);
 
 } // namespace cfd::schemes::gradient

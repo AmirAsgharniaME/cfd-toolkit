@@ -2,14 +2,16 @@
 
 #include "cfd/fv_matrix/fv_matrix1d.hpp"
 #include "cfd/mesh/mesh1d/fv_mesh1d.hpp"
-#include "cfd/schemes/gradient/central_difference.hpp"
 #include "cfd/schemes/interpolation/harmonic_mean.hpp"
 
 #include <cmath>
 #include <cstddef>
 #include <stdexcept>
 #include <cassert>
-namespace cfd::fvm {
+
+namespace cfd::fvm
+{
+
 namespace {
 
 void validate_inputs(const field::VolScalarField1D& gamma,
@@ -82,11 +84,11 @@ for (mesh::FaceId f = 1; f < n_face - 1; ++f)
             "Laplacian internal-face conductance is not finite");
     }
 
-    // Contribution of this face to the owner row (cell P):
+    // Contribution of this face to the owner row:
     matrix.Add_a_P(owner, D_f);
     matrix.Add_OffDiagonal(owner, neighbour, -D_f);
 
-    // Contribution of the same face to the neighbour row (cell N):
+    // Contribution of the same face to the neighbour row:
     matrix.Add_a_P(neighbour, D_f);
     matrix.Add_OffDiagonal(neighbour, owner, -D_f);
 }

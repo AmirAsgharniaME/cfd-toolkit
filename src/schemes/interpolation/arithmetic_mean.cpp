@@ -9,34 +9,35 @@ namespace cfd::schemes::interpolation
 {
 
 double arithmetic_mean(
-    double phi_p,
-    double phi_n,
-    double distance_p,
-    double distance_n)
+    double value_owner,
+    double value_neighbour,
+    double d_owner,
+    double d_neighbour)
 {
-    if (!std::isfinite(phi_p) || !std::isfinite(phi_n))
+    if (!std::isfinite(value_owner) || !std::isfinite(value_neighbour))
     {
         throw std::invalid_argument("arithmetic_mean field values must be finite");
     }
-    if (!std::isfinite(distance_p) || distance_p <= 0.0 ||
-        !std::isfinite(distance_n) || distance_n <= 0.0)
+    if (!std::isfinite(d_owner) || d_owner <= 0.0 ||
+        !std::isfinite(d_neighbour) || d_neighbour <= 0.0)
     {
         throw std::invalid_argument("arithmetic_mean distances must be finite and positive");
     }
 
     // Normalize distances first so their sum remains bounded. The weights
     // then represent the linear fractions from the opposite center distances.
-    const long double dp = static_cast<long double>(distance_p);
-    const long double dn = static_cast<long double>(distance_n);
-    const long double distance_scale = dp > dn ? dp : dn;
-    const long double scaled_dp = dp / distance_scale;
-    const long double scaled_dn = dn / distance_scale;
-    const long double weight_p = scaled_dn / (scaled_dp + scaled_dn);
-    const long double weight_n = 1.0L - weight_p;
+    const long double owner_distance = static_cast<long double>(d_owner);
+    const long double neighbour_distance = static_cast<long double>(d_neighbour);
+    const long double distance_scale =
+        owner_distance > neighbour_distance ? owner_distance : neighbour_distance;
+    const long double scaled_owner = owner_distance / distance_scale;
+    const long double scaled_neighbour = neighbour_distance / distance_scale;
+    const long double weight_owner = scaled_neighbour / (scaled_owner + scaled_neighbour);
+    const long double weight_neighbour = 1.0L - weight_owner;
 
     const long double face_value =
-        weight_p * static_cast<long double>(phi_p) +
-        weight_n * static_cast<long double>(phi_n);
+        weight_owner * static_cast<long double>(value_owner) +
+        weight_neighbour * static_cast<long double>(value_neighbour);
     const long double max_double =
         static_cast<long double>(std::numeric_limits<double>::max());
 
