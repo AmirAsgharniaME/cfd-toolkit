@@ -116,12 +116,34 @@ $$
 \nabla\phi \approx \frac{\phi_N - \phi_O}{d_{ON}} \mathbf{e}_{ON}
 $$
 
-followed by the face flux:
+Followed by the face flux:
 
 $$
 \mathbf{J}_d \cdot \mathbf{S}_f
 $$
-On an orthogonal face, $\mathbf{e}_{ON} \parallel \mathbf{S}_f$, so $\mathbf{e}_{ON} \cdot \mathbf{S}_f = A_f$. If $\phi_O > \phi_N$, then $F_f > 0$: the owner loses the transported quantity through that face.
+
+On an orthogonal face,
+
+$$
+\mathbf{e}_{ON} \parallel \mathbf{S}_f,
+\qquad
+\mathbf{e}_{ON} \cdot \mathbf{S}_f = A_f.
+$$
+
+If
+
+$$
+\phi_O > \phi_N,
+$$
+
+then
+
+$$
+F_f > 0,
+$$
+
+so the owner loses the transported quantity through that face.
+
 
 
 
