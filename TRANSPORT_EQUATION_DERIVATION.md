@@ -74,11 +74,7 @@ boundary moves with the material velocity $\mathbf{u}$. The conservation princip
 In symbols, with $\mathbf{n}$ the outward normal of $\partial V_m(t)$:
 
 $$
-\begin{aligned}
-\frac{d}{dt}\int_{V_m(t)} \rho \phi \, dV
-&= - \int_{\partial V_m(t)} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA \\
-&\quad + \int_{V_m(t)} S_\phi \, dV
-\end{aligned}
+\frac{d}{dt}\int_{V_m(t)} \rho \phi \, dV = - \int_{\partial V_m(t)} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA + \int_{V_m(t)} S_\phi \, dV
 $$
 
 (3.1)
@@ -99,11 +95,7 @@ derived from conservation. In particular, (3.1) is compatible with *any* constit
 For a smooth scalar field $f(\mathbf{x},t)$ and a material volume $V_m(t)$ whose boundary moves with velocity $\mathbf{u}$,
 
 $$
-\begin{aligned}
-\frac{d}{dt}\int_{V_m(t)} f \, dV
-&= \int_{V_m(t)} \frac{\partial f}{\partial t} \, dV \\
-&\quad + \int_{\partial V_m(t)} f \, \mathbf{u} \cdot \mathbf{n} \, dA
-\end{aligned}
+\frac{d}{dt}\int_{V_m(t)} f \, dV = \int_{V_m(t)} \frac{\partial f}{\partial t} \, dV + \int_{\partial V_m(t)} f \, \mathbf{u} \cdot \mathbf{n} \, dA
 $$
 
 (3.2)
@@ -118,12 +110,7 @@ integrals depend on position, not on whether the surface is instantaneously movi
 instant:
 
 $$
-\begin{aligned}
-\int_{V} \frac{\partial (\rho\phi)}{\partial t}\, dV
-+ \int_{\partial V} \rho\phi\, \mathbf{u}\cdot \mathbf{n} \, dA
-&= - \int_{\partial V} \mathbf{J}_{\text{diff}}\cdot \mathbf{n} \, dA \\
-&\quad + \int_{V} S_\phi \, dV
-\end{aligned}
+\int_{V} \frac{\partial (\rho\phi)}{\partial t}\, dV + \int_{\partial V} \rho\phi\, \mathbf{u}\cdot \mathbf{n} \, dA = - \int_{\partial V} \mathbf{J}_{\text{diff}}\cdot \mathbf{n} \, dA + \int_{V} S_\phi \, dV
 $$
 
 (3.3)
@@ -134,12 +121,7 @@ Moving the two surface integrals to the left-hand side gives the **integral form
 (for arbitrary fixed $V$):
 
 $$
-\begin{aligned}
-\frac{d}{dt}\int_{V} \rho \phi \, dV
-&+ \int_{\partial V} \rho \phi\, \mathbf{u} \cdot \mathbf{n} \, dA \\
-&+ \int_{\partial V} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA \\
-&= \int_{V} S_\phi \, dV
-\end{aligned}
+\frac{d}{dt}\int_{V} \rho \phi \, dV + \int_{\partial V} \rho \phi\, \mathbf{u} \cdot \mathbf{n} \, dA + \int_{\partial V} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA = \int_{V} S_\phi \, dV
 $$
 
 (3.4)
@@ -184,12 +166,7 @@ Applied to (3.4) with $F = \rho \phi u$ and $F = J_{\text{diff}}$ (the theorem i
 surface term independently):
 
 $$
-\begin{aligned}
-\int_{V} \frac{\partial (\rho\phi)}{\partial t}\, dV
-&+ \int_{V} \nabla \cdot (\rho \phi u) \, dV \\
-&+ \int_{V} \nabla \cdot J_{\text{diff}} \, dV \\
-&= \int_{V} S_\phi \, dV.
-\end{aligned}
+\int_{V} \frac{\partial (\rho\phi)}{\partial t}\, dV + \int_{V} \nabla \cdot (\rho \phi u) \, dV + \int_{V} \nabla \cdot J_{\text{diff}} \, dV = \int_{V} S_\phi \, dV.
 $$
 
 (4.2)
@@ -208,12 +185,7 @@ continuous, the standard localization argument (shrink $V$ to a point; the mean 
 average tend to the point value) yields the **differential (strong) form**:
 
 $$
-\begin{aligned}
-\frac{\partial (\rho \phi)}{\partial t}
-&+ \nabla \cdot (\rho \phi u) \\
-&+ \nabla \cdot J_{\text{diff}} \\
-&= S_\phi
-\end{aligned}
+\frac{\partial (\rho \phi)}{\partial t} + \nabla \cdot (\rho \phi u) + \nabla \cdot J_{\text{diff}} = S_\phi
 $$
 
 (4.3)
@@ -244,12 +216,7 @@ written in the form below, $\phi$ must be chosen so that $\rho \phi$ is the enth
 Substituting (5.1) into (4.3):
 
 $$
-\begin{aligned}
-\frac{\partial (\rho \phi)}{\partial t}
-&+ \nabla \cdot (\rho \phi u) \\
-&- \nabla \cdot (\Gamma \nabla \phi) \\
-&= S_\phi.
-\end{aligned}
+\frac{\partial (\rho \phi)}{\partial t} + \nabla \cdot (\rho \phi u) - \nabla \cdot (\Gamma \nabla \phi) = S_\phi.
 $$
 
 (5.2)
@@ -257,11 +224,7 @@ $$
 Moving the diffusion term to the right-hand side gives the **standard alternative form**
 
 $$
-\begin{aligned}
-\frac{\partial (\rho \phi)}{\partial t}
-&+ \nabla \cdot (\rho \phi u) \\
-&= \nabla \cdot (\Gamma \nabla \phi) + S_\phi.
-\end{aligned}
+\frac{\partial (\rho \phi)}{\partial t} + \nabla \cdot (\rho \phi u) = \nabla \cdot (\Gamma \nabla \phi) + S_\phi.
 $$
 
 (5.3)
@@ -303,11 +266,7 @@ matrix diagonal ($+S_p V$ in the $A \phi = b$ system) and $S_u V$ to the RHS —
 For heat, the natural conserved density is the energy per unit volume; with $T$ the temperature,
 
 $$
-\begin{aligned}
-\frac{\partial (\rho c_p T)}{\partial t}
-&+ \nabla \cdot (\rho c_p T u) \\
-&= \nabla \cdot (k \nabla T) + S_h,
-\end{aligned}
+\frac{\partial (\rho c_p T)}{\partial t} + \nabla \cdot (\rho c_p T u) = \nabla \cdot (k \nabla T) + S_h,
 $$
 
 which is (5.3) with $\phi = c_p T$ and $\Gamma = k$, provided $\rho \phi = \rho c_p T$ and $c_p$ is the
