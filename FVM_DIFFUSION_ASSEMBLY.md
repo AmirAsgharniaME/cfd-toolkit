@@ -120,6 +120,8 @@ followed by the face flux $\mathbf{J}_d \cdot \mathbf{S}_f$. On an orthogonal fa
 
 
 
+
+
 In a 1D mesh, $d_{ON}=d_{Of}+d_{fN}$ when the face lies between the two cell centers. For piecewise-constant diffusivities on the two half-distances, resolve the two resistances in series rather than blindly interpolating $\Gamma$:
 
 $$
