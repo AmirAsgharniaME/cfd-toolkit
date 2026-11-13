@@ -43,7 +43,7 @@ $$
 =\int_{V_P}S\,dV.
 $$
 
-With the outward area vector $\mathbf{S}_{P,f}=\mathbf{n}_{P,f,\mathrm{out}}A_f$, the finite-volume balance becomes
+With the outward area vector $\mathbf{S}_{P,f} = \mathbf{n}_{P,f,\mathrm{out}} A_f$, the finite-volume balance becomes
 
 $$
 \sum_{f\in\partial P}F_{P,f}=b_P,
@@ -103,7 +103,8 @@ D_f=\frac{\Gamma_f A_f}{d_{ON}}>0,
 \qquad F_f=D_f(\phi_O-\phi_N).
 $$
 
-The vector picture is $\nabla\phi\approx[(\phi_N-\phi_O)/d_{ON}]\mathbf{e}_{ON}$, followed by $\mathbf{J}_d\cdot\mathbf{S}_f$. On an orthogonal face $\mathbf{e}_{ON}\parallel\mathbf{S}_f$, so $\mathbf{e}_{ON}\cdot\mathbf{S}_f=A_f$. If $\phi_O>\phi_N$, then $F_f>0$: the owner loses the transported quantity through that face.
+The vector picture is $\nabla\phi \approx \frac{\phi_N - \phi_O}{d_{ON}} \mathbf{e}_{ON}$, followed by $\mathbf{J}_d \cdot \mathbf{S}_f$. On an orthogonal face $\mathbf{e}_{ON} \parallel \mathbf{S}_f$, so $\mathbf{e}_{ON} \cdot \mathbf{S}_f = A_f$. If $\phi_O > \phi_N$, then $F_f > 0$: the owner loses the transported quantity through that face.
+
 
 In a 1D mesh, $d_{ON}=d_{Of}+d_{fN}$ when the face lies between the two cell centers. For piecewise-constant diffusivities on the two half-distances, resolve the two resistances in series rather than blindly interpolating $\Gamma$:
 
@@ -216,7 +217,7 @@ $$
 A_{PP}\mathrel{+}=D_b,\qquad b_P\mathrel{+}=D_b\phi_b.
 $$
 
-For a prescribed **outward integrated diffusive flux** $q_b=\int_b\mathbf{J}_d\cdot\mathbf{n}_{\mathrm{out}}\,dA$, write $\sum F_{\mathrm{internal}}+q_b=b_P$, giving $b_P\mathrel{+}=-q_b$. A positive outward flux therefore reduces the RHS in this convention; an insulated face has $q_b=0$. If a boundary API instead prescribes a *flux density* or a *gradient*, convert it to the integrated outward flux first and check the sign. Source linearization and other boundary types can add further diagonal/RHS terms; they do not change the internal-face rule.
+For a prescribed **outward integrated diffusive flux** $q_b = \int_{b} \mathbf{J}_d \cdot \mathbf{n}_{\mathrm{out}} \, dA$, write $\sum F_{\mathrm{internal}}+q_b=b_P$, giving $b_P\mathrel{+}=-q_b$. A positive outward flux therefore reduces the RHS in this convention; an insulated face has $q_b=0$. If a boundary API instead prescribes a *flux density* or a *gradient*, convert it to the integrated outward flux first and check the sign. Source linearization and other boundary types can add further diagonal/RHS terms; they do not change the internal-face rule.
 
 A pure zero-flux/Neumann diffusion problem with no anchoring value leaves a constant nullspace: the absolute level of $\phi$ is undetermined, and the prescribed sources and boundary fluxes must satisfy global compatibility. A Dirichlet condition (or another valid reference constraint) can remove that ambiguity.
 
