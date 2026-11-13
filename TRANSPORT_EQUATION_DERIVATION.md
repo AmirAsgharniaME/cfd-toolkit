@@ -44,19 +44,19 @@ Let $[X]$ denote the SI unit of a quantity $X$.
 | $\rho \phi$ | conserved amount per unit *volume* | $[\phi] kg/m^3$ |
 | $V$ | fixed, arbitrary control volume (stationary in the chosen frame, $\partial V$ fixed) | $m^3$ |
 | $n$ | **outward** unit normal of $\partial V$ (points out of the CV) | dimensionless |
-| $J_{\text{diff}}$ | diffusive flux of the amount, measured **relative to the material motion** | $[\phi] kg/(m^2 s)$ |
-| $S_{\phi}$ | volumetric production (source) of the conserved amount | $[\phi] kg/(m^3 s)$ |
-| $\Gamma$ | material diffusion property for the transported amount (diffusivity-like, positive) | so that $\Gamma \nabla \phi$ has units of $J_{\text{diff}}$, see §5 |
-| $A_f$ | area of face $f$ | $m^2$ |
-| $d_{PN}$ | distance between centers $P$ and $N$ measured along the line joining them (positive) | $m$ |
-| $D_f$ | face conductance/coefficient, $D_f = \Gamma_f A_f / d_{PN} > 0$ | such that $D_f * \phi$ has units of "amount per time" |
+| $`J_{\text{diff}}`$ | diffusive flux of the amount, measured **relative to the material motion** | $[\phi] kg/(m^2 s)$ |
+| $`S_{\phi}`$ | volumetric production (source) of the conserved amount | $[\phi] kg/(m^3 s)$ |
+| $\Gamma$ | material diffusion property for the transported amount (diffusivity-like, positive) | so that $\Gamma \nabla \phi$ has units of $`J_{\text{diff}}`$, see §5 |
+| $`A_f`$ | area of face $f$ | $m^2$ |
+| $`d_{PN}`$ | distance between centers $P$ and $N$ measured along the line joining them (positive) | $m$ |
+| $`D_f`$ | face conductance/coefficient, $`D_f = \Gamma_f A_f / d_{PN} > 0`$ | such that $`D_f * \phi`$ has units of "amount per time" |
 
 Consistency check for units (used repeatedly below):
 
-- $\int_V \rho \phi dV$: $[\phi] kg/m^3 * m^3 = [\phi] kg$ — an *amount*.
-- $\int_{\partial V} \rho \phi u \cdot n dA$: $([\phi] kg/m^3)(m/s)(m^2) = [\phi] kg/s$ — rate of amount.
-- $\int_{\partial V} J_{\text{diff}} \cdot n dA$: $[\phi] kg/(m^2 s) * m^2 = [\phi] kg/s$ — rate of amount.
-- $\int_V S_{\phi} dV$: $[\phi] kg/(m^3 s) * m^3 = [\phi] kg/s$ — rate of amount.
+- $`\int_V \rho \phi dV`$: $[\phi] kg/m^3 * m^3 = [\phi] kg$ — an *amount*.
+- $`\int_{\partial V} \rho \phi u \cdot n dA`$: $([\phi] kg/m^3)(m/s)(m^2) = [\phi] kg/s$ — rate of amount.
+- $`\int_{\partial V} J_{\text{diff}} \cdot n dA`$: $[\phi] kg/(m^2 s) * m^2 = [\phi] kg/s$ — rate of amount.
+- $`\int_V S_{\phi} dV`$: $[\phi] kg/(m^3 s) * m^3 = [\phi] kg/s$ — rate of amount.
 
 All four terms of the eventual balance have the same unit; any candidate equation that fails this check is
 wrong regardless of its signs.
@@ -65,13 +65,13 @@ wrong regardless of its signs.
 
 ### 3.1 The physical postulate on a material system
 
-A **material (Lagrangian) system** $V_m(t)$ is a collection of the same material particles for all time; its
+A **material (Lagrangian) system** $`V_m(t)`$ is a collection of the same material particles for all time; its
 boundary moves with the material velocity $\mathbf{u}$. The conservation principle states:
 
-> The rate of change of the conserved amount inside $V_m(t)$ equals the amount that diffuses in through its
+> The rate of change of the conserved amount inside $`V_m(t)`$ equals the amount that diffuses in through its
 > boundary (relative to the material) plus the amount produced inside it.
 
-In symbols, with $\mathbf{n}$ the outward normal of $\partial V_m(t)$:
+In symbols, with $\mathbf{n}$ the outward normal of $`\partial V_m(t)`$:
 
 $$
 \frac{d}{dt}\int_{V_m(t)} \rho \phi \, dV = - \int_{\partial V_m(t)} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA + \int_{V_m(t)} S_\phi \, dV
@@ -79,20 +79,20 @@ $$
 
 (3.1)
 
-**Why the minus sign here.** $\mathbf{J}_{\text{diff}} \cdot \mathbf{n}$ is the *outward* component of the diffusive flux, so
-$\int \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA$ is the net amount of the quantity **leaving** the system per unit time by diffusion. Leaving
+**Why the minus sign here.** $`\mathbf{J}_{\text{diff}} \cdot \mathbf{n}`$ is the *outward* component of the diffusive flux, so
+$`\int \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA`$ is the net amount of the quantity **leaving** the system per unit time by diffusion. Leaving
 reduces the inventory, hence it enters the rate-of-change statement with a minus sign. This minus sign has
 nothing to do with the material property $\Gamma$: it is the sign of "loss on the right-hand side of a
 conservation statement". It appears for every quantity that can leave a volume, whatever the physics.
 
 **What is postulated vs. derived in (3.1).** The *form* of (3.1) is the physical postulate. Its individual
-terms are modeling objects: $\mathbf{J}_{\text{diff}}$ is whatever microscopic/collisional transport is present (measured
-relative to the moving material), and $S_\phi$ collects all volumetric production/consumption. Neither is
-derived from conservation. In particular, (3.1) is compatible with *any* constitutive relation for $\mathbf{J}_{\text{diff}}$.
+terms are modeling objects: $`\mathbf{J}_{\text{diff}}`$ is whatever microscopic/collisional transport is present (measured
+relative to the moving material), and $`S_\phi`$ collects all volumetric production/consumption. Neither is
+derived from conservation. In particular, (3.1) is compatible with *any* constitutive relation for $`\mathbf{J}_{\text{diff}}`$.
 
 ### 3.2 Reynolds transport theorem
 
-For a smooth scalar field $f(\mathbf{x},t)$ and a material volume $V_m(t)$ whose boundary moves with velocity $\mathbf{u}$,
+For a smooth scalar field $f(\mathbf{x},t)$ and a material volume $`V_m(t)`$ whose boundary moves with velocity $\mathbf{u}$,
 
 $$
 \frac{d}{dt}\int_{V_m(t)} f \, dV = \int_{V_m(t)} \frac{\partial f}{\partial t} \, dV + \int_{\partial V_m(t)} f \, \mathbf{u} \cdot \mathbf{n} \, dA
@@ -104,7 +104,7 @@ Equation (3.2) is pure kinematics: it states that the change of the integral ove
 change of the integrand (holding the volume fixed) plus the amount swept across the moving boundary because the
 boundary itself is moving with velocity $\mathbf{u}$. It holds for the same fixed normal convention $\mathbf{n}$ (outward).
 
-Applying (3.2) with $f = \rho \phi$ to the left-hand side of (3.1), and noting that $\partial V_m(t)$ and $V_m(t)$ can be
+Applying (3.2) with $f = \rho \phi$ to the left-hand side of (3.1), and noting that $`\partial V_m(t)`$ and $`V_m(t)`$ can be
 replaced by any fixed volume $V$ that *coincides* with the material system at the instant considered (the
 integrals depend on position, not on whether the surface is instantaneously moving), we obtain for that
 instant:
@@ -136,14 +136,14 @@ this is arithmetic, not physics.
 
 So there are now **two** surface terms that both quantify outflow:
 
-- $\int_{\partial V} \rho\phi\, \mathbf{u} \cdot \mathbf{n} \, dA$ — **advective** outflow, the quantity carried out by the bulk motion of the material
+- $`\int_{\partial V} \rho\phi\, \mathbf{u} \cdot \mathbf{n} \, dA`$ — **advective** outflow, the quantity carried out by the bulk motion of the material
   (it arose from the RTT term in (3.2));
-- $\int_{\partial V} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA$ — **diffusive** outflow, the quantity carried out by transport relative to the
+- $`\int_{\partial V} \mathbf{J}_{\text{diff}} \cdot \mathbf{n} \, dA`$ — **diffusive** outflow, the quantity carried out by transport relative to the
   material.
 
 **Important clarification.** In (3.4) both surface terms are written with an *explicit plus sign in front of an
 outward-normal integral*. This plus sign is the sign of "outflow on the left-hand side". It must not be
-confused with the minus sign inside the constitutive law $\mathbf{J}_{\text{diff}} = -\Gamma \nabla \phi$ (§5), which is a
+confused with the minus sign inside the constitutive law $`\mathbf{J}_{\text{diff}} = -\Gamma \nabla \phi`$ (§5), which is a
 *modeling* statement about the direction of diffusion (down the gradient). The two minus signs are unrelated:
 one comes from algebra (moving a loss to the other side), the other from the material response. Section 6
 contains a full ledger.
@@ -162,7 +162,7 @@ $$
 
 (4.1)
 
-Applied to (3.4) with $F = \rho \phi u$ and $F = J_{\text{diff}}$ (the theorem is linear, so it can be applied to each
+Applied to (3.4) with $F = \rho \phi u$ and $`F = J_{\text{diff}}`$ (the theorem is linear, so it can be applied to each
 surface term independently):
 
 $$
@@ -238,28 +238,28 @@ assembly is derived from the **face-based** form (§7), which does not depend on
 
 ### 5.2 Dimensional consistency
 
-Requirement: $[\Gamma \nabla \phi] = [J_{\text{diff}}]$, i.e. $[\Gamma][\phi]/m = [\phi] kg/(m^2 s)$, hence
+Requirement: $`[\Gamma \nabla \phi] = [J_{\text{diff}}]`$, i.e. $[\Gamma][\phi]/m = [\phi] kg/(m^2 s)$, hence
 
 $$
 [\Gamma] = \mathrm{kg}/(\mathrm{m\,s}) = \mathrm{Pa\,s}\quad(\text{for the generic amount }[\phi]),
 $$
 
-which is a dynamic viscosity/diffusivity-type unit and is consistent with $\Gamma = k/(\rho c_p)$ in the heat
+which is a dynamic viscosity/diffusivity-type unit and is consistent with $`\Gamma = k/(\rho c_p)`$ in the heat
 case (§5.4) or with $\Gamma = \rho D$ for a mass fraction (with $\phi$ dimensionless). The final equation
 (5.2) is unit-consistent: every term has units $[\phi] kg/(m^3 s)$.
 
 ### 5.3 Source sign convention
 
-The right-hand side $S_{\phi}$ uses the **production-positive** convention:
+The right-hand side $`S_{\phi}`$ uses the **production-positive** convention:
 
-- $S_{\phi} > 0$: the amount is produced inside the CV; the inventory of the CV tends to grow.
-- $S_{\phi} < 0$: the amount is consumed (a sink).
+- $`S_{\phi} > 0`$: the amount is produced inside the CV; the inventory of the CV tends to grow.
+- $`S_{\phi} < 0`$: the amount is consumed (a sink).
 
 This convention is fixed by (3.1). Any solver-level convention that says "$b$ positive means $\phi$ grows" is
 consistent with it, whereas a sink implemented as a positive number is not. Note also the popular practice of
-linearizing a sink as $S_{\phi} = S_u - S_p \phi$ with $S_p \ge 0$; when $S_p$ is positive it must be added to the
-matrix diagonal ($+S_p V$ in the $A \phi = b$ system) and $S_u V$ to the RHS — that sink diagonal is a
-*source linearization* term and is entirely separate from the diffusion diagonal $+D_f$ of §7.
+linearizing a sink as $`S_{\phi} = S_u - S_p \phi`$ with $`S_p \ge 0`$; when $`S_p`$ is positive it must be added to the
+matrix diagonal ($`+S_p V`$ in the $A \phi = b$ system) and $`S_u V`$ to the RHS — that sink diagonal is a
+*source linearization* term and is entirely separate from the diffusion diagonal $`+D_f`$ of §7.
 
 ### 5.4 Particular case: heat transfer
 
@@ -269,9 +269,9 @@ $$
 \frac{\partial (\rho c_p T)}{\partial t} + \nabla \cdot (\rho c_p T u) = \nabla \cdot (k \nabla T) + S_h,
 $$
 
-which is (5.3) with $\phi = c_p T$ and $\Gamma = k$, provided $\rho \phi = \rho c_p T$ and $c_p$ is the
-specific heat consistent with the energy form being used. Equivalently, with $\phi = T$, $\Gamma = k/c_p$ and
-$\rho \to \rho c_p$ — but then the time derivative and the advective term must carry the $c_p$, so
+which is (5.3) with $`\phi = c_p T`$ and $\Gamma = k$, provided $`\rho \phi = \rho c_p T`$ and $`c_p`$ is the
+specific heat consistent with the energy form being used. Equivalently, with $\phi = T$, $`\Gamma = k/c_p`$ and
+$`\rho \to \rho c_p`$ — but then the time derivative and the advective term must carry the $`c_p`$, so
 **$\phi$ and the heat capacity must be defined consistently**; mixing $\phi = T$ in the diffusion term with an
 $rhs$ expressed in enthalpy units produces unit-inconsistent results even when all signs are correct.
 
@@ -288,7 +288,7 @@ $$
 (6.1)
 
 The **explicit minus** before the divergence in (6.1) comes *exclusively* from extracting the negative of the
-constitutive law (5.1), $J_{\text{diff}} = -\Gamma \nabla \phi$, into the equation. The conservation balance itself (3.4)
+constitutive law (5.1), $`J_{\text{diff}} = -\Gamma \nabla \phi`$, into the equation. The conservation balance itself (3.4)
 produced the divergence of the diffusive flux with a **plus** sign on the left-hand side; substituting the
 constitutive law then inserted the minus. Replace the constitutive law by its general form and the plus returns:
 
@@ -300,13 +300,13 @@ $$
 
 All signs are tracked in one place. "Section" identifies where the sign first appears.
 
-- **N1 — $J_{\text{diff}} \cdot n$ enters with a minus on the RHS:** $d/dt\int \rho\phi = -\int J_{\text{diff}}\cdot n dA + \int S$ (3.1). Physical inventory balance. **Physical/algebraic:** Outward diffusive flux is a *loss*, so it is subtracted from the inventory rate.
-- **N2 — $\int J_{\text{diff}}\cdot n dA$ moves to the left with a plus:** (3.4). Moving a term across $=$. Pure algebra (not new physics). The same loss, now written as "outflow on the LHS".
-- **N3 — $+\nabla\cdot J_{\text{diff}}$ on the LHS:** (4.3). Divergence theorem (4.1) applied to the $+\int J_{\text{diff}}\cdot n$ term. Pure mathematics; **no sign change**. Flux divergence on the LHS has the same sign as the surface term.
-- **N4 — $J_{\text{diff}} = -\Gamma\nabla\phi$:** (5.1). Constitutive (Fick/Fourier) law. **Modeling postulate:** Diffusion is down-gradient.
+- **N1 — $`J_{\text{diff}} \cdot n`$ enters with a minus on the RHS:** $`d/dt\int \rho\phi = -\int J_{\text{diff}}\cdot n dA + \int S`$ (3.1). Physical inventory balance. **Physical/algebraic:** Outward diffusive flux is a *loss*, so it is subtracted from the inventory rate.
+- **N2 — $`\int J_{\text{diff}}\cdot n dA`$ moves to the left with a plus:** (3.4). Moving a term across $=$. Pure algebra (not new physics). The same loss, now written as "outflow on the LHS".
+- **N3 — $`+\nabla\cdot J_{\text{diff}}`$ on the LHS:** (4.3). Divergence theorem (4.1) applied to the $`+\int J_{\text{diff}}\cdot n`$ term. Pure mathematics; **no sign change**. Flux divergence on the LHS has the same sign as the surface term.
+- **N4 — $`J_{\text{diff}} = -\Gamma\nabla\phi`$:** (5.1). Constitutive (Fick/Fourier) law. **Modeling postulate:** Diffusion is down-gradient.
 - **N5 — $-\nabla\cdot (\Gamma\nabla\phi)$ on the LHS in (5.2)/(6.1):** (5.2), (6.1). N3 **⊕** N4 combined. Consequence of N3+N4. The minus is N4's; it is **not** N2, and **not** the divergence theorem.
-- **N6 — $+\Gamma\nabla\phi$ appears explicitly in the flux after substituting N4:** (6.1) with linear $\phi$. N4 applied once. Expressing the physical flux. In 1D with $\nabla\phi = c > 0$, $J_{\text{diff}} = -\Gamma c < 0$ (down-gradient flow).
-- **N7 — Outward flux $D_f(\phi_P - \phi_N)$:** (7.4). N6 + geometry. Computed, not modeled. Flux written in terms of center values.
+- **N6 — $+\Gamma\nabla\phi$ appears explicitly in the flux after substituting N4:** (6.1) with linear $\phi$. N4 applied once. Expressing the physical flux. In 1D with $\nabla\phi = c > 0$, $`J_{\text{diff}} = -\Gamma c < 0`$ (down-gradient flow).
+- **N7 — Outward flux $`D_f(\phi_P - \phi_N)`$:** (7.4). N6 + geometry. Computed, not modeled. Flux written in terms of center values.
 
 **Explicit correction of an earlier misleading statement.** It is sometimes said that "Gauss's theorem turns
 the $-\int J\cdot n$ into $-\int\nabla\cdot J$" or that the theorem "absorbs" the sign. That is wrong. In (3.1) the term had a
