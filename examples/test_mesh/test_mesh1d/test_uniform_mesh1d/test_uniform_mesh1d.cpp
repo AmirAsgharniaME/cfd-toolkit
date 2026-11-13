@@ -129,6 +129,67 @@ void check_contracts()
             right_gradient.coordinate_gradient() == 2.0, "Neumann orientation is incorrect");
 
     cfd::field::VolScalarField1D gamma("gamma", mesh, 1.0);
+    cfd::field::VolScalarField1D neumann_gamma("neumann gamma", mesh, 1.0);
+    neumann_gamma[0] = 2.0;
+    neumann_gamma[3] = 5.0;
+    cfd::fv_matrix::FvMatrix1D neumann_system(mesh);
+    neumann_system.Set_a_P(0, 7.0);
+    neumann_system.Set_a_P(3, 9.0);
+    cfd::boundary::NeumannBoundary1D start_neumann(
+        "start", cfd::boundary::BoundarySide1D::Start, 3.0);
+    start_neumann.Apply(neumann_gamma, neumann_system);
+    require(neumann_system.b(0) == 6.0 && neumann_system.a_P(0) == 7.0 &&
+                neumann_system.a_P(3) == 9.0,
+            "Start Neumann assembly must add gamma_owner * outward gradient * area without changing coefficients");
+    cfd::boundary::NeumannBoundary1D end_neumann(
+        "end", cfd::boundary::BoundarySide1D::End, -2.0);
+    end_neumann.Apply(neumann_gamma, neumann_system);
+    require(neumann_system.b(3) == -10.0 && neumann_system.a_P(3) == 9.0,
+            "End Neumann assembly selected the wrong owner or changed a coefficient");
+    cfd::boundary::NeumannBoundary1D zero_neumann(
+        "zero", cfd::boundary::BoundarySide1D::Start, 0.0);
+    zero_neumann.Apply(neumann_gamma, neumann_system);
+    require(neumann_system.b(0) == 6.0,
+            "Zero Neumann gradient must not change the source");
+    require(start_neumann.coordinate_gradient() == -3.0 &&
+                neumann_system.b(0) > 0.0,
+            "Neumann assembly must not apply the start outward-normal sign twice");
+
+    const FvMesh1D other_mesh(Domain1D(0.0, 1.0), 4);
+    cfd::field::VolScalarField1D other_gamma("other gamma", other_mesh, 1.0);
+    require_exception<std::invalid_argument>([&] {
+        start_neumann.Apply(other_gamma, neumann_system);
+    });
+    cfd::field::VolScalarField1D invalid_neumann_gamma("invalid", mesh, 1.0);
+    invalid_neumann_gamma[0] = std::numeric_limits<double>::quiet_NaN();
+    require_exception<std::invalid_argument>([&] {
+        start_neumann.Apply(invalid_neumann_gamma, neumann_system);
+    });
+    invalid_neumann_gamma[0] = -1.0;
+    require_exception<std::invalid_argument>([&] {
+        start_neumann.Apply(invalid_neumann_gamma, neumann_system);
+    });
+    cfd::boundary::NeumannBoundary1D invalid_gradient(
+        "invalid gradient", cfd::boundary::BoundarySide1D::Start, 0.0);
+    invalid_gradient.set_normal_gradient(std::numeric_limits<double>::infinity());
+    require_exception<std::invalid_argument>([&] {
+        invalid_gradient.Apply(neumann_gamma, neumann_system);
+    });
+    require_exception<std::invalid_argument>([&] {
+        cfd::boundary::NeumannBoundary1D("invalid side",
+            static_cast<cfd::boundary::BoundarySide1D>(99), 0.0);
+    });
+    cfd::boundary::NeumannBoundary1D overflowing_gradient(
+        "overflow", cfd::boundary::BoundarySide1D::Start,
+        std::numeric_limits<double>::max());
+    const double source_before_overflow = neumann_system.b(0);
+    require_exception<std::overflow_error>([&] {
+        overflowing_gradient.Apply(neumann_gamma, neumann_system);
+    });
+    require(neumann_system.b(0) == source_before_overflow &&
+                neumann_system.a_P(0) == 7.0,
+            "Rejected Neumann assembly modified the matrix");
+
     cfd::fv_matrix::FvMatrix1D system(mesh);
     cfd::fvm::Laplacian(gamma, system);
     require(system.a_P(0) == 1.0 && system.a_E(0) == -1.0 &&
