@@ -11,6 +11,11 @@ MD | Repository guidelines | AGENTS.md
 MD | Numeric types cheatsheet | NUMERIC_TYPES_CHEATSHEET.md
 MD | Technical architecture audit report | AGENT_REPORT.md
 MD | Project state | STATE.md
+MD | Task plan | TASK_PLAN.md
+MD | Vector memory mechanics | VECTOR_MEMORY_MECHANICS.md
+MD | Transport equation derivation | TRANSPORT_EQUATION_DERIVATION.md
+MD | FVM diffusion assembly | FVM_DIFFUSION_ASSEMBLY.md
+MD | Robin boundary derivation | ROBIN_BOUNDARY_DERIVATION.md
 MD | Domain geometry README | include/cfd/geometry/domain/README.md
 MD | mesh 1D README | include/cfd/mesh/mesh1d/README.md
 MD | field 1D README | include/cfd/field/field1d/README.md
@@ -53,9 +58,9 @@ CLASS | Field 1D class | include/cfd/field/field1d/field1d.hpp and src/field/fie
 CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geometry/domain/domain1d.cpp
 CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
 CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geometry/domain/domain3d.cpp
-CLASS | Uniform FV mesh 2D class | include/cfd/mesh/mesh2d/uniform_fv_mesh2d.hpp and src/mesh/mesh2d/uniform_fv_mesh2d.cpp
 CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp and src/boundary/boundary1d/dirichlet_boundary1d.cpp
 CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp
+CLASS | Robin boundary 1D class | include/cfd/boundary/boundary1d/robin_boundary1d.hpp and src/boundary/boundary1d/robin_boundary1d.cpp
 CLASS | Tridiagonal matrix class | include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp and src/linear_algebra/matrix/tridiagonal_matrix.cpp
 CLASS | TDMA solver class | include/cfd/linear_algebra/solvers/tdma_solver.hpp and src/linear_algebra/solvers/tdma_solver.cpp
 CLASS | FV matrix 1D class | include/cfd/fv_matrix/fv_matrix1d.hpp and src/fv_matrix/fv_matrix1d.cpp
@@ -65,6 +70,7 @@ FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mes
 FUNCTION | 1D Implicit Laplacian Assembly | include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp and src/finite_volume/fvm/fvm1d/laplacian1d.cpp
 FUNCTION | Central Difference Gradient Scheme | include/cfd/schemes/gradient/central_difference.hpp and src/schemes/gradient/central_difference.cpp
 FUNCTION | Distance-Weighted Arithmetic Mean Interpolation | include/cfd/schemes/interpolation/arithmetic_mean.hpp and src/schemes/interpolation/arithmetic_mean.cpp
+FUNCTION | Resistance-Weighted Harmonic Mean Interpolation | include/cfd/schemes/interpolation/harmonic_mean.hpp and src/schemes/interpolation/harmonic_mean.cpp
 
 
 # Time management
@@ -78,8 +84,8 @@ H | Distance-weighted arithmetic mean interpolation for finite field values | in
 CPP | Distance-weighted arithmetic mean interpolation implementation | src/schemes/interpolation/arithmetic_mean.cpp
 H | Resistance-weighted harmonic mean interpolation for positive diffusivities and distances | include/cfd/schemes/interpolation/harmonic_mean.hpp
 CPP | Resistance-weighted harmonic mean interpolation implementation | src/schemes/interpolation/harmonic_mean.cpp
-H | Upwind interpolation scheme placeholder | include/cfd/schemes/interpolation/upwind.hpp
-CPP | Upwind interpolation scheme placeholder | src/schemes/interpolation/upwind.cpp
+H | Upwind interpolation header | include/cfd/schemes/interpolation/upwind.hpp
+CPP | Upwind interpolation source | src/schemes/interpolation/upwind.cpp
 
 # Implicit finite volume operators
 H | DDT 1D operator header | include/cfd/finite_volume/fvm/fvm1d/ddt1d.hpp
@@ -154,9 +160,9 @@ CFG | VS Code task configuration | .vscode/tasks.json
 CFG | File manager | FILEPATH.md
 
 # Surface fields, patch boundaries, and explicit operators
-H | robin boundary1d header | include/cfd/boundary/boundary1d/robin_boundary1d.hpp
-H | div1d header | include/cfd/finite_volume/fvc/fvc1d/div1d.hpp
-H | grad1d header | include/cfd/finite_volume/fvc/fvc1d/grad1d.hpp
-CPP | robin boundary1d source | src/boundary/boundary1d/robin_boundary1d.cpp
-CPP | div1d source | src/finite_volume/fvc/fvc1d/div1d.cpp
-CPP | grad1d source | src/finite_volume/fvc/fvc1d/grad1d.cpp
+H | Robin boundary 1D header | include/cfd/boundary/boundary1d/robin_boundary1d.hpp
+H | Div 1D header | include/cfd/finite_volume/fvc/fvc1d/div1d.hpp
+H | Grad 1D header | include/cfd/finite_volume/fvc/fvc1d/grad1d.hpp
+CPP | Robin boundary 1D source | src/boundary/boundary1d/robin_boundary1d.cpp
+CPP | Div 1D source | src/finite_volume/fvc/fvc1d/div1d.cpp
+CPP | Grad 1D source | src/finite_volume/fvc/fvc1d/grad1d.cpp
