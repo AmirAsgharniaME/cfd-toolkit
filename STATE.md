@@ -1,6 +1,6 @@
 # Project State and Working Guide
 
-**Repository state inspected: November 13, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. No build or executable was run for this inspection.
+**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. The Debug build and all six standalone executables passed during this inspection.
 
 ## 1. Project purpose and working approach
 
@@ -66,9 +66,15 @@ Construction takes a name, mesh reference, and optional initial value. Storage s
 
 ### Boundary objects
 
-`DirichletBoundary1D` stores a name, side and fixed value, and exposes `Name()`, `Side()`, and `Value()`. `Apply(gamma, matrix)` validates that the coefficient field and matrix reference the same mesh object, the side and boundary data, owner-cell diffusivity, boundary-face distance and area, and finite accumulated results. It selects the boundary face (face 0 at Start, final face at End), gets that face's owner, and adds `D_b = gamma_owner * face_area / distance` to the owner's diagonal and `D_b * boundary_value` to its source, consistent with the negative diffusion operator. It is a separate accumulation step from `fvm::Laplacian`. With the current 1D mesh, face area is 1.0.
+All three classes live in `cfd::boundary` and provide `Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const` as a separate accumulation step for the negative diffusion operator. Start selects face 0 and End selects the last face; the contribution goes to `Owner(face)`. They require the field and matrix to reference the same mesh object and have sizes matching a nonempty mesh. They validate finite nonnegative owner diffusivity, positive finite owner-to-face distance and face area, and their own boundary data. Invalid inputs throw `std::invalid_argument`; nonfinite contributions or accumulated entries throw `std::overflow_error`. Each checks its complete contribution and affected accumulated entries before modifying the matrix. The current 1D face area is 1.0.
 
-`NeumannBoundary1D` stores an outward normal derivative and exposes its normal, side, type, and coordinate gradient. Coordinate gradient is `-normal_gradient` at Start and `+normal_gradient` at End. It does not assemble matrix entries. Patch boundaries are placeholders. `BoundaryType::Robin` exists as an enum value only; no mixed-boundary assembly is implemented. Shared boundary enums are in `boundary/types.hpp`; field location tags are in `field/types.hpp`.
+`DirichletBoundary1D(name, side, value)` stores the supplied data and exposes `Name()`, `Side()`, and `Value()`; it has no setters or `type()` accessor. Its constructor does not validate the side or value; `Apply` requires a valid side and finite value. It adds `D_b = gamma_owner * face_area / distance` to the owner's diagonal and `D_b * value` to its source, leaving off-diagonals unchanged.
+
+`NeumannBoundary1D` stores an outward-normal derivative, not a flux. Its three-argument constructor takes `(name, side, normal_gradient)`; its four-argument constructor takes `(name, side, gradient, GradientType)` and converts a coordinate gradient once using the outward normal. Constructors reject an invalid side or gradient type. Accessors are `name()`, `side()`, `type()` (returns `BoundaryType::Neumann`), `normal_gradient()`, `outward_normal()`, and `coordinate_gradient()`; `set_normal_gradient()` stores a new value without validation. The normal is -1 at Start and +1 at End, so the coordinate gradient is respectively the negative or the same as the normal gradient. `Apply` requires a finite stored gradient and adds `gamma_owner * normal_gradient * face_area` to the owner's source, leaving all coefficients unchanged. The positive source sign corresponds to outward diffusive flux `-gamma * normal_gradient * face_area`.
+
+`RobinBoundary1D(name, side, transfer_coefficient, ambient_value)` implements `-gamma * grad(phi) dot n_out = h * (phi_b - phi_inf)` with the first-order closure `phi_b = phi_P`. Its constructor rejects an invalid side. Accessors are `name()`, `side()`, `type()` (returns `BoundaryType::Robin`), `transfer_coefficient()`, and `ambient_value()`; `set_transfer_coefficient()` and `set_ambient_value()` store values without validation. `Apply` requires finite nonnegative `h` and a finite ambient value, then adds `h * face_area` to the owner's diagonal and `h * face_area * ambient_value` to its source at either end, leaving off-diagonals unchanged. This closure excludes center-to-face diffusion resistance: although diffusivity and distance are validated, zero diffusivity can still produce a contribution when `h` is positive.
+
+Shared boundary enums, including `GradientType`, are in `boundary/types.hpp`; field location tags are in `field/types.hpp`. The former patch boundary placeholder has been removed.
 
 ### Schemes and finite-volume operators
 
@@ -94,7 +100,7 @@ No explicit gradient/divergence, transient derivative, implicit divergence, or s
 
 - 2D/3D domain values are implemented; multidimensional meshes, fields, finite-volume matrices, operators, and equation workflows are not implemented. Mesh 2D/3D files are placeholders.
 - The FVC/FVM 1D gradient, divergence, time derivative, and source modules are placeholders. Upwind is a placeholder.
-- Neumann matrix assembly, patch boundary infrastructure, Robin/mixed assembly, full equation workflows, and a solver abstraction in `solvers/solvers1d/` are unimplemented.
+- Patch boundary infrastructure, full equation workflows, and a solver abstraction in `solvers/solvers1d/` are unimplemented. Robin assembly uses the first-order owner-cell closure described above; a closure incorporating boundary diffusion resistance is not implemented.
 - Sparse matrix, conjugate-gradient and Gauss-Seidel files are placeholders; TDMA is the implemented solver.
 - I/O writers, simulation time, transport properties, multidimensional vectors, and transport/simulation workflows are reserved. Only `Vector1D` is currently implemented.
 - Headers may be installed even when their modules are placeholders.
@@ -106,22 +112,19 @@ The examples are:
 | Target | Role |
 | --- | --- |
 | `test_domain1d` | `Domain1D` construction, update, containment, invalid-input and floating-point contracts. |
-| `test_uniform_mesh1d` | Uniform mesh, topology, orientation, distances, Neumann orientation, diffusion assembly, Dirichlet assembly, and linear TDMA checks. It also checks both boundary faces and independent start/end Dirichlet accumulation on a single-cell mesh, rejection of negative diffusivity, and reproduction of an analytical linear field in a nonuniform boundary row. The current working-tree additions have not been built or run. |
+| `test_uniform_mesh1d` | Uniform mesh, topology, orientation and distances; Neumann and Robin assembly, validation and overflow; diffusion and Dirichlet assembly; and linear TDMA checks. It also checks both boundary faces and independent start/end Dirichlet accumulation on a single-cell mesh, rejection of negative diffusivity, and reproduction of an analytical linear field in a nonuniform boundary row. |
 | `test_non_uniform_mesh1d` | Generated/nonuniform geometry contracts. |
 | `test_grading1d` | Grading distributions, symmetry, ratio conversion, endpoint anchoring and representability. |
 | `test_field1d` | Scalar/vector field allocation, access, assignment, arithmetic, views and mesh binding. |
 | `steady_heat_conduction_rod1d` | Demonstration composing mesh, fields, matrix, Laplacian, two Dirichlet boundaries and TDMA; prints coefficients and solution and waits for Enter. It is not by itself a numerical assertion. |
 
-Historical records in the previous state notes: library/all-target builds succeeded at earlier development steps; earlier runs of `test_domain1d`, `test_non_uniform_mesh1d`, `test_grading1d`, and `test_field1d` exited 0. On November 11, 2026, a `test_uniform_mesh1d` run exited 1 with `Internal diffusion stencil is incorrect`. A rod demo run on that date exited 0 and printed `[400, 350, 300, 250, 200]` for five cells on `[0,1]`, unit diffusivity and endpoint values 400/200, but this was before the current mesh/API refactor and was not an assertion-based validation. Earlier output parity against a prior revision was also recorded, but does not validate current operator behavior.
-
-**Current verification status:** no build or executable was run after the current uncommitted changes. The working tree changes `DirichletBoundary1D::side()` to `Side()`, makes boundary assembly explicitly use the selected boundary face's owner, area, and owner-to-face distance, and extends `test_uniform_mesh1d` with single-cell accumulation, invalid-diffusivity, and nonuniform analytical-row checks. The earlier mesh distance-query mismatch is resolved, but the current working tree has not been compiled or exercised. Do not treat historical results as validation of the current tree. Useful follow-up checks are a build of all targets and all six standalone executables, with stdin redirected for examples that pause.
+**Verification on November 15, 2026:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug` and `cmake --build build --parallel` succeeded. All six executables above exited 0 when run from `build/bin` with stdin redirected from `/dev/null`. The rod demonstration printed cell-center temperatures `[380, 340, 300, 260, 220]`; its output is illustrative rather than an independent numerical assertion. These results apply to the inspected tree and do not guarantee later changes.
 
 ## 7. Practical investigation priorities
 
-1. Build the current tree and run the uniform-mesh target to validate the updated boundary accessor and assembly behavior; address any compile or contract failures found.
-2. Verify internal stencil signs and coefficients for both rows and on one-cell, two-cell, uniform, graded, discontinuous-diffusivity and zero-diffusivity cases. Check symmetry/conservation where applicable, and test the Dirichlet contributions plus the linear rod solution.
-3. Run all configured examples after the API/build issue is fixed; record exact commands and outcomes. Avoid presenting a demo's successful exit as proof of numerical correctness.
-4. Extend boundary conditions, operators, dimensions, and solver workflows only with explicit contracts and numerical checks alongside the implementation.
+1. For numerical changes, verify internal stencil signs and coefficients for both rows and relevant mesh and diffusivity cases, including symmetry and conservation where applicable.
+2. Run relevant standalone checks and record results; avoid presenting a demo's successful exit as proof of numerical correctness.
+3. Extend boundary conditions, operators, dimensions, and solver workflows with explicit contracts and numerical checks alongside the implementation.
 
 ## 8. Key paths
 
