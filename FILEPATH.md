@@ -154,9 +154,9 @@ CFG | VS Code task configuration | .vscode/tasks.json
 CFG | File manager | FILEPATH.md
 
 # Surface fields, patch boundaries, and explicit operators
-H | patch boundary1d header | include/cfd/boundary/boundary1d/patch_boundary1d.hpp
+H | robin boundary1d header | include/cfd/boundary/boundary1d/robin_boundary1d.hpp
 H | div1d header | include/cfd/finite_volume/fvc/fvc1d/div1d.hpp
 H | grad1d header | include/cfd/finite_volume/fvc/fvc1d/grad1d.hpp
-CPP | patch boundary1d source | src/boundary/boundary1d/patch_boundary1d.cpp
+CPP | robin boundary1d source | src/boundary/boundary1d/robin_boundary1d.cpp
 CPP | div1d source | src/finite_volume/fvc/fvc1d/div1d.cpp
 CPP | grad1d source | src/finite_volume/fvc/fvc1d/grad1d.cpp

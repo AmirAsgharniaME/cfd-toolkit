@@ -25,6 +25,22 @@ NeumannBoundary1D::NeumannBoundary1D(std::string name, BoundarySide1D side,
     }
 }
 
+NeumannBoundary1D::NeumannBoundary1D(std::string name, BoundarySide1D side, double gradient,
+                                     GradientType type)
+    : NeumannBoundary1D(std::move(name), side, gradient)
+{
+    switch (type)
+    {
+        case GradientType::Normal:
+            break;
+        case GradientType::Coordinate:
+            normal_gradient_ = outward_normal() * gradient;
+            break;
+        default:
+            throw std::invalid_argument("Invalid Neumann gradient type");
+    }
+}
+
 const std::string& NeumannBoundary1D::name() const noexcept
 {
     return name_;

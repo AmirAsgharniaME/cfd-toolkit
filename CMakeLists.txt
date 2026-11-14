@@ -17,7 +17,7 @@ add_library(cfd_toolkit STATIC
     # Boundary conditions
     src/boundary/boundary1d/dirichlet_boundary1d.cpp
     src/boundary/boundary1d/neumann_boundary1d.cpp
-    src/boundary/boundary1d/patch_boundary1d.cpp
+    src/boundary/boundary1d/robin_boundary1d.cpp
 
     # Volume and surface fields
     src/field/field1d/field1d.cpp

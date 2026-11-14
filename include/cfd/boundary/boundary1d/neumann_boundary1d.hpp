@@ -34,6 +34,29 @@ public:
      */
     NeumannBoundary1D(std::string name, BoundarySide1D side, double normal_gradient);
 
+    /**
+     * @brief Construct a Neumann boundary condition from a gradient of the given type.
+     *
+     * The outward unit normal is \f$n_x=-1\f$ at BoundarySide1D::Start and
+     * \f$n_x=+1\f$ at BoundarySide1D::End. The value is converted once, at
+     * construction, to the outward-normal derivative
+     * \f$g_n=\nabla\phi\cdot\mathbf{n}_{\mathrm{out}}\f$ that is stored:
+     * - GradientType::Normal: \p gradient is already \f$g_n\f$ and is used directly.
+     * - GradientType::Coordinate: \p gradient is \f$\partial\phi/\partial x\f$ and
+     *   \f$g_n=n_x\,\partial\phi/\partial x\f$.
+     *
+     * Assembly then adds \f$\Gamma_b A_b g_n\f$ to the boundary owner's source
+     * exactly once, with no further sign change and no matrix coefficient change.
+     *
+     * @param name Descriptive identifier.
+     * @param side Boundary location.
+     * @param gradient Prescribed gradient, interpreted according to \p type.
+     * @param type Meaning of \p gradient.
+     * @throws std::invalid_argument if side or type is not a valid enumerator.
+     */
+    NeumannBoundary1D(std::string name, BoundarySide1D side, double gradient,
+                      GradientType type);
+
     /// @brief Return the boundary name.
     [[nodiscard]] const std::string& name() const noexcept;
     /// @brief Return whether this boundary is at the start or end of the domain.

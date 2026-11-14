@@ -1,22 +1,29 @@
 #pragma once
+#include <cstdint>
 
 #include <string_view>
 
 namespace cfd::boundary
 {
 
-enum class BoundaryType
+enum class BoundaryType : std::uint8_t
 {
     Dirichlet,
     Neumann,
     Robin
 };
 
-enum class BoundarySide1D
+enum class BoundarySide1D : std::uint8_t
 {
     Start,
     End
 };
+
+enum class GradientType : std::uint8_t
+{ 
+    Normal, 
+    Coordinate
+ };
 
 [[nodiscard]] constexpr std::string_view to_string(BoundarySide1D side) noexcept
 {

@@ -11,6 +11,7 @@
 
 #include <cfd/boundary/boundary1d/dirichlet_boundary1d.hpp>
 #include <cfd/boundary/boundary1d/neumann_boundary1d.hpp>
+#include <cfd/boundary/boundary1d/robin_boundary1d.hpp>
 #include <cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp>
 #include <cfd/fv_matrix/fv_matrix1d.hpp>
 #include <cfd/linear_algebra/solvers/tdma_solver.hpp>
@@ -155,6 +156,41 @@ void check_contracts()
                 neumann_system.b(0) > 0.0,
             "Neumann assembly must not apply the start outward-normal sign twice");
 
+    {
+        using cfd::boundary::BoundarySide1D;
+        using cfd::boundary::GradientType;
+        cfd::fv_matrix::FvMatrix1D typed_system(mesh);
+        typed_system.Set_a_P(0, 7.0);
+        typed_system.Set_a_P(3, 9.0);
+        const double b0 = typed_system.b(0);
+        const double b3 = typed_system.b(3);
+        cfd::boundary::NeumannBoundary1D("s_coord", BoundarySide1D::Start, 2.0,
+                                         GradientType::Coordinate)
+            .Apply(neumann_gamma, typed_system);
+        require(typed_system.b(0) - b0 == -4.0 && typed_system.a_P(0) == 7.0,
+                "Start coordinate gradient +2 must give g_n = -2 and b change -2*Gamma*A");
+        cfd::boundary::NeumannBoundary1D("e_coord", BoundarySide1D::End, 2.0,
+                                         GradientType::Coordinate)
+            .Apply(neumann_gamma, typed_system);
+        require(typed_system.b(3) - b3 == 10.0 && typed_system.a_P(3) == 9.0,
+                "End coordinate gradient +2 must give g_n = +2 and b change +2*Gamma*A");
+        const cfd::boundary::NeumannBoundary1D s_normal("s_normal", BoundarySide1D::Start,
+                                                        2.0, GradientType::Normal);
+        const cfd::boundary::NeumannBoundary1D e_normal("e_normal", BoundarySide1D::End,
+                                                        2.0, GradientType::Normal);
+        require(s_normal.normal_gradient() == 2.0 && e_normal.normal_gradient() == 2.0,
+                "Normal gradient input must be used directly");
+        s_normal.Apply(neumann_gamma, typed_system);
+        e_normal.Apply(neumann_gamma, typed_system);
+        require(typed_system.b(0) - b0 == -4.0 + 4.0 && typed_system.b(3) - b3 == 20.0 &&
+                    typed_system.a_P(0) == 7.0 && typed_system.a_P(3) == 9.0,
+                "Normal gradient assembly must add Gamma*A*g_n and keep the diagonal");
+        require_exception<std::invalid_argument>([&] {
+            cfd::boundary::NeumannBoundary1D("bad", BoundarySide1D::Start, 1.0,
+                                             static_cast<GradientType>(99));
+        });
+    }
+
     const FvMesh1D other_mesh(Domain1D(0.0, 1.0), 4);
     cfd::field::VolScalarField1D other_gamma("other gamma", other_mesh, 1.0);
     require_exception<std::invalid_argument>([&] {
@@ -189,6 +225,51 @@ void check_contracts()
     require(neumann_system.b(0) == source_before_overflow &&
                 neumann_system.a_P(0) == 7.0,
             "Rejected Neumann assembly modified the matrix");
+
+    {
+        using cfd::boundary::BoundarySide1D;
+        using cfd::boundary::RobinBoundary1D;
+        cfd::fv_matrix::FvMatrix1D robin_system(mesh);
+        robin_system.Set_a_P(0, 7.0);
+        robin_system.Set_a_P(3, 9.0);
+        robin_system.Set_b(0, 1.0);
+        robin_system.Set_b(3, 2.0);
+        robin_system.Set_a_E(0, -3.0);
+        robin_system.Set_a_W(3, -4.0);
+        RobinBoundary1D start("start", BoundarySide1D::Start, 2.0, 3.0);
+        RobinBoundary1D end("end", BoundarySide1D::End, 2.0, 3.0);
+        require(start.name() == "start" && start.side() == BoundarySide1D::Start &&
+                    start.type() == cfd::boundary::BoundaryType::Robin &&
+                    start.transfer_coefficient() == 2.0 && start.ambient_value() == 3.0,
+                "Robin accessors are incorrect");
+        start.Apply(neumann_gamma, robin_system);
+        end.Apply(neumann_gamma, robin_system);
+        require(robin_system.a_P(0) == 9.0 && robin_system.a_P(3) == 11.0 &&
+                    robin_system.b(0) == 7.0 && robin_system.b(3) == 8.0 &&
+                    robin_system.a_E(0) == -3.0 && robin_system.a_W(3) == -4.0,
+                "Robin assembly must add the same positive contribution at both ends");
+        require_exception<std::invalid_argument>([&] {
+            RobinBoundary1D("invalid", static_cast<BoundarySide1D>(99), 1.0, 1.0);
+        });
+        require_exception<std::invalid_argument>([&] { start.Apply(other_gamma, robin_system); });
+        require_exception<std::invalid_argument>([&] { start.Apply(invalid_neumann_gamma, robin_system); });
+        start.set_transfer_coefficient(std::numeric_limits<double>::infinity());
+        require_exception<std::invalid_argument>([&] { start.Apply(neumann_gamma, robin_system); });
+        start.set_transfer_coefficient(-1.0);
+        require_exception<std::invalid_argument>([&] { start.Apply(neumann_gamma, robin_system); });
+        start.set_transfer_coefficient(2.0);
+        start.set_ambient_value(std::numeric_limits<double>::quiet_NaN());
+        require_exception<std::invalid_argument>([&] { start.Apply(neumann_gamma, robin_system); });
+        start.set_ambient_value(std::numeric_limits<double>::max());
+        require_exception<std::overflow_error>([&] { start.Apply(neumann_gamma, robin_system); });
+        require(robin_system.a_P(0) == 9.0 && robin_system.b(0) == 7.0,
+                "Rejected Robin assembly modified the matrix");
+        start.set_transfer_coefficient(0.0);
+        start.set_ambient_value(3.0);
+        start.Apply(neumann_gamma, robin_system);
+        require(robin_system.a_P(0) == 9.0 && robin_system.b(0) == 7.0,
+                "Zero Robin transfer coefficient must not change the row");
+    }
 
     cfd::fv_matrix::FvMatrix1D system(mesh);
     cfd::fvm::Laplacian(gamma, system);
