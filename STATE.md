@@ -1,6 +1,6 @@
 # Project State and Working Guide
 
-**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun. The current working-tree `Source1D` and shared boundary-base changes have not been built or exercised as part of this update.
+**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun. The current working-tree `Source1D`, shared boundary-base, and boundary type string-conversion changes have not been built or exercised as part of this update.
 
 ## Architectural vision
 
@@ -82,7 +82,7 @@ All three derived classes live in `cfd::boundary` and provide `Apply(const field
 
 `RobinBoundary1D(name, side, transfer_coefficient, ambient_value)` implements `-gamma * grad(phi) dot n_out = h * (phi_b - phi_inf)` with the first-order closure `phi_b = phi_P`. Its constructor rejects an invalid side. Accessors are `name()`, `side()`, `type()` (returns `BoundaryType::Robin`), `transfer_coefficient()`, and `ambient_value()`; `set_transfer_coefficient()` and `set_ambient_value()` store values without validation. `Apply` requires finite nonnegative `h` and a finite ambient value, then adds `h * face_area` to the owner's diagonal and `h * face_area * ambient_value` to its source at either end, leaving off-diagonals unchanged. This closure excludes center-to-face diffusion resistance: although diffusivity and distance are validated, zero diffusivity can still produce a contribution when `h` is positive.
 
-Shared boundary enums, including `GradientType`, are in `boundary/types.hpp`; field location tags are in `field/types.hpp`. The former patch boundary placeholder has been removed.
+Shared boundary enums, including `GradientType`, are in `boundary/types.hpp`; `to_string(BoundaryType)` and `to_string(BoundarySide1D)` return their names or `"Unknown"` for unrecognized values. Field location tags are in `field/types.hpp`. The former patch boundary placeholder has been removed.
 
 ### Schemes and finite-volume operators
 
@@ -138,12 +138,12 @@ The five contract-check programs are stored under `tests/`; the rod demonstratio
 
 ### Current status and next steps
 
-The 1D constant volumetric source operator and its translation-unit-local preflight are implemented and included in the explicit library source list. The shared `BoundaryCondition1D` base and common assembly preflight are implemented in the working tree, and the uniform-mesh check now contains inheritance, virtual dispatch, and rejected-assembly atomicity assertions. Remaining work includes building and running checks for these latest changes, adding contract coverage for source assembly, and continuing the broader operator, multidimensional, and equation-solver work described above.
+The 1D constant volumetric source operator and its translation-unit-local preflight are implemented and included in the explicit library source list. The shared `BoundaryCondition1D` base and common assembly preflight are implemented, and the derived boundary implementations use `to_string(BoundaryType)` for diagnostic labels. The uniform-mesh check contains inheritance, virtual dispatch, and rejected-assembly atomicity assertions. Remaining work includes building and running checks for these latest changes, adding contract coverage for source assembly, and continuing the broader operator, multidimensional, and equation-solver work described above.
 
 ### Open questions
 
 - The current standalone checks do not include a dedicated `Source1D` contract check, and its implementation has not been built or run during this update. Its runtime behavior therefore remains unverified here.
-- The shared boundary-base refactor and its added uniform-mesh assertions have not been built or run during this update, so their compile-time and runtime verification remains outstanding.
+- The shared boundary-base refactor, its added uniform-mesh assertions, and the current boundary type string-conversion edits have not been built or run during this update, so their compile-time and runtime verification remains outstanding.
 
 ## 8. Key paths
 
@@ -161,3 +161,4 @@ Use the current `finite_volume/fvc`, `finite_volume/fvm`, `field1d`, and `fv_mes
 
 - **2026-11-15:** Updated the state guide for the `Source1D` constant volumetric source implementation, its translation-unit-local preflight helper, corrected the FVM placeholder/status descriptions, and recorded the verification gap and next steps.
 - **2026-11-15:** Updated the state guide for the shared polymorphic `BoundaryCondition1D` base, centralized assembly preflight, derived-class virtual dispatch, added uniform-mesh assertions, and outstanding verification.
+- **2026-11-15:** Recorded the `BoundaryType` string conversion and its use in boundary diagnostic labels, and included the unbuilt working-tree edits in the verification status.

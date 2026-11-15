@@ -38,4 +38,20 @@ enum class GradientType : std::uint8_t
     return "Unknown";
 }
 
+[[nodiscard]] constexpr std::string_view to_string(BoundaryType BoundaryType_) noexcept
+{
+    switch (BoundaryType_)
+    {
+        case BoundaryType::Dirichlet:
+            return "Dirichlet";
+        case BoundaryType::Neumann:
+            return "Neumann";
+        case BoundaryType::Robin:
+            return "Robin";
+    }
+
+    return "Unknown";
+}
+
+
 }  // namespace cfd::boundary

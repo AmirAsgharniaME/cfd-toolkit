@@ -39,7 +39,10 @@ void RobinBoundary1D::Apply(const field::VolScalarField1D& gamma,
     if (!std::isfinite(ambient_value_))
         throw std::invalid_argument("Robin ambient value must be finite");
 
-    const BoundaryAssemblyContext1D context = Prepare_Assembly(gamma, matrix, "Robin");
+    const BoundaryAssemblyContext1D context = Prepare_Assembly(
+        gamma,
+        matrix,
+        to_string(BoundaryType::Robin));
     const std::size_t owner = context.owner;
 
     const double boundary_diagonal = transfer_coefficient_ * context.face_area;

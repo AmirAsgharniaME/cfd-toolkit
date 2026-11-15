@@ -1,5 +1,6 @@
 #include "cfd/boundary/boundary1d/dirichlet_boundary1d.hpp"
 
+#include "cfd/boundary/types.hpp"
 #include "cfd/fv_matrix/fv_matrix1d.hpp"
 
 #include <cmath>
@@ -27,7 +28,10 @@ void DirichletBoundary1D::Apply(const field::VolScalarField1D& gamma,
         throw std::invalid_argument("Dirichlet boundary value must be finite");
     }
 
-    const BoundaryAssemblyContext1D context = Prepare_Assembly(gamma, matrix, "Dirichlet");
+    const BoundaryAssemblyContext1D context = Prepare_Assembly(
+        gamma,
+        matrix,
+        to_string(BoundaryType::Dirichlet));
     const std::size_t owner = context.owner;
 
     const double D_b =

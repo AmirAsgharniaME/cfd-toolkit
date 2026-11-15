@@ -86,7 +86,10 @@ void NeumannBoundary1D::Apply(const field::VolScalarField1D& gamma,
         throw std::invalid_argument("Neumann normal gradient must be finite");
     }
 
-    const BoundaryAssemblyContext1D context = Prepare_Assembly(gamma, matrix, "Neumann");
+    const BoundaryAssemblyContext1D context = Prepare_Assembly(
+        gamma,
+        matrix,
+        to_string(BoundaryType::Neumann));
     const std::size_t owner = context.owner;
 
     const double boundary_source =

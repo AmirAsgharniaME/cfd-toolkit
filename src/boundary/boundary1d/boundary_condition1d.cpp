@@ -59,6 +59,7 @@ BoundaryAssemblyContext1D BoundaryCondition1D::Prepare_Assembly(
             throw std::invalid_argument("Invalid " + condition + " boundary side");
     }
 
+
     const std::size_t owner = mesh.Owner(face_id);
     if (owner >= n_cells)
     {

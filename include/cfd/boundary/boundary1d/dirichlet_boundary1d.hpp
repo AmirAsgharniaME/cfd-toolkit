@@ -4,8 +4,6 @@
 
 #include <string>
 
-#include <string>
-
 namespace cfd::fv_matrix
 {
 class FvMatrix1D;
