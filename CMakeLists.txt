@@ -6,7 +6,8 @@ project(cfd-toolkit
     LANGUAGES CXX
 )
 
-option(BUILD_EXAMPLES "Build cfd-toolkit example/sanity executables" ON)
+option(BUILD_TESTS "Build cfd-toolkit standalone check executables" ON)
+option(BUILD_EXAMPLES "Build cfd-toolkit demonstration executables" ON)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -142,9 +143,9 @@ install(FILES
     DESTINATION "${cfd_toolkit_cmake_dir}"
 )
 
-if(BUILD_EXAMPLES)
+if(BUILD_TESTS)
     add_executable(test_domain1d
-        examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
+        tests/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
     )
     target_link_libraries(test_domain1d PRIVATE cfd_toolkit)
     set_target_properties(test_domain1d PROPERTIES
@@ -152,7 +153,7 @@ if(BUILD_EXAMPLES)
     )
 
     add_executable(test_uniform_mesh1d
-        examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
+        tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
     )
     target_link_libraries(test_uniform_mesh1d PRIVATE cfd_toolkit)
     set_target_properties(test_uniform_mesh1d PROPERTIES
@@ -160,7 +161,7 @@ if(BUILD_EXAMPLES)
     )
 
     add_executable(test_non_uniform_mesh1d
-        examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
+        tests/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
     )
     target_link_libraries(test_non_uniform_mesh1d PRIVATE cfd_toolkit)
     set_target_properties(test_non_uniform_mesh1d PROPERTIES
@@ -168,7 +169,7 @@ if(BUILD_EXAMPLES)
     )
 
     add_executable(test_grading1d
-        examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
+        tests/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
     )
     target_link_libraries(test_grading1d PRIVATE cfd_toolkit)
     set_target_properties(test_grading1d PROPERTIES
@@ -176,15 +177,18 @@ if(BUILD_EXAMPLES)
     )
 
     add_executable(test_field1d
-        examples/test_field/test_field1d/test_field1d.cpp
+        tests/test_field/test_field1d/test_field1d.cpp
     )
     target_link_libraries(test_field1d PRIVATE cfd_toolkit)
     set_target_properties(test_field1d PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
+endif()
+
+if(BUILD_EXAMPLES)
     add_executable(steady_heat_conduction_rod1d
-        examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp
+        examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp
     )
     target_link_libraries(steady_heat_conduction_rod1d PRIVATE cfd_toolkit)
     set_target_properties(steady_heat_conduction_rod1d PROPERTIES

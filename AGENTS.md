@@ -42,20 +42,30 @@ Uniform and graded meshes preserve endpoints exactly. Zero cells, invalid geomet
 
 `Field1D<ValueType, LocationTag>` in `cfd::field` supports `double` and `cfd::vector::Vector1D` at `CellLocation` and `FaceLocation`. The aliases are `VolScalarField1D`, `SurfaceScalarField1D`, `VolVectorField1D`, and `SurfaceVectorField1D`; include `field1d/field1d.hpp` for the field class and aliases, and `field1d/field1d_operators.hpp` for non-member binary arithmetic operators. `Vector1D` is defined in `include/cfd/vector/vector1d.hpp`, and vector fields use that relocated type in their declarations, aliases, explicit instantiations, and example. The field constructor takes a name, an `FvMesh1D` reference, and an optional initial value; it sizes storage with `N_Cells()` or `N_Faces()`. The mesh must outlive the field and remain unmoved while fields exist. The API provides `Name()`, `Mesh()`, `size()`, face-only `N_Faces()`, `values()` / `span()` read-write spans, legacy `Values()`, `Fill()`, unchecked `operator[]`, checked `at()`, and arithmetic. Copy and move construction preserve the mesh reference; assignment and field arithmetic require mesh object identity and matching storage size. Field multiplication and division are available for scalar fields; both value types support addition, subtraction, and scalar scaling. Division by zero throws `std::invalid_argument`. All four combinations are explicitly instantiated in `field1d.cpp`. Non-const rvalue mesh binding is deleted. `FieldLocation` is separate and is not used by these classes.
 
-The public 1D API naming cleanup changed field and matrix size queries to `size()`, matrix mutations to `Set_*` / `Add_*`, tridiagonal coefficient accessors to `Diag` / `Lower` / `Upper` / `Source` (with vector overloads), and the diffusion entry points to `fvm::Laplacian`, `DirichletBoundary1D::Apply`, `NeumannBoundary1D::Apply`, and `RobinBoundary1D::Apply`. The field and matrix examples use these names. The uniform-mesh example checks canonical face orientation through `s_f` and `e_ON` and checks face-based geometry on uniform and graded meshes. A library-only build is available with `-DBUILD_EXAMPLES=OFF`.
+The public 1D API naming cleanup changed field and matrix size queries to `size()`, matrix mutations to `Set_*` / `Add_*`, tridiagonal coefficient accessors to `Diag` / `Lower` / `Upper` / `Source` (with vector overloads), and the diffusion entry points to `fvm::Laplacian`, `DirichletBoundary1D::Apply`, `NeumannBoundary1D::Apply`, and `RobinBoundary1D::Apply`. The field and matrix examples use these names. The uniform-mesh check checks canonical face orientation through `s_f` and `e_ON` and checks face-based geometry on uniform and graded meshes. A library-only build disables both executable groups with `-DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF`.
 
 `CMakeLists.txt` keeps the library source list explicit and grouped by subsystem;
-new implementation files must be added there deliberately. The boundary source group includes Dirichlet, Neumann, and Robin implementations. Standalone example
-executables are registered under `BUILD_EXAMPLES` and their files are nested
-by component and dimension:
+new implementation files must be added there deliberately. The boundary source
+group includes Dirichlet, Neumann, and Robin implementations. The five
+standalone contract-check executables are registered under `BUILD_TESTS` and
+their source files live under `tests/`:
 
-- `test_domain1d`: `examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp` (checks `Domain1D` contracts; `Domain2D` and `Domain3D` are implemented but are not covered by this example currently).
-- `test_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`.
-- `test_non_uniform_mesh1d`: `examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`.
-- `test_grading1d`: `examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
-- `test_field1d`: `examples/test_field/test_field1d/test_field1d.cpp` (checks scalar and vector field allocation, access, assignment, and arithmetic).
+- `test_domain1d`: `tests/test_geometry/test_domain/test_domain1d/test_domain1d.cpp` (checks `Domain1D` contracts; `Domain2D` and `Domain3D` are implemented but are not covered by this check currently).
+- `test_uniform_mesh1d`: `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`.
+- `test_non_uniform_mesh1d`: `tests/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`.
+- `test_grading1d`: `tests/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`.
+- `test_field1d`: `tests/test_field/test_field1d/test_field1d.cpp` (checks scalar and vector field allocation, access, assignment, and arithmetic).
 
-`steady_heat_conduction_rod1d` is registered under `BUILD_EXAMPLES` from `examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp`. It creates a uniform 1D mesh, temperature and diffusivity fields, a mesh-bound `FvMatrix1D`, and start/end Dirichlet boundary objects. It assembles internal-face contributions with `fvm::Laplacian`, applies both boundary contributions with `DirichletBoundary1D::Apply`, solves the tridiagonal system with `TDMASolver`, stores and prints the resulting temperature field, and prints the assembled coefficients. The example pauses for Enter before exiting. Dirichlet boundary assembly remains a separate API.
+The `steady_heat_conduction_rod1d` demonstration is registered under
+`BUILD_EXAMPLES` from
+`examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp`. It
+creates a uniform 1D mesh, temperature and diffusivity fields, a mesh-bound
+`FvMatrix1D`, and start/end Dirichlet boundary objects. It assembles
+internal-face contributions with `fvm::Laplacian`, applies both boundary
+contributions with `DirichletBoundary1D::Apply`, solves the tridiagonal system
+with `TDMASolver`, stores and prints the resulting temperature field, and prints
+the assembled coefficients. The demonstration pauses for Enter before exiting.
+Dirichlet boundary assembly remains a separate API.
 
 The rod example uses five uniform cells on `[0, 1]`, unit diffusivity, and fixed temperatures of 400 and 200 at the start and end. It calls the by-value TDMA overload, leaving the assembled coefficients available to print after the solve. It is a demonstration executable; numerical contract checks for diffusion assembly and a linear TDMA solution are in `test_uniform_mesh1d`.
 
@@ -76,13 +86,13 @@ cmake --build build --parallel
 ./build/bin/steady_heat_conduction_rod1d < /dev/null
 ```
 
-Configuration enables examples by default through `BUILD_EXAMPLES`; pass `-DBUILD_EXAMPLES=OFF` for a library-only build. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_field1d`. The domain, uniform-mesh, field, and steady heat conduction examples call `std::cin.get()`, so redirect stdin for unattended runs; the non-uniform mesh contract check exits directly.
+`BUILD_TESTS` and `BUILD_EXAMPLES` are separate options, both enabled by default: the first builds the five contract checks from `tests/`, and the second builds the rod demonstration from `examples/steady_heat_conduction_rod1d/`. Disable both for a library-only build with `-DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF`. Executables go to `${CMAKE_BINARY_DIR}/bin`. Build a single check with `cmake --build build --target test_field1d`. The domain, uniform-mesh, field, and rod demonstration programs call `std::cin.get()`, so redirect stdin for unattended runs; the non-uniform mesh contract check exits directly.
 
 The root CMake configuration builds the static `cfd_toolkit` library with the in-tree alias `cfd::toolkit`. C++20 is a public target requirement, and include paths use separate build/install interfaces. No external dependencies are currently declared. Installation uses `GNUInstallDirs` and exports `cfd::toolkit`; consumers call `find_package(cfd-toolkit CONFIG REQUIRED)` and link that target. The package config template is `cmake/cfd-toolkitConfig.cmake.in`; generated config, version, and target files are installed under `${CMAKE_INSTALL_LIBDIR}/cmake/cfd-toolkit`, with `SameMajorVersion` compatibility. To check installation, use `cmake --install build --prefix /tmp/cfd-toolkit-install` after building.
 
-Sources are listed explicitly rather than discovered by globbing. Adding a `.cpp` under `src/` does not include it in the build. Installation copies the entire `include/` directory, including component documentation and placeholder headers; installed presence does not establish API completeness. Example executables are built only when `BUILD_EXAMPLES` is enabled and are not installed.
+Sources are listed explicitly rather than discovered by globbing. Adding a `.cpp` under `src/` does not include it in the build. Installation copies the entire `include/` directory, including component documentation and placeholder headers; installed presence does not establish API completeness. Contract-check executables are built only when `BUILD_TESTS` is enabled, and the demonstration executable is built only when `BUILD_EXAMPLES` is enabled; neither group is installed.
 
-The CMake source list still labels the scheme group as placeholders, but central difference and arithmetic and harmonic interpolation are implemented; upwind remains a placeholder. All six current example targets have corresponding `.vscode/launch.json` configurations.
+The CMake source list still labels the scheme group as placeholders, but central difference and arithmetic and harmonic interpolation are implemented; upwind remains a placeholder. All six standalone executable targets, including the five checks under `tests/` and the rod demonstration under `examples/`, have corresponding `.vscode/launch.json` configurations.
 
 ## Coding Style & Naming Conventions
 
@@ -98,7 +108,7 @@ Add new implementation files explicitly to `CMakeLists.txt`. GNU/Clang builds en
 
 ## Testing Guidelines
 
-Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Follow the `test_<component>` naming pattern and register new executables in CMake. Whenever an executable file is created, deleted, or renamed, update both `CMakeLists.txt` and `.vscode/launch.json` accordingly so the executable build entries and launch configurations stay in sync. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
+Checks are standalone executables; no testing framework, CTest registration, or coverage threshold is configured. Keep contract-check sources under `tests/` and demonstrations under `examples/`. Follow the `test_<component>` naming pattern and register new executable targets in CMake. Whenever an executable target is created, deleted, or renamed, update both `CMakeLists.txt` and `.vscode/launch.json` accordingly so target names and launch configurations stay in sync; when a source file moves, update its explicit CMake path and the root `FILEPATH.md` inventory. For numerical changes, exercise normal values, invalid inputs, boundary cases, and floating-point limits. Prefer checks that return a nonzero status on failure; inspect output from demonstration-only examples.
 
 `test_domain1d` checks `Domain1D` contracts including invalid values, floating-point limits, containment, equality, and rejected updates. The separate 2D and 3D domain APIs are implemented but are not covered by the current domain example. `test_field1d` checks scalar and vector field allocation and arithmetic, uniform and nonuniform mesh binding, mesh identity, copy/move construction and assignment, mutable and const span access, location-specific types, checked indexing, incompatible fields, and zero division. The mesh examples check explicit and generated geometry, represented interval lengths, storage sizes, invalid faces and inputs, floating-point limits, all grading distributions, symmetric patterns, ratio-one limits, exact endpoint anchoring, center representability, and total-ratio conversion. `test_uniform_mesh1d` also checks face areas, ownership, face orientation and distances (including both boundary faces on a single-cell mesh and graded meshes), Neumann normal and coordinate gradient orientation and source assembly (start/end signs, unchanged coefficients, zero gradient, mesh mismatch, invalid diffusivity/gradient/side/type, and overflow without partial matrix modification), Robin assembly at both ends (including accessors, zero transfer, invalid inputs, mesh mismatch, overflow, and unchanged rows on rejection), internal plus Dirichlet diffusion assembly, including a linear TDMA solution and independent accumulation of the start and end boundary contributions in the single-cell case, and an analytical linear-field boundary row on a non-uniform mesh. These checks return nonzero on failed contracts.
 

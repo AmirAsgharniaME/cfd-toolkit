@@ -143,12 +143,12 @@ H | Source 1D operator header | include/cfd/finite_volume/fvm/fvm1d/source1d.hpp
 CPP | Source 1D operator source | src/finite_volume/fvm/fvm1d/source1d.cpp
 
 # Tests and example executables
-EXE | Test domain 1D executable source | examples/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
-EXE | Test field 1D executable source | examples/test_field/test_field1d/test_field1d.cpp
-EXE | Test uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
-EXE | Test non uniform mesh 1D executable source | examples/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
-EXE | Test grading 1D executable source | examples/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
-EXE | Steady heat conduction rod 1D executable source | examples/test_solvers/test_solvers1d/test_diffusion1d/steady_heat_conduction_rod1d.cpp
+EXE | Test domain 1D executable source | tests/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
+EXE | Test field 1D executable source | tests/test_field/test_field1d/test_field1d.cpp
+EXE | Test uniform mesh 1D executable source | tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp
+EXE | Test non uniform mesh 1D executable source | tests/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp
+EXE | Test grading 1D executable source | tests/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp
+EXE | Steady heat conduction rod 1D executable source | examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp
 
 
 # Project configuration

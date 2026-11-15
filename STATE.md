@@ -1,6 +1,12 @@
 # Project State and Working Guide
 
-**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. The Debug build and all six standalone executables passed during this inspection.
+**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun.
+
+## Architectural vision
+
+OpenFOAM is the guiding architectural model for this C++20 CFD library. Its object model, naming conventions, owner/neighbour face topology, separation of fields, meshes and operators, and face-based assembly loops inform the long-term design. When proposing or reviewing design decisions, prefer applicable OpenFOAM idioms over arbitrary alternatives.
+
+The project is a simplified, educational mini-OpenFOAM and a learning vehicle for understanding the finite volume method from scratch, with research use in mind. Aim for **OpenFOAM-like, not OpenFOAM-equivalent**: defer or omit complexity that is not needed for learning or the current research scope. Avoid introducing enterprise-level abstractions prematurely.
 
 ## 1. Project purpose and working approach
 
@@ -15,7 +21,7 @@ The project favors clearly separated responsibilities:
 - Operators and boundary objects accumulate into an existing matrix; the caller controls assembly order, reset, and solve.
 - Independent schemes (gradient and interpolation) are separate APIs, not hidden mesh behavior.
 
-When addressing user changes or reported issues, first identify which layer owns the behavior, verify exact current names in its header, and preserve these seams. Treat presence of a header or source file as insufficient evidence that its API is implemented. The repository's standalone examples are contract checks or demonstrations, not a complete test framework.
+When addressing user changes or reported issues, first identify which layer owns the behavior, verify exact current names in its header, and preserve these seams. Treat presence of a header or source file as insufficient evidence that its API is implemented. The repository's standalone check programs and demonstration are not a complete test framework.
 
 ## 2. Governing repository rules and contributor preferences
 
@@ -32,11 +38,11 @@ These rules are part of the project state and should guide future work:
 ## 3. Build, package, and executable layout
 
 - CMake minimum is 3.20; project version is 0.1.0. The static library target is `cfd_toolkit`, with alias `cfd::toolkit`; C++20 is a public target feature. No external dependencies are declared.
-- `BUILD_EXAMPLES` defaults to ON. There are six standalone targets; executables are placed in `${CMAKE_BINARY_DIR}/bin`. There is no CTest registration.
+- `BUILD_TESTS` and `BUILD_EXAMPLES` both default to ON. `BUILD_TESTS` controls the five standalone contract-check targets under `tests/`; `BUILD_EXAMPLES` controls the rod demonstration under `examples/`. Executables are placed in `${CMAKE_BINARY_DIR}/bin`. There is no CTest registration.
 - GNU/Clang warnings are private library compile options. Sources are enumerated explicitly and grouped in the root `CMakeLists.txt`.
 - Installation uses `GNUInstallDirs`, installs the library and `include/`, and exports `cfd::toolkit`. The package config/version files install under `${CMAKE_INSTALL_LIBDIR}/cmake/cfd-toolkit` with `SameMajorVersion` compatibility. Installed placeholder headers are not proof of working functionality.
-- Configure/build examples from repository root: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`, then `cmake --build build --parallel`. Use `-DBUILD_EXAMPLES=OFF` for a library-only build. Example programs that wait on stdin can be run unattended with `< /dev/null`.
-- The six example sources are `test_domain1d`, `test_uniform_mesh1d`, `test_non_uniform_mesh1d`, `test_grading1d`, `test_field1d`, and `steady_heat_conduction_rod1d`; their paths and launch configurations are recorded in `FILEPATH.md` and `.vscode/launch.json`.
+- Configure/build the library and standalone executables from the repository root: `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug`, then `cmake --build build --parallel`. Use `-DBUILD_TESTS=OFF` or `-DBUILD_EXAMPLES=OFF` to skip either executable group, or turn both off for a library-only build. Programs that wait on stdin can be run unattended with `< /dev/null`.
+- The five contract-check sources (`test_domain1d`, `test_uniform_mesh1d`, `test_non_uniform_mesh1d`, `test_grading1d`, and `test_field1d`) are under `tests/`. The `steady_heat_conduction_rod1d` demonstration source is under `examples/steady_heat_conduction_rod1d/`. CMake source paths are explicit; the inventory is in `FILEPATH.md`, and `.vscode/launch.json` points to the resulting executable names under `build/bin`.
 
 ## 4. Implemented APIs and behavioral contracts
 
@@ -105,20 +111,20 @@ No explicit gradient/divergence, transient derivative, implicit divergence, or s
 - I/O writers, simulation time, transport properties, multidimensional vectors, and transport/simulation workflows are reserved. Only `Vector1D` is currently implemented.
 - Headers may be installed even when their modules are placeholders.
 
-## 6. Examples and verification record
+## 6. Standalone checks, demonstration, and verification record
 
-The examples are:
+The five contract-check programs are stored under `tests/`; the rod demonstration is stored under `examples/`:
 
 | Target | Role |
 | --- | --- |
-| `test_domain1d` | `Domain1D` construction, update, containment, invalid-input and floating-point contracts. |
-| `test_uniform_mesh1d` | Uniform mesh, topology, orientation and distances; Neumann and Robin assembly, validation and overflow; diffusion and Dirichlet assembly; and linear TDMA checks. It also checks both boundary faces and independent start/end Dirichlet accumulation on a single-cell mesh, rejection of negative diffusivity, and reproduction of an analytical linear field in a nonuniform boundary row. |
-| `test_non_uniform_mesh1d` | Generated/nonuniform geometry contracts. |
-| `test_grading1d` | Grading distributions, symmetry, ratio conversion, endpoint anchoring and representability. |
-| `test_field1d` | Scalar/vector field allocation, access, assignment, arithmetic, views and mesh binding. |
-| `steady_heat_conduction_rod1d` | Demonstration composing mesh, fields, matrix, Laplacian, two Dirichlet boundaries and TDMA; prints coefficients and solution and waits for Enter. It is not by itself a numerical assertion. |
+| `test_domain1d` | `tests/test_geometry/test_domain/test_domain1d/test_domain1d.cpp`; `Domain1D` construction, update, containment, invalid-input and floating-point contracts. |
+| `test_uniform_mesh1d` | `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`; uniform mesh, topology, orientation and distances; Neumann and Robin assembly, validation and overflow; diffusion and Dirichlet assembly; and linear TDMA checks. It also checks both boundary faces and independent start/end Dirichlet accumulation on a single-cell mesh, rejection of negative diffusivity, and reproduction of an analytical linear field in a nonuniform boundary row. |
+| `test_non_uniform_mesh1d` | `tests/test_mesh/test_mesh1d/test_non_uniform_mesh1d/test_non_uniform_mesh1d.cpp`; generated/nonuniform geometry contracts. |
+| `test_grading1d` | `tests/test_mesh/test_mesh1d/test_grading1d/test_grading1d.cpp`; grading distributions, symmetry, ratio conversion, endpoint anchoring and representability. |
+| `test_field1d` | `tests/test_field/test_field1d/test_field1d.cpp`; scalar/vector field allocation, access, assignment, arithmetic, views and mesh binding. |
+| `steady_heat_conduction_rod1d` | `examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp`; demonstration composing mesh, fields, matrix, Laplacian, two Dirichlet boundaries and TDMA; prints coefficients and solution and waits for Enter. It is not by itself a numerical assertion. |
 
-**Verification on November 15, 2026:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug` and `cmake --build build --parallel` succeeded. All six executables above exited 0 when run from `build/bin` with stdin redirected from `/dev/null`. The rod demonstration printed cell-center temperatures `[380, 340, 300, 260, 220]`; its output is illustrative rather than an independent numerical assertion. These results apply to the inspected tree and do not guarantee later changes.
+**Previously recorded verification on November 15, 2026, before the source moves:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug` and `cmake --build build --parallel` succeeded. All six executables exited 0 when run from `build/bin` with stdin redirected from `/dev/null`. The rod demonstration printed cell-center temperatures `[380, 340, 300, 260, 220]`; its output is illustrative rather than an independent numerical assertion. After the source moves, separate tests-only and examples-only configurations were successfully configured and built; their executables have not been rerun.
 
 ## 7. Practical investigation priorities
 
@@ -130,7 +136,8 @@ The examples are:
 
 - Public API: `include/cfd/`
 - Implementations: `src/`
-- Examples: `examples/`
+- Contract-check sources: `tests/`
+- Rod demonstration source: `examples/steady_heat_conduction_rod1d/`
 - CMake build/package configuration: `CMakeLists.txt`, `cmake/`
 - Root path inventory: `FILEPATH.md`
 - Editor launch configurations: `.vscode/launch.json`
