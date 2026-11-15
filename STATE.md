@@ -1,6 +1,6 @@
 # Project State and Working Guide
 
-**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun.
+**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun. The current working-tree `Source1D` implementation has not been built or exercised as part of this update.
 
 ## Architectural vision
 
@@ -92,7 +92,9 @@ Implemented separate scheme functions:
 
 `fvm::Laplacian(gamma, matrix)` assembles internal faces only for the cell-integrated negative diffusion operator `-div(gamma grad(phi))`. It requires finite nonnegative diffusivity values and that field and matrix refer to the same mesh object. For an internal face it uses owner/neighbour center-to-face distances, `harmonic_mean(gamma_owner, gamma_neighbour, d_owner, d_neighbour)`, `d_ON(f)`, and the owner orientation factor `s_f(owner,f) * e_ON(f)`. A zero diffusivity on either side gives zero face diffusivity because the standalone harmonic scheme requires strictly positive inputs. It adds a positive diagonal and negative adjacent-cell coefficient in both neighboring rows, including boundary-cell rows. It accumulates into existing entries and does not reset the matrix or add boundary-face contributions. A one-cell mesh contributes nothing. The implementation no longer includes the separate central-difference scheme; conductance is calculated from face diffusivity and mesh geometry. Conductance must be finite; accumulated overflow is not separately validated in the documented contract.
 
-No explicit gradient/divergence, transient derivative, implicit divergence, or source operator is implemented. Their 1D files are placeholders. The current mathematical stencil for an internal face with center-to-face distances `d_P`, `d_N` and positive cell coefficients is `gamma_f=(d_P+d_N)/(d_P/gamma_P+d_N/gamma_N)`, `D_f=gamma_f/d_ON`; owner and neighbour rows each receive `+D_f` on their diagonal and `-D_f` on their adjacent coefficient (unit area).
+`fvm::Source1D(value)` represents a constant explicit volumetric source density. `Value()` returns the stored value. `Apply(matrix)` uses the matrix mesh and accumulates `value * Cell_Volume(p)` into each cell's `b(p)`, leaving matrix coefficients unchanged. It validates the source, matrix size, positive finite cell volumes, finite contributions, and finite accumulated source values before modifying any source entries.
+
+No explicit gradient/divergence, transient derivative, or implicit divergence operator is implemented; their 1D files are placeholders. The current mathematical stencil for an internal face with center-to-face distances `d_P`, `d_N` and positive cell coefficients is `gamma_f=(d_P+d_N)/(d_P/gamma_P+d_N/gamma_N)`, `D_f=gamma_f/d_ON`; owner and neighbour rows each receive `+D_f` on their diagonal and `-D_f` on their adjacent coefficient (unit area).
 
 ### Finite-volume matrix and linear algebra
 
@@ -105,7 +107,7 @@ No explicit gradient/divergence, transient derivative, implicit divergence, or s
 ## 5. Reserved or incomplete areas
 
 - 2D/3D domain values are implemented; multidimensional meshes, fields, finite-volume matrices, operators, and equation workflows are not implemented. Mesh 2D/3D files are placeholders.
-- The FVC/FVM 1D gradient, divergence, time derivative, and source modules are placeholders. Upwind is a placeholder.
+- The FVC/FVM 1D gradient, divergence, time derivative, and implicit divergence modules are placeholders. The constant explicit `Source1D` operator is implemented. Upwind is a placeholder.
 - Patch boundary infrastructure, full equation workflows, and a solver abstraction in `solvers/solvers1d/` are unimplemented. Robin assembly uses the first-order owner-cell closure described above; a closure incorporating boundary diffusion resistance is not implemented.
 - Sparse matrix, conjugate-gradient and Gauss-Seidel files are placeholders; TDMA is the implemented solver.
 - I/O writers, simulation time, transport properties, multidimensional vectors, and transport/simulation workflows are reserved. Only `Vector1D` is currently implemented.
@@ -132,6 +134,14 @@ The five contract-check programs are stored under `tests/`; the rod demonstratio
 2. Run relevant standalone checks and record results; avoid presenting a demo's successful exit as proof of numerical correctness.
 3. Extend boundary conditions, operators, dimensions, and solver workflows with explicit contracts and numerical checks alongside the implementation.
 
+### Current status and next steps
+
+The 1D constant volumetric source operator is implemented in the working tree and included in the explicit library source list. Remaining work includes adding contract coverage for source assembly and continuing the broader operator, multidimensional, and equation-solver work described above.
+
+### Open questions
+
+- The current standalone checks do not include a dedicated `Source1D` contract check, and its implementation has not been built or run during this update. Its runtime behavior therefore remains unverified here.
+
 ## 8. Key paths
 
 - Public API: `include/cfd/`
@@ -143,3 +153,7 @@ The five contract-check programs are stored under `tests/`; the rod demonstratio
 - Editor launch configurations: `.vscode/launch.json`
 
 Use the current `finite_volume/fvc`, `finite_volume/fvm`, `field1d`, and `fv_mesh1d` layout and filenames when changing code. Keep domain values, mesh geometry, field storage, matrix assembly and solving separate.
+
+## 9. Change log
+
+- **2026-11-15:** Updated the state guide for the `Source1D` constant volumetric source implementation, corrected the FVM placeholder/status descriptions, and recorded the verification gap and next steps.

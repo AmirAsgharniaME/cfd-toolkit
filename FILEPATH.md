@@ -64,6 +64,7 @@ CLASS | Robin boundary 1D class | include/cfd/boundary/boundary1d/robin_boundary
 CLASS | Tridiagonal matrix class | include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp and src/linear_algebra/matrix/tridiagonal_matrix.cpp
 CLASS | TDMA solver class | include/cfd/linear_algebra/solvers/tdma_solver.hpp and src/linear_algebra/solvers/tdma_solver.cpp
 CLASS | FV matrix 1D class | include/cfd/fv_matrix/fv_matrix1d.hpp and src/fv_matrix/fv_matrix1d.cpp
+CLASS | Source 1D class | include/cfd/finite_volume/fvm/fvm1d/source1d.hpp and src/finite_volume/fvm/fvm1d/source1d.cpp
 
 # Functions (header and source)
 FUNCTION | 1D Grading Face Generator and Total-Ratio Converter | include/cfd/mesh/mesh1d/grading1d.hpp and src/mesh/mesh1d/grading1d.cpp
@@ -137,10 +138,6 @@ H | Time directory writer header | include/cfd/io/time_directory_writer.hpp
 CPP | Gnuplot writer source | src/io/gnuplot_writer.cpp
 CPP | VTK writer source | src/io/vtk_writer.cpp
 CPP | Time directory writer source | src/io/time_directory_writer.cpp
-
-# Additional finite volume operator
-H | Source 1D operator header | include/cfd/finite_volume/fvm/fvm1d/source1d.hpp
-CPP | Source 1D operator source | src/finite_volume/fvm/fvm1d/source1d.cpp
 
 # Tests and example executables
 EXE | Test domain 1D executable source | tests/test_geometry/test_domain/test_domain1d/test_domain1d.cpp
