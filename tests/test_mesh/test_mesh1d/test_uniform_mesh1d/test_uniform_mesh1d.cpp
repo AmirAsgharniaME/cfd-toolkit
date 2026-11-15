@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include <cfd/boundary/boundary1d/boundary_condition1d.hpp>
 #include <cfd/boundary/boundary1d/dirichlet_boundary1d.hpp>
 #include <cfd/boundary/boundary1d/neumann_boundary1d.hpp>
 #include <cfd/boundary/boundary1d/robin_boundary1d.hpp>
@@ -48,6 +49,13 @@ void check_contracts()
     using cfd::geometry::Domain1D;
     using cfd::mesh::FvMesh1D;
 
+    static_assert(std::is_base_of_v<cfd::boundary::BoundaryCondition1D,
+                                    cfd::boundary::DirichletBoundary1D>);
+    static_assert(std::is_base_of_v<cfd::boundary::BoundaryCondition1D,
+                                    cfd::boundary::NeumannBoundary1D>);
+    static_assert(std::is_base_of_v<cfd::boundary::BoundaryCondition1D,
+                                    cfd::boundary::RobinBoundary1D>);
+    static_assert(std::has_virtual_destructor_v<cfd::boundary::BoundaryCondition1D>);
     static_assert(!std::is_copy_assignable_v<FvMesh1D>);
     static_assert(!std::is_move_assignable_v<FvMesh1D>);
     static_assert(std::is_copy_constructible_v<FvMesh1D>);
@@ -133,6 +141,39 @@ void check_contracts()
     cfd::field::VolScalarField1D neumann_gamma("neumann gamma", mesh, 1.0);
     neumann_gamma[0] = 2.0;
     neumann_gamma[3] = 5.0;
+
+    {
+        using cfd::boundary::BoundaryCondition1D;
+        using cfd::boundary::BoundarySide1D;
+
+        cfd::fv_matrix::FvMatrix1D dirichlet_system(mesh);
+        const cfd::boundary::DirichletBoundary1D dirichlet(
+            "dispatch dirichlet", BoundarySide1D::Start, 4.0);
+        const BoundaryCondition1D& dirichlet_condition = dirichlet;
+        dirichlet_condition.Apply(gamma, dirichlet_system);
+        require(dirichlet_system.a_P(0) == 2.0 && dirichlet_system.b(0) == 8.0 &&
+                    dirichlet_system.a_E(0) == 0.0,
+                "Dirichlet base-reference dispatch assembled the wrong row");
+
+        cfd::fv_matrix::FvMatrix1D neumann_system(mesh);
+        const cfd::boundary::NeumannBoundary1D neumann(
+            "dispatch neumann", BoundarySide1D::Start, 3.0);
+        const BoundaryCondition1D& neumann_condition = neumann;
+        neumann_condition.Apply(neumann_gamma, neumann_system);
+        require(neumann_system.b(0) == 6.0 && neumann_system.a_P(0) == 0.0 &&
+                    neumann_system.a_E(0) == 0.0,
+                "Neumann base-reference dispatch must update only the source");
+
+        cfd::fv_matrix::FvMatrix1D robin_system(mesh);
+        const cfd::boundary::RobinBoundary1D robin(
+            "dispatch robin", BoundarySide1D::Start, 2.0, 3.0);
+        const BoundaryCondition1D& robin_condition = robin;
+        robin_condition.Apply(neumann_gamma, robin_system);
+        require(robin_system.a_P(0) == 2.0 && robin_system.b(0) == 6.0 &&
+                    robin_system.a_E(0) == 0.0,
+                "Robin base-reference dispatch assembled the wrong row");
+    }
+
     cfd::fv_matrix::FvMatrix1D neumann_system(mesh);
     neumann_system.Set_a_P(0, 7.0);
     neumann_system.Set_a_P(3, 9.0);
@@ -306,6 +347,9 @@ void check_contracts()
     cfd::field::VolScalarField1D negative_gamma("negative gamma", one, -1.0);
     cfd::fv_matrix::FvMatrix1D invalid_system(one);
     require_exception<std::invalid_argument>([&] { left_one.Apply(negative_gamma, invalid_system); });
+    require(invalid_system.a_P(0) == 0.0 && invalid_system.a_W(0) == 0.0 &&
+                invalid_system.a_E(0) == 0.0 && invalid_system.b(0) == 0.0,
+            "Rejected Dirichlet assembly modified the matrix");
 
     // The public mesh constructor guarantees finite, positive cell-face distances,
     // and the 1D unit-area convention makes every valid face area exactly 1.0.

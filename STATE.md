@@ -1,6 +1,6 @@
 # Project State and Working Guide
 
-**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun. The current working-tree `Source1D` implementation has not been built or exercised as part of this update.
+**Repository state inspected: November 15, 2026.** This guide summarizes the current design, implemented public behavior, unfinished areas, project rules, and verification status so a contributor or AI assistant can investigate changes without first surveying the entire tree. The source headers and implementations remain authoritative when this guide conflicts with code. A prior Debug build and run of all six standalone executables is recorded in Section 6; after the subsequent source moves, the tests-only and examples-only configurations have been configured and built, but their executables have not been rerun. The current working-tree `Source1D` and shared boundary-base changes have not been built or exercised as part of this update.
 
 ## Architectural vision
 
@@ -72,7 +72,9 @@ Construction takes a name, mesh reference, and optional initial value. Storage s
 
 ### Boundary objects
 
-All three classes live in `cfd::boundary` and provide `Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const` as a separate accumulation step for the negative diffusion operator. Start selects face 0 and End selects the last face; the contribution goes to `Owner(face)`. They require the field and matrix to reference the same mesh object and have sizes matching a nonempty mesh. They validate finite nonnegative owner diffusivity, positive finite owner-to-face distance and face area, and their own boundary data. Invalid inputs throw `std::invalid_argument`; nonfinite contributions or accumulated entries throw `std::overflow_error`. Each checks its complete contribution and affected accumulated entries before modifying the matrix. The current 1D face area is 1.0.
+`BoundaryCondition1D` is the polymorphic base for the three conditions. It owns common name and side state, exposes `Name()` and `Side()`, and declares virtual `Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const` with a virtual destructor. The derived classes override `Apply`, so assembly dispatches through a base reference. Its protected `Prepare_Assembly(gamma, matrix, condition_name)` centralizes mesh identity, nonempty matching sizes, side, owner, finite nonnegative owner diffusivity, and positive finite owner-to-face distance and face area checks; it returns `BoundaryAssemblyContext1D` with the mesh, face, owner, diffusivity, area, and distance. The implementation is in `src/boundary/boundary1d/boundary_condition1d.cpp`, listed explicitly in `CMakeLists.txt`.
+
+All three derived classes live in `cfd::boundary` and provide `Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const` as a separate accumulation step for the negative diffusion operator. Start selects face 0 and End selects the last face; the contribution goes to `Owner(face)`. They use the shared base preflight and validate their own boundary data. Invalid inputs throw `std::invalid_argument`; nonfinite contributions or accumulated entries throw `std::overflow_error`. Each checks its complete contribution and affected accumulated entries before modifying the matrix. The current 1D face area is 1.0.
 
 `DirichletBoundary1D(name, side, value)` stores the supplied data and exposes `Name()`, `Side()`, and `Value()`; it has no setters or `type()` accessor. Its constructor does not validate the side or value; `Apply` requires a valid side and finite value. It adds `D_b = gamma_owner * face_area / distance` to the owner's diagonal and `D_b * value` to its source, leaving off-diagonals unchanged.
 
@@ -126,7 +128,7 @@ The five contract-check programs are stored under `tests/`; the rod demonstratio
 | `test_field1d` | `tests/test_field/test_field1d/test_field1d.cpp`; scalar/vector field allocation, access, assignment, arithmetic, views and mesh binding. |
 | `steady_heat_conduction_rod1d` | `examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp`; demonstration composing mesh, fields, matrix, Laplacian, two Dirichlet boundaries and TDMA; prints coefficients and solution and waits for Enter. It is not by itself a numerical assertion. |
 
-**Previously recorded verification on November 15, 2026, before the source moves:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug` and `cmake --build build --parallel` succeeded. All six executables exited 0 when run from `build/bin` with stdin redirected from `/dev/null`. The rod demonstration printed cell-center temperatures `[380, 340, 300, 260, 220]`; its output is illustrative rather than an independent numerical assertion. After the source moves, separate tests-only and examples-only configurations were successfully configured and built; their executables have not been rerun.
+**Previously recorded verification on November 15, 2026, before the source moves and shared boundary-base changes:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug` and `cmake --build build --parallel` succeeded. All six executables exited 0 when run from `build/bin` with stdin redirected from `/dev/null`. The rod demonstration printed cell-center temperatures `[380, 340, 300, 260, 220]`; its output is illustrative rather than an independent numerical assertion. After the source moves, separate tests-only and examples-only configurations were successfully configured and built; their executables have not been rerun. The current shared boundary-base changes and their expanded compile-time and dispatch checks have not been built or run.
 
 ## 7. Practical investigation priorities
 
@@ -136,11 +138,12 @@ The five contract-check programs are stored under `tests/`; the rod demonstratio
 
 ### Current status and next steps
 
-The 1D constant volumetric source operator is implemented in the working tree and included in the explicit library source list. Remaining work includes adding contract coverage for source assembly and continuing the broader operator, multidimensional, and equation-solver work described above.
+The 1D constant volumetric source operator and its translation-unit-local preflight are implemented and included in the explicit library source list. The shared `BoundaryCondition1D` base and common assembly preflight are implemented in the working tree, and the uniform-mesh check now contains inheritance, virtual dispatch, and rejected-assembly atomicity assertions. Remaining work includes building and running checks for these latest changes, adding contract coverage for source assembly, and continuing the broader operator, multidimensional, and equation-solver work described above.
 
 ### Open questions
 
 - The current standalone checks do not include a dedicated `Source1D` contract check, and its implementation has not been built or run during this update. Its runtime behavior therefore remains unverified here.
+- The shared boundary-base refactor and its added uniform-mesh assertions have not been built or run during this update, so their compile-time and runtime verification remains outstanding.
 
 ## 8. Key paths
 
@@ -157,3 +160,4 @@ Use the current `finite_volume/fvc`, `finite_volume/fvm`, `field1d`, and `fv_mes
 ## 9. Change log
 
 - **2026-11-15:** Updated the state guide for the `Source1D` constant volumetric source implementation, its translation-unit-local preflight helper, corrected the FVM placeholder/status descriptions, and recorded the verification gap and next steps.
+- **2026-11-15:** Updated the state guide for the shared polymorphic `BoundaryCondition1D` base, centralized assembly preflight, derived-class virtual dispatch, added uniform-mesh assertions, and outstanding verification.

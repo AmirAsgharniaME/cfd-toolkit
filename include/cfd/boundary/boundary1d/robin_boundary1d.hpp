@@ -1,7 +1,6 @@
 #pragma once
 
-#include "cfd/boundary/types.hpp"
-#include "cfd/field/field1d/field1d.hpp"
+#include "cfd/boundary/boundary1d/boundary_condition1d.hpp"
 
 #include <string>
 
@@ -22,7 +21,7 @@ namespace cfd::boundary
  * a_P += h * A_b and b_P += h * A_b * phi_inf.
  * A higher-order face-value closure may be added later.
  */
-class RobinBoundary1D
+class RobinBoundary1D : public BoundaryCondition1D
 {
 public:
     /// Construct a boundary; an invalid side throws std::invalid_argument.
@@ -40,11 +39,9 @@ public:
     /// Accumulate the Robin contribution in the boundary owner's row.
     /// The coefficient field and matrix must refer to the same mesh object.
     void Apply(const field::VolScalarField1D& gamma,
-               fv_matrix::FvMatrix1D& matrix) const;
+               fv_matrix::FvMatrix1D& matrix) const override;
 
 private:
-    std::string name_;
-    BoundarySide1D side_;
     double transfer_coefficient_;
     double ambient_value_;
 };

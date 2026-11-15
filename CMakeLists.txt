@@ -16,6 +16,7 @@ include(CMakePackageConfigHelpers)
 # source discovery remains deterministic across generators and platforms.
 add_library(cfd_toolkit STATIC
     # Boundary conditions
+    src/boundary/boundary1d/boundary_condition1d.cpp
     src/boundary/boundary1d/dirichlet_boundary1d.cpp
     src/boundary/boundary1d/neumann_boundary1d.cpp
     src/boundary/boundary1d/robin_boundary1d.cpp

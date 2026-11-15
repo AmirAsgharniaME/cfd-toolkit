@@ -1,7 +1,6 @@
 #pragma once
 
-#include "cfd/boundary/types.hpp"
-#include "cfd/field/field1d/field1d.hpp"
+#include "cfd/boundary/boundary1d/boundary_condition1d.hpp"
 
 #include <string>
 
@@ -13,7 +12,7 @@ class FvMatrix1D;
 namespace cfd::boundary
 {
 
-class NeumannBoundary1D
+class NeumannBoundary1D : public BoundaryCondition1D
 {
 public:
     /**
@@ -100,11 +99,9 @@ public:
     /// Adds gamma_owner * normal_gradient * face_area without changing coefficients.
     /// The coefficient field and matrix must refer to the same mesh object.
     void Apply(const field::VolScalarField1D& gamma,
-               fv_matrix::FvMatrix1D& matrix) const;
+               fv_matrix::FvMatrix1D& matrix) const override;
 
 private:
-    std::string name_;
-    BoundarySide1D side_;
     double normal_gradient_;
 };
 

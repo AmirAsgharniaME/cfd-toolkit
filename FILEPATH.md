@@ -29,6 +29,7 @@ H | Domain 1D header | include/cfd/geometry/domain/domain1d.hpp
 H | Domain 2D header | include/cfd/geometry/domain/domain2d.hpp
 H | Domain 3D header | include/cfd/geometry/domain/domain3d.hpp
 H | Boundary types header | include/cfd/boundary/types.hpp
+H | Boundary condition 1D header | include/cfd/boundary/boundary1d/boundary_condition1d.hpp
 H | FV mesh 1D header | include/cfd/mesh/mesh1d/fv_mesh1d.hpp
 H | Grading type header | include/cfd/mesh/grading_type.hpp
 H | Dirichlet boundary 1D header | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp
@@ -44,6 +45,7 @@ H | Vector 3D header | include/cfd/vector/vector3d.hpp
 CPP | FV mesh 1D source | src/mesh/mesh1d/fv_mesh1d.cpp
 CPP | Field 1D source | src/field/field1d/field1d.cpp
 CPP | Dirichlet boundary 1D source | src/boundary/boundary1d/dirichlet_boundary1d.cpp
+CPP | Boundary condition 1D source | src/boundary/boundary1d/boundary_condition1d.cpp
 CPP | Neumann boundary 1D source | src/boundary/boundary1d/neumann_boundary1d.cpp
 CPP | Domain 1D source | src/geometry/domain/domain1d.cpp
 CPP | Domain 2D source | src/geometry/domain/domain2d.cpp
@@ -59,6 +61,7 @@ CLASS | Domain 1D class | include/cfd/geometry/domain/domain1d.hpp and src/geome
 CLASS | Domain 2D class | include/cfd/geometry/domain/domain2d.hpp and src/geometry/domain/domain2d.cpp
 CLASS | Domain 3D class | include/cfd/geometry/domain/domain3d.hpp and src/geometry/domain/domain3d.cpp
 CLASS | Dirichlet boundary 1D class | include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp and src/boundary/boundary1d/dirichlet_boundary1d.cpp
+CLASS | Boundary condition 1D class | include/cfd/boundary/boundary1d/boundary_condition1d.hpp and src/boundary/boundary1d/boundary_condition1d.cpp
 CLASS | Neumann boundary 1D class | include/cfd/boundary/boundary1d/neumann_boundary1d.hpp and src/boundary/boundary1d/neumann_boundary1d.cpp
 CLASS | Robin boundary 1D class | include/cfd/boundary/boundary1d/robin_boundary1d.hpp and src/boundary/boundary1d/robin_boundary1d.cpp
 CLASS | Tridiagonal matrix class | include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp and src/linear_algebra/matrix/tridiagonal_matrix.cpp

@@ -1,84 +1,66 @@
-# Target: Systematic Direction-Agnostic Laplacian Assembly
+# Target: Shared 1D Boundary Assembly
 
-## Goal
-Decouple face flux calculations from hardcoded directional grid slots (a_W, a_E) by introducing a storage-neutral matrix seam and refactoring Laplacian1D assembly.
+## Phase 1: Add the Common Boundary Base and Assembly Context
+- [x] **Step 1.1: Add the polymorphic boundary base and shared validation context**
+  - **Target Files:** `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `src/boundary/boundary1d/boundary_condition1d.cpp`, `CMakeLists.txt`, `FILEPATH.md`
+  - **Specification:** Add `cfd::boundary::BoundaryAssemblyContext1D` with members `const mesh::FvMesh1D& mesh`, `std::size_t face_id`, `std::size_t owner`, `double gamma_owner`, `double face_area`, and `double owner_face_distance`. Add abstract `cfd::boundary::BoundaryCondition1D` with `virtual ~BoundaryCondition1D() = default;`, `[[nodiscard]] const std::string& Name() const noexcept;`, `[[nodiscard]] BoundarySide1D Side() const noexcept;`, and pure virtual `void Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const = 0;`. Its protected constructor is `BoundaryCondition1D(std::string name, BoundarySide1D side)`. Add protected `[[nodiscard]] BoundaryAssemblyContext1D Prepare_Assembly(const field::VolScalarField1D& gamma, const fv_matrix::FvMatrix1D& matrix, std::string_view condition_name) const;`. Implement metadata accessors and preflight logic in C++20: require identical mesh object addresses, nonzero cells, gamma/matrix sizes equal to `mesh.N_Cells()`, valid Start/End side, valid owner, finite nonnegative owner gamma, and finite positive owner distance and face area; resolve Start to face `0`, End to `mesh.N_Faces() - 1`. Throw `std::invalid_argument` for invalid identity, sizes, side, owner, diffusivity, or geometry. The helper must not mutate the matrix or compute a boundary formula. Keep mesh and matrix non-owning. Add the new `.cpp` to the explicit library source list and record the public header/class and source in the `FILEPATH.md` inventory. Do not change any other Markdown file.
+  - **Verification:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --parallel`
 
-## Roadmap & Checklist
+## Phase 2: Refactor Each Condition to Use the Shared Base
+- [x] **Step 2.1: Refactor Dirichlet storage and assembly onto the common base**
+  - **Target Files:** `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp`, `src/boundary/boundary1d/dirichlet_boundary1d.cpp`
+  - **Specification:** Declare `class DirichletBoundary1D : public BoundaryCondition1D`. Preserve the public constructor signature `DirichletBoundary1D(std::string name, BoundarySide1D side, double value)`, `[[nodiscard]] double Value() const noexcept`, and `void Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const override;`. Remove duplicate `name_` and `side_` storage and use the protected base constructor plus `value_`. Preserve `Name()` and `Side()` source access through inherited base methods. Preserve constructor behavior: do not newly validate side or value in construction. In `Apply`, reject nonfinite value with `std::invalid_argument`, call `Prepare_Assembly(gamma, matrix, "Dirichlet")`, calculate `D_b = gamma_owner * face_area / owner_face_distance` and `boundary_source = D_b * value_`, reject nonfinite contributions with `std::overflow_error`, preflight finite `matrix.a_P(owner) + D_b` and `matrix.b(owner) + boundary_source`, then call `matrix.Add_a_P(owner, D_b)` and `matrix.Add_b(owner, boundary_source)`. Do not modify off-diagonals. Preserve validation-before-mutation.
+  - **Verification:** `cmake --build build --parallel && ./build/bin/test_uniform_mesh1d < /dev/null` (expected final line: `FvMesh1D contract checks passed`)
 
-### Phase 1: Storage-neutral Matrix API (`FvMatrix1D`)
-- [x] **Step 1.1: Declare Add_OffDiagonal API**
-  - Target: `include/cfd/fv_matrix/fv_matrix1d.hpp`
-  - Spec: Declare public method `void Add_OffDiagonal(std::size_t row, std::size_t col, double value);`
-  - Details: Add Doxygen comments explaining that this routes general off-diagonal entries into the underlying 1D tridiagonal storage.
+- [x] **Step 2.2: Refactor Neumann storage and assembly onto the common base**
+  - **Target Files:** `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `include/cfd/boundary/boundary1d/neumann_boundary1d.hpp`, `src/boundary/boundary1d/neumann_boundary1d.cpp`
+  - **Specification:** Declare `class NeumannBoundary1D : public BoundaryCondition1D`. Preserve constructors `NeumannBoundary1D(std::string name, BoundarySide1D side, double normal_gradient)` and `NeumannBoundary1D(std::string name, BoundarySide1D side, double gradient, GradientType type)`, and preserve `name()`, `side()`, `type()`, `normal_gradient()`, `outward_normal()`, `coordinate_gradient()`, and `set_normal_gradient(double) noexcept`. Preserve `void Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const override;`. Remove duplicate name/side state, forwarding lowercase metadata accessors to the base `Name()` / `Side()`; retain `normal_gradient_`. Preserve constructor validation and conversion: valid side required; Normal stores the input; Coordinate stores `outward_normal() * gradient`; invalid `GradientType` throws `std::invalid_argument`. In `Apply`, require finite normal gradient, call `Prepare_Assembly(gamma, matrix, "Neumann")`, calculate `gamma_owner * normal_gradient_ * face_area`, reject nonfinite contribution and accumulated `matrix.b(owner) + contribution` with `std::overflow_error`, then add only with `matrix.Add_b(owner, contribution)`. Preserve the outward-normal sign convention and the no-mutation-on-failure guarantee.
+  - **Verification:** `cmake --build build --parallel && ./build/bin/test_uniform_mesh1d < /dev/null` (expected final line: `FvMesh1D contract checks passed`)
 
-- [x] **Step 1.2: Implement Add_OffDiagonal Routing Logic**
-  - Target: `src/fv_matrix/fv_matrix1d.cpp`
-  - Spec: In `FvMatrix1D::Add_OffDiagonal`, check column index:
-    - If `col == row - 1`: add `value` to lower off-diagonal (West slot).
-    - If `col == row + 1`: add `value` to upper off-diagonal (East slot).
-    - If `col == row`: throw `std::invalid_argument` (diagonal must go to Add_Diagonal / a_P).
-    - Otherwise: throw `std::out_of_range` (unsupported stencil index for 1D tridiagonal).
+- [x] **Step 2.3: Refactor Robin storage and assembly onto the common base**
+  - **Target Files:** `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `include/cfd/boundary/boundary1d/robin_boundary1d.hpp`, `src/boundary/boundary1d/robin_boundary1d.cpp`
+  - **Specification:** Declare `class RobinBoundary1D : public BoundaryCondition1D`. Preserve constructor `RobinBoundary1D(std::string name, BoundarySide1D side, double transfer_coefficient, double ambient_value)`, accessors `name()`, `side()`, `type()`, `transfer_coefficient()`, `ambient_value()`, setters `set_transfer_coefficient(double) noexcept`, `set_ambient_value(double) noexcept`, and `void Apply(const field::VolScalarField1D& gamma, fv_matrix::FvMatrix1D& matrix) const override;`. Remove duplicate name/side state and forward lowercase metadata methods to the base; retain condition-specific state. Preserve constructor side validation and setter behavior (setters store values without validation). In `Apply`, require finite nonnegative transfer coefficient and finite ambient value, call `Prepare_Assembly(gamma, matrix, "Robin")`, calculate `h * face_area` and its product with ambient value, preflight finite contributions and updated diagonal/source, then update only diagonal and source. Keep the current first-order closure `phi_b = phi_P`, outward flux convention, and allow positive `h` contribution when gamma is zero. Throw `std::invalid_argument` for invalid stored inputs and `std::overflow_error` for nonfinite contribution/accumulation; do not mutate before all checks pass.
+  - **Verification:** `cmake --build build --parallel && ./build/bin/test_uniform_mesh1d < /dev/null` (expected final line: `FvMesh1D contract checks passed`)
 
-- [x] **Step 1.3: Compile & Regression Sanity Check**
-  - Target: Project build system
-  - Spec: Build existing libraries and drivers using `make`. Verify zero compilation errors and zero regression.
+## Phase 3: Verify Polymorphism, Compatibility, and Numerical Contracts
+- [x] **Step 3.1: Extend the boundary contract driver for base-reference dispatch and regressions**
+  - **Target Files:** `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`
+  - **Specification:** Add C++20 compile-time/runtime checks that each concrete class publicly derives from `cfd::boundary::BoundaryCondition1D`, that the base has a virtual destructor, and that `Apply` dispatches correctly through `const BoundaryCondition1D&` for Dirichlet, Neumann, and Robin. Exercise each type on a matching mesh/field/matrix and assert the existing formulas: Dirichlet adds `D_b` and `D_b * value`; Neumann adds `gamma_owner * normal_gradient * face_area` to source only; Robin adds `h * face_area` and `h * face_area * ambient_value`. Retain existing direct-construction checks, constructor/accessor/setter contracts, start/end signs, zero-diffusivity handling, and invalid-input/overflow tests. For rejected applications, snapshot affected matrix entries and assert they remain unchanged. Do not alter production behavior to satisfy tests.
+  - **Verification:** `cmake --build build --target test_uniform_mesh1d --parallel && ./build/bin/test_uniform_mesh1d < /dev/null` (expected output: `FvMesh1D contract checks passed`)
 
-### Phase 2: Systematic Laplacian Operator Refactoring
-- [x] **Step 2.1: Refactor Internal Face Assembly to Use Add_OffDiagonal**
-  - Target: `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`
-  - Spec: Loop over internal faces. For each face with owner cell $P$ and neighbour cell $N$:
-    - Compute face diffusion conductance $D_f = \Gamma_f \frac{A_f}{d_{PN}}$.
-    - Use `Add_Diagonal(P, D_f)` and `Add_Diagonal(N, D_f)`.
-    - Use `Add_OffDiagonal(P, N, -D_f)` and `Add_OffDiagonal(N, P, -D_f)`.
-    - Completely remove direct calls to directional methods like `Add_a_E` and `Add_a_W`.
+- [x] **Step 3.2: Run the full build and rod integration demonstration**
+  - **Target Files:** `CMakeLists.txt`, `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp`, `include/cfd/boundary/boundary1d/neumann_boundary1d.hpp`, `include/cfd/boundary/boundary1d/robin_boundary1d.hpp`, `src/boundary/boundary1d/boundary_condition1d.cpp`, `src/boundary/boundary1d/dirichlet_boundary1d.cpp`, `src/boundary/boundary1d/neumann_boundary1d.cpp`, `src/boundary/boundary1d/robin_boundary1d.cpp`, `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`, `examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp`
+  - **Specification:** From the repository root, build all targets with the project C++20 configuration and GNU/Clang warning flags. Run the boundary contract driver and rod example with stdin redirected. Confirm the existing example source remains compatible with stack-constructed `DirichletBoundary1D` and direct `Apply` calls. The contract driver must exit zero and print exactly `FvMesh1D contract checks passed`. The five-cell rod must report cell temperatures approximately `380.000`, `340.000`, `300.000`, `260.000`, and `220.000` K; its matrix rows must retain diagonal `[15, 10, 10, 10, 15]`, internal off-diagonal entries `-5`, and source `[4000, 0, 0, 0, 2000]`. Resolve any compiler warning introduced by this refactor before considering the step complete.
+  - **Verification:** `cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build --parallel && ./build/bin/test_uniform_mesh1d < /dev/null && ./build/bin/steady_heat_conduction_rod1d < /dev/null`
 
-- [x] **Step 2.2: Refactor Boundary Face Contributions**
-  - Target: `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`
-  - Spec: Ensure boundary condition applications (Dirichlet/Neumann) do not rely on directional member functions, routing boundary diagonal/source additions systematically.
+## Execution Log
 
-### Phase 3: Benchmark & Verification
-- [x] **Step 3.1: Recompile 1D Steady Heat Conduction Benchmark**
-  - Target: `applications/` driver Makefile
-  - Spec: Clean build of the 1D heat conduction rod executable.
+### Step 1.1: Add the polymorphic boundary base and shared validation context - Completed
+- **Files Modified:** `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`, `src/boundary/boundary1d/boundary_condition1d.cpp`, `CMakeLists.txt`, `FILEPATH.md`, `TASK_PLAN.md`
+- **Changes:** Added the abstract `BoundaryCondition1D`, metadata accessors, `BoundaryAssemblyContext1D`, and shared non-mutating assembly preflight validation; registered and inventoried the new files.
+- **Verification Status:** Pass — configure/build completed; output included `[100%] Built target cfd_toolkit` and all executable targets.
 
-- [x] **Step 3.2: Verify Numerical Precision**
-  - Target: Terminal output comparison
-  - Spec: Run the benchmark driver and ensure the tridiagonal matrix values and final converged temperature profile match the pre-refactor reference output bit-for-bit.
+### Step 2.1: Refactor Dirichlet storage and assembly onto the common base - Completed
+- **Files Modified:** `include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp`, `src/boundary/boundary1d/dirichlet_boundary1d.cpp`, `TASK_PLAN.md`
+- **Changes:** Made `DirichletBoundary1D` derive from `BoundaryCondition1D`, inherited `Name()` / `Side()`, retained its constructor and `Value()`, and routed shared validation through `Prepare_Assembly` before applying the existing diagonal/source formula.
+- **Verification Status:** Pass — build succeeded and driver printed `FvMesh1D contract checks passed`.
 
----
+### Step 2.2: Refactor Neumann storage and assembly onto the common base - Completed
+- **Files Modified:** `include/cfd/boundary/boundary1d/neumann_boundary1d.hpp`, `src/boundary/boundary1d/neumann_boundary1d.cpp`, `TASK_PLAN.md`
+- **Changes:** Made `NeumannBoundary1D` derive from `BoundaryCondition1D`, forwarded lowercase metadata accessors to the base, retained gradient conversion, and routed shared validation through `Prepare_Assembly` before source-only assembly.
+- **Verification Status:** Pass — build succeeded and driver printed `FvMesh1D contract checks passed`.
 
-## Execution Log (Appended after each step)
-<!-- The agent appends a brief entry here after completing each step -->
+### Step 2.3: Refactor Robin storage and assembly onto the common base - Completed
+- **Files Modified:** `include/cfd/boundary/boundary1d/robin_boundary1d.hpp`, `src/boundary/boundary1d/robin_boundary1d.cpp`, `TASK_PLAN.md`
+- **Changes:** Made `RobinBoundary1D` derive from `BoundaryCondition1D`, forwarded lowercase metadata accessors to the base, retained its condition-specific values and constructor validation, and routed shared preflight validation through `Prepare_Assembly` before diagonal/source assembly.
+- **Verification Status:** Pass — build succeeded and driver printed `FvMesh1D contract checks passed`.
 
-### [Step 1.1: Declare Add_OffDiagonal API] - Completed
-- **Files Modified:** `include/cfd/fv_matrix/fv_matrix1d.hpp`, `TASK_PLAN.md`.
-- **Changes:** Declared and documented the public off-diagonal matrix entry API.
-- **Verification Status:** Pass (`cmake --build /tmp/cfd-toolkit-step-1-1 --parallel`: `[100%] Built target cfd_toolkit`; configured with `BUILD_EXAMPLES=OFF`).
+### Step 3.1: Extend the boundary contract driver for base-reference dispatch and regressions - Completed
+- **Files Modified:** `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`, `TASK_PLAN.md`
+- **Changes:** Added inheritance and virtual-destructor compile-time assertions, base-reference dispatch checks for Dirichlet/Neumann/Robin formulas, and a Dirichlet rejection no-mutation assertion; retained existing boundary regression checks.
+- **Verification Status:** Pass — target build succeeded and driver printed `FvMesh1D contract checks passed`.
 
-### [Step 1.2: Implement Add_OffDiagonal Routing Logic] - Completed
-- **Files Modified:** `src/fv_matrix/fv_matrix1d.cpp`, `TASK_PLAN.md`.
-- **Changes:** Routed valid neighboring entries to lower or upper storage and rejected diagonal, out-of-bounds, and unsupported stencil indices.
-- **Verification Status:** Pass (`cmake --build /tmp/cfd-toolkit-step-1-1 --parallel`: `[100%] Built target cfd_toolkit`).
-
-### [Step 1.3: Compile & Regression Sanity Check] - Completed
-- **Files Modified:** `TASK_PLAN.md`.
-- **Changes:** Built the library and all existing drivers; ran the existing contract checks and rod example.
-- **Verification Status:** Pass (`make`: `[100%] Built target steady_heat_conduction_rod1d`; all six executables exited 0, including `FvMesh1D contract checks passed` and `Field1D example checks passed`).
-
-### [Step 2.1: Refactor Internal Face Assembly to Use Add_OffDiagonal] - Completed
-- **Files Modified:** `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`, `TASK_PLAN.md`.
-- **Changes:** Internal-face diagonal terms use `Add_a_P`; symmetric neighbor terms use `Add_OffDiagonal` in both row directions, replacing directional off-diagonal calls.
-- **Verification Status:** Pass (`cmake --build build --parallel`: `[100%] Built target steady_heat_conduction_rod1d`; all configured targets built).
-
-### [Step 2.2: Refactor Boundary Face Contributions] - Completed
-- **Files Modified:** `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`, `TASK_PLAN.md`.
-- **Changes:** Clarified that applicable boundary diagonal and source contributions are assembled separately through boundary-condition APIs; this preserves row-based assembly and the existing Neumann API, which has no matrix assembly.
-- **Verification Status:** Pass (`cmake --build build --parallel`: `[100%] Built target test_field1d`; all configured targets built).
-### Step 3.1: Recompile 1D Steady Heat Conduction Benchmark - Completed
-- **Files Modified:** `TASK_PLAN.md` (checklist and execution log).
-- **Changes:** Recompiled the 1D steady heat conduction benchmark with the repository CMake target; no application source changes were needed. The planned `applications/` driver Makefile is not present in this repository.
-- **Verification Status:** Pass — `cmake --build build --target steady_heat_conduction_rod1d` output: `[ 95%] Built target cfd_toolkit`; `[100%] Built target steady_heat_conduction_rod1d`.
-### [Step 3.2: Verify Numerical Precision] - Completed
-- **Files Modified:** `TASK_PLAN.md` (checklist and execution log).
-- **Changes:** Ran the rod benchmark and compared its terminal output with a freshly built pre-refactor `HEAD` baseline.
-- **Verification Status:** Pass — baseline built with `cmake --build build --target steady_heat_conduction_rod1d`; current and baseline runs produced byte-identical stdout (1,148 bytes) and empty stderr.
+### Step 3.2: Run the full build and rod integration demonstration - Completed
+- **Files Modified:** `TASK_PLAN.md` (verification-only step; no C++ source changes)
+- **Changes:** Ran the full Debug configure/build, boundary contract driver, and rod integration example; confirmed the existing stack-constructed Dirichlet API remains compatible.
+- **Verification Status:** Pass — contract driver printed `FvMesh1D contract checks passed`; rod output showed temperatures `[380.000, 340.000, 300.000, 260.000, 220.000]` K and diagonals `[15, 10, 10, 10, 15]`, off-diagonals `-5`, and sources `[4000, 0, 0, 0, 2000]`.

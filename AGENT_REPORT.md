@@ -1,294 +1,124 @@
-# AGENT_REPORT.md
+# Architectural Report: Shared 1D Boundary Assembly
 
-## Status
-- **Current Task:** 1D FVM Laplacian Refactoring.
-- **Last Completed Step:** Architecture Audit completed.
-- **Current Status:** Ready for implementation.
+## 1. Problem Statement / User Query (State my query clearly so future agents understand the exact goal)
 
-## Progress Log
-- [x] Step 1: Technical Audit of current codebase.
-- [ ] Step 2: Implementation of row/column off-diagonal matrix API.
-- [ ] Step 3: Refactor Laplacian assembly.
+The user wants to simplify boundary-condition implementation in `include/cfd/boundary/boundary1d` by introducing a common base class and three derived boundary classes, using composition to reduce repeated code. The three existing conditions are Dirichlet, Neumann, and Robin. This is an architecture proposal only: do not modify or write C++ source code files in this task.
 
-## Next Immediate Step
-Implement a storage-neutral `Add_OffDiagonal(row, col, value)` API in `FvMatrix1D`.
+## 2. Codebase Impact Analysis (Exact file paths, affected classes/methods)
 
----
+Current public declarations:
 
-# Technical Audit Report: Systematic Face Flux Assembly in 1D FVM
+- `include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp`: `cfd::boundary::DirichletBoundary1D`, constructor, `Name()`, `Side()`, `Value()`, and `Apply(...)`.
+- `include/cfd/boundary/boundary1d/neumann_boundary1d.hpp`: `cfd::boundary::NeumannBoundary1D`, both constructors, lowercase metadata/gradient accessors, `set_normal_gradient(...)`, and `Apply(...)`.
+- `include/cfd/boundary/boundary1d/robin_boundary1d.hpp`: `cfd::boundary::RobinBoundary1D`, constructor, lowercase metadata/coefficient accessors, setters, and `Apply(...)`.
+- `include/cfd/boundary/types.hpp`: `BoundaryType`, `BoundarySide1D`, and `GradientType` enums.
 
-## Scope and conclusion
+Current implementations and repeated assembly validation:
 
-This audit covers the current 1D mesh topology, `FvMatrix1D` storage API, the
-1D implicit Laplacian, and the gradient/interpolation schemes it calls. The
-mesh already exposes enough topology and orientation information to drive a
-face-based assembly loop. The remaining architectural constraint is the
-matrix wrapper: it stores a tridiagonal system and names its off-diagonal
-entries `a_W` and `a_E`, so the operator currently has to translate a cell pair
-into those slots itself.
+- `src/boundary/boundary1d/dirichlet_boundary1d.cpp`: validates mesh identity, nonempty matching sizes, boundary side, owner diffusivity, distance, area, contributions, and accumulated diagonal/source before adding the Dirichlet diagonal and source.
+- `src/boundary/boundary1d/neumann_boundary1d.cpp`: repeats common mesh/size/geometry/diffusivity validation and preflights its source-only Neumann contribution; it also converts coordinate gradients to outward-normal gradients.
+- `src/boundary/boundary1d/robin_boundary1d.cpp`: repeats common validation and preflights its diagonal/source Robin contribution; its first-order closure is `phi_b = phi_P`.
+- `CMakeLists.txt`: explicitly lists the three implementation paths above.
 
-The least disruptive design is to keep the face loop and geometric sign
-calculation in `Laplacian`, while adding a cell-pair or face-coupling insertion
-operation to `FvMatrix1D`. That operation can validate the pair and route an
-off-diagonal coefficient to the lower or upper diagonal internally. This
-removes East/West knowledge from the operator without prematurely replacing
-the 1D tridiagonal storage. A later unstructured-ready matrix can replace that
-implementation with general owner/neighbour addressing behind the same
-conceptual operation.
+Existing behavior is consumed in `tests/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp` and `examples/steady_heat_conduction_rod1d/steady_heat_conduction_rod1d.cpp`. The test driver exercises boundary signs, constructor/accessor contracts, invalid values, overflow safety, and assembly. The rod example constructs Dirichlet objects directly and applies them separately.
 
-## 1. Current state
+## 3. Proposed Architectural Solution (Concrete C++20 specs, exact method signatures, logic flow, error handling)
 
-### `FvMesh1D` topology and geometry
+Add a non-owning shared assembly context in the boundary implementation layer and a small polymorphic metadata base for the three public condition classes. Keep the boundary equations and their condition-specific stored values in the three derived classes. Composition then places the reusable geometry/validation object inside the common base; inheritance expresses that each concrete condition is a 1D boundary condition. Avoid putting condition-specific formulas in the base.
 
-`include/cfd/mesh/mesh1d/fv_mesh1d.hpp` defines `CellId` and `FaceId` as
-`std::size_t`. A mesh owns explicit face coordinates, cell-center coordinates,
-and cell volumes. Its topology is currently the canonical 1D line topology:
+Proposed internal helper value:
 
-- `N_Cells()` is the number of cells and `N_Faces()` is `N_Cells() + 1`.
-- `Owner(f)` returns cell `0` for the west/start boundary face and `f - 1`
-  for every other face.
-- `Neighbour(f)` returns `std::nullopt` for face `0` and face `N_Cells()`;
-  for an internal face it returns cell `f`.
-- `Face_Normal(f)` returns `-1` at the start boundary and `+1` for every
-  other face. The documented convention is that this is directed outward from
-  the owner.
-- `Outward_Normal(p, f)` validates that `p` is incident on `f` and returns
-  `-1` for the cell's west face and `+1` for its east face. On an internal
-  face, the owner has relative sign `+1` and the neighbour has `-1`.
-- `Face_Area(f)` is `1.0` for the unit cross-section convention.
-
-The checked topology methods reject invalid indices and invalid cell/face
-pairs. `Dx_W(f)`, `Dx_E(f)`, and `Dx_f(f)` provide the two center-to-face
-distances and their sum for internal faces. These names still encode the
-current 1D orientation, but the owner/neighbour methods and
-`Outward_Normal` do not require an operator to infer west/east from a face
-number.
-
-The mesh has no general incident-cell range or face-connectivity object. For
-an internal face, callers therefore obtain a two-cell pair through
-`Owner(f)` and `Neighbour(f)`, then query each cell's relative outward sign.
-Boundary faces have no neighbour and must remain a separate boundary-condition
-path, as the current Laplacian contract specifies.
-
-### `FvMatrix1D` coefficient insertion
-
-`include/cfd/fv_matrix/fv_matrix1d.hpp` binds a matrix to a particular
-`FvMesh1D` and owns a `linear_algebra::TridiagonalMatrix`. It exposes:
-
-- `a_P(p)`, `a_W(p)`, `a_E(p)`, and `b(p)` accessors;
-- `Set_a_W`, `Set_a_P`, `Set_a_E`, and `Set_b`;
-- `Add_a_W`, `Add_a_P`, `Add_a_E`, and `Add_b`;
-- `Mesh()`, `size()`, `Matrix()`, and `Reset()`.
-
-The wrapper documents that west is the lower diagonal and east is the upper
-diagonal. Consequently, it has no API for “add a coefficient from row `p` to
-arbitrary neighbouring cell `q`.” The operator must know that the lower slot
-means `q = p - 1` and the upper slot means `q = p + 1`. `Matrix()` also exposes
-the underlying tridiagonal object, so callers can bypass the wrapper entirely,
-although the current Laplacian does not do so.
-
-The underlying `TridiagonalMatrix` likewise only provides indexed lower,
-diagonal, upper, and source vectors. It has no owner/neighbour addressing or
-generic sparse row/column insertion.
-
-### Current Laplacian assembly
-
-`src/finite_volume/fvm/fvm1d/laplacian1d.cpp` validates that `gamma`, the
-matrix, and the mesh are compatible by object identity and size, then loops
-over internal faces using numeric bounds (`1 <= f < N_Faces() - 1`). For each
-face it obtains:
-
-1. `p_W = mesh.Owner(f)` and `p_E = *mesh.Neighbour(f)`;
-2. `Dx_W(f)`, `Dx_E(f)`, and `Face_Area(f)`;
-3. a resistance-weighted harmonic face diffusivity, with a zero on either
-   side treated as zero face diffusivity;
-4. a central-difference unit-jump gradient and the resulting conductance.
-
-It then inserts the conserved two-point diffusion stencil explicitly:
-
-```text
-row owner:    +D on diagonal, -D in east slot
-row neighbour:+D on diagonal, -D in west slot
+```cpp
+struct BoundaryAssemblyContext1D
+{
+    const mesh::FvMesh1D& mesh;
+    std::size_t face_id;
+    std::size_t owner;
+    double gamma_owner;
+    double face_area;
+    double owner_face_distance;
+};
 ```
 
-The comments express the physical rule as owner outward flux
-`D * (phi_owner - phi_neighbour)` and the neighbour receiving the opposite
-flux. The implementation is mathematically correct for this line mesh, but
-the operator itself performs both translations that should eventually belong
-to topology/matrix infrastructure: it treats the owner as west, the neighbour
-as east, and selects `a_E`/`a_W` manually.
+Provide one implementation-layer preparation function, preferably translation-unit-local in a shared boundary source if source organization allows, or declared in a private internal header if needed by all three `.cpp` files:
 
-Boundary contributions are intentionally outside this function. The current
-Dirichlet boundary object adds a diagonal conductance and source term for the
-start or end cell. The Neumann object exposes normal and coordinate-gradient
-orientation but does not assemble a matrix term.
-
-### Related schemes
-
-`central_difference(phi_p, phi_n, distance_p, distance_n)` computes the
-coordinate gradient `(phi_n - phi_p) / (distance_p + distance_n)` and requires
-finite field values and positive finite distances. `harmonic_mean` computes
-the resistance-weighted face diffusivity from positive diffusivities and
-distances. Both are deliberately pair-oriented and do not know about mesh
-orientation or matrix rows. That separation is appropriate: geometry should
-provide the ordered pair and distances, while the operator determines the
-conservative flux contribution.
-
-## 2. Architectural approaches
-
-### A. Sign-driven face loop with existing matrix API
-
-The operator can retain the current face loop and use `Owner`, `Neighbour`,
-`Face_Normal`, and `Outward_Normal` to derive the contribution for each
-incident cell. For an internal face with owner `o`, neighbour `n`, intrinsic
-face-normal direction, and conductance `D`, the negative-diffusion outward
-flux for incident cell `c` can be expressed as:
-
-```text
-q_c = -D * s_c * (phi_n - phi_o)
+```cpp
+[[nodiscard]] BoundaryAssemblyContext1D Prepare_Boundary_Assembly(
+    BoundarySide1D side,
+    const field::VolScalarField1D& gamma,
+    const fv_matrix::FvMatrix1D& matrix,
+    std::string_view condition_name);
 ```
 
-where `s_c = Outward_Normal(c, f)` relative to the owner-directed face normal,
-and the owner/neighbour value ordering is retained for the face gradient. This
-gives `+D` on the row diagonal and `-D` on the other cell in both rows. It
-removes hardcoded sign arithmetic from the physical flux calculation, but the
-operator would still need a local mapping from the other cell's id to
-`a_W` or `a_E`. It is therefore an incremental improvement, not a complete
-removal of directional knowledge.
+The preparation function checks that `&gamma.Mesh() == &matrix.Mesh()`, mesh cell count is nonzero, field and matrix sizes equal the cell count, side is `Start` or `End`, owner index is valid, owner diffusivity is finite and nonnegative, owner-to-face distance is finite and positive, and face area is finite and positive. It resolves Start to face 0 and End to `N_Faces() - 1`. It throws `std::invalid_argument` for bad identity, sizes, side, diffusivity, owner, or geometry, retaining the existing input-validation exception category. Condition-specific contribution calculations and accumulated-row checks remain in the derived `Apply` methods.
 
-### B. Add a generic adjacent-cell insertion helper to `FvMatrix1D`
+Proposed public base declaration (new `include/cfd/boundary/boundary1d/boundary_condition1d.hpp`):
 
-Add a matrix-level operation conceptually equivalent to one of these forms:
+```cpp
+class BoundaryCondition1D
+{
+public:
+    virtual ~BoundaryCondition1D() = default;
+    [[nodiscard]] const std::string& Name() const noexcept;
+    [[nodiscard]] BoundarySide1D Side() const noexcept;
+    virtual void Apply(const field::VolScalarField1D& gamma,
+                       fv_matrix::FvMatrix1D& matrix) const = 0;
 
-```text
-Add_OffDiagonal(row, column, value)
-Add_Face_Coupling(owner, neighbour, conductance)
+protected:
+    BoundaryCondition1D(std::string name, BoundarySide1D side);
+    [[nodiscard]] BoundaryAssemblyContext1D Prepare_Assembly(
+        const field::VolScalarField1D& gamma,
+        const fv_matrix::FvMatrix1D& matrix,
+        std::string_view condition_name) const;
+
+private:
+    std::string name_;
+    BoundarySide1D side_;
+};
 ```
 
-The implementation can use the current tridiagonal storage internally. It
-would validate row/column bounds and adjacency, add the diagonal terms, and
-route an off-diagonal coefficient to lower or upper storage based on the two
-cell ids. The Laplacian would then loop over owner/neighbour pairs and request
-the conservative face coupling without mentioning `a_W` or `a_E`.
+Make `DirichletBoundary1D`, `NeumannBoundary1D`, and `RobinBoundary1D` publicly derive from `BoundaryCondition1D`; mark each existing `Apply(...) const` with `override`. Preserve the existing concrete constructors and condition-specific accessors/setters, including `DirichletBoundary1D::Name()` / `Side()` compatibility through inherited methods. Keep Neumann gradient conversion and Robin/Dirichlet constructor validation behavior as currently implemented; in particular, do not silently make Dirichlet construction reject invalid side/value if its existing contract defers validation to `Apply`.
 
-`Add_OffDiagonal` is the more general matrix primitive; a face-coupling helper
-is more expressive for this operator and can centralize the equal-and-opposite
-diffusion stencil. Either form can use `Outward_Normal` in the operator (or in
-a lower-level flux helper) while keeping storage-specific routing in the
-matrix wrapper.
+Each derived `Apply` follows this order: validate its own stored data; call `Prepare_Assembly`; compute its existing contribution; validate finite contribution and resulting matrix entries; only then mutate the matrix. For Dirichlet, add `gamma_owner * face_area / owner_face_distance` to `a_P(owner)` and that value times the prescribed boundary value to `b(owner)`. For Neumann, add `gamma_owner * normal_gradient * face_area` to `b(owner)` only. For Robin, add `transfer_coefficient * face_area` to `a_P(owner)` and that diagonal contribution times `ambient_value` to `b(owner)`. Preserve current outward-normal sign convention and Robin closure. Invalid inputs continue to throw `std::invalid_argument`; nonfinite contributions or accumulated entries continue to throw `std::overflow_error`. Preserve the all-validation-before-mutation guarantee.
 
-### C. Introduce a small topology/assembly helper separate from the matrix
+If runtime polymorphic collections are not needed, keep the base abstract and stack-constructible concrete classes; do not introduce ownership containers, factories, templates, or a general boundary registry. Keep `BoundaryType` enum/accessors compatible; adding a base virtual `type()` is unnecessary for this refactor and would change the Dirichlet public API without helping the shared assembly path.
 
-Create a mesh-side or finite-volume helper that returns a face connectivity
-record: owner id, optional neighbour id, intrinsic normal, each incident
-cell's outward sign, area, and center-to-face distances. `Laplacian` would
-consume that record and call a matrix pair-insertion API or, temporarily, a
-small adapter that maps the pair to lower/upper slots.
+## 4. Risks & Backward Compatibility (Regression prevention)
 
-This makes the operator readable and gives future 2D/3D meshes a place to
-provide the same concepts. It adds a new abstraction before there is a second
-consumer, so its shape should be kept small and based on stable concepts rather
-than 1D names such as west/east.
+- Adding a virtual function table changes object layout and ABI for these public classes; downstream binaries must be rebuilt. Source compatibility should be preserved by retaining the current constructors and condition-specific accessors/setters.
+- Inherited `Name()` and `Side()` should remain callable on `DirichletBoundary1D`; consider thin forwarding methods only if compiler/API checks show an ambiguity or source compatibility issue. Preserve Neumann/Robin lowercase `name()` and `side()` spellings.
+- Do not erase physical differences: Neumann only updates source; Dirichlet and Robin update diagonal and source. Preserve their sign conventions, exact geometry use, and current handling of zero diffusivity.
+- Preserve each class's present constructor validation behavior, setter behavior, exception categories, and preflight-before-write semantics. A shared helper must not update the matrix or validate condition-specific parameters.
+- `gamma` and matrix must continue to reference the identical mesh object. Equal geometry is insufficient.
+- A base reference must have a virtual destructor because `Apply` is virtual. No owning raw pointers should be introduced.
+- If adding a new implementation or public header, update the explicit CMake source list only when a new `.cpp` is introduced, and update root `FILEPATH.md` inventory as repository policy requires. Update `AGENTS.md` only if a future task expressly asks and repository constraints allow it; no such edit is part of this proposal.
+- Existing boundary contract checks and the rod example are regression gates; retain their current direct construction and `Apply` usage.
 
-### D. Replace tridiagonal storage with general owner/neighbour addressing
+## 5. Verification Criteria (Exact build command, driver execution, expected output)
 
-Adopt an OpenFOAM-like ldu matrix representation: faces provide owner and
-neighbour addressing, and coefficient arrays are assembled by face connectivity
-rather than by directional slots. The operator contributes per-face
-coefficients and the matrix handles row accumulation. This is the strongest
-long-term fit for unstructured and dimension-agnostic meshes, but it is a
-larger change: the TDMA solver, `FvMatrix1D` public API, boundary assembly, and
-existing examples/tests all currently depend on three diagonals.
+After a future implementation task authorizes C++ changes, build the existing Debug configuration and all targets from the repository root:
 
-## 3. Trade-offs and minimal-impact recommendation
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --parallel
+```
 
-Approach A has almost no API cost and can demonstrate the correct geometric
-sign convention, but it leaves the operator coupled to the tridiagonal naming
-scheme. It is useful as an intermediate verification step, yet it does not
-fully meet the stated goal.
+Run the boundary contract driver (boundary checks are part of this executable):
 
-Approach B preserves the existing C++20 value types, TDMA storage, solver, and
-boundary code. It moves the row/column-to-diagonal translation to the object
-that owns matrix storage and lets `Laplacian` express a face coupling in terms
-of mesh topology. A pair-based helper can reject non-adjacent cells and make
-the current 1D limitation explicit. This is the best fit for the requested
-minimal friction.
+```sh
+./build/bin/test_uniform_mesh1d < /dev/null
+```
 
-Approach C improves separation further and establishes reusable topology
-vocabulary, but it should follow or accompany the matrix helper rather than
-become a speculative generalized mesh framework. The helper should expose
-owner/neighbour and orientation as data, not assume that all future meshes are
-ordered Cartesian grids.
+Expected successful output is exactly:
 
-Approach D is the cleanest endpoint for unstructured FVM and most closely
-resembles OpenFOAM's owner/neighbour addressing. It should be treated as a
-planned matrix-generation step after the 1D API has stabilized, because doing
-it now would expand the change into solver and compatibility work unrelated to
-the requested operator audit.
+```text
+FvMesh1D contract checks passed
+```
 
-Recommended path:
+Run the existing integration example:
 
-1. Keep the existing face-based loop and scheme calls.
-2. Add a storage-neutral matrix operation for an adjacent owner/neighbour
-   pair, with routing implemented inside `FvMatrix1D`.
-3. Use `Outward_Normal` and `Face_Normal` (or an equivalent face-sign helper)
-   to derive the flux sign, and use owner/neighbour ids only as topology
-   identities.
-4. Preserve `a_W`/`a_E` as compatibility accessors for current users while
-   making them implementation details of pair routing.
-5. Record the eventual generalization point: a future matrix can implement the
-   same pair/face assembly concept with arbitrary owner/neighbour addressing.
+```sh
+./build/bin/steady_heat_conduction_rod1d < /dev/null
+```
 
-The key design boundary is that geometry supplies orientation and adjacency,
-the discretization schemes supply gradient/interpolation values, and the
-matrix supplies row/column coefficient storage. The Laplacian should compose
-those responsibilities rather than translate all three itself.
-
-## 4. Recommended next steps before implementation
-
-1. **Agree on the matrix seam.** Choose whether the first API is a generic
-   `Add_OffDiagonal(row, column, value)` plus diagonal insertion, or a more
-   semantic `Add_Face_Coupling(owner, neighbour, conductance)`. The latter is
-   lower risk for the current diffusion operator; the former is a better seed
-   for convection and source operators.
-2. **Write the sign and conservation contract.** Document that the intrinsic
-   face normal is owner-directed, that `Outward_Normal(owner, f)` and
-   `Outward_Normal(neighbour, f)` are opposites on an internal face, and that
-   the negative diffusion operator contributes `+D` to each incident diagonal
-   and `-D` to the opposite-cell column.
-3. **Define validation behavior.** Decide how pair insertion handles boundary
-   faces, non-adjacent cells, reversed pairs, self-pairs, invalid ids, and
-   conductances that are non-finite. Keep these checks in the matrix or a
-   shared assembly helper so every operator gets the same behavior.
-4. **Add focused contract checks before changing the operator.** Cover owner
-   and neighbour rows on uniform and graded meshes, both orientations of the
-   relative normal, conservation of the two assembled rows, and the single-cell
-   boundary-only case. Existing numerical checks should remain unchanged.
-5. **Refactor the Laplacian only after the seam is tested.** Replace the four
-   explicit `Add_a_*` calls with the chosen pair/face operation, keeping the
-   existing harmonic interpolation, zero-diffusivity handling, overflow checks,
-   and boundary separation.
-6. **Plan the 2D/3D follow-up separately.** Once the 1D helper is stable,
-   compare its concepts with a general owner/neighbour addressing structure.
-   Avoid naming a new abstraction around west/east or assuming that every
-   future matrix is tridiagonal.
-
-## Files inspected
-
-- `include/cfd/mesh/mesh1d/fv_mesh1d.hpp`
-- `src/mesh/mesh1d/fv_mesh1d.cpp`
-- `include/cfd/fv_matrix/fv_matrix1d.hpp`
-- `src/fv_matrix/fv_matrix1d.cpp`
-- `include/cfd/finite_volume/fvm/fvm1d/laplacian1d.hpp`
-- `src/finite_volume/fvm/fvm1d/laplacian1d.cpp`
-- `include/cfd/linear_algebra/matrix/tridiagonal_matrix.hpp`
-- `include/cfd/schemes/gradient/central_difference.hpp`
-- `src/schemes/gradient/central_difference.cpp`
-- `include/cfd/schemes/interpolation/harmonic_mean.hpp`
-- `src/schemes/interpolation/harmonic_mean.cpp`
-- `include/cfd/boundary/boundary1d/dirichlet_boundary1d.hpp`
-- `src/boundary/boundary1d/dirichlet_boundary1d.cpp`
-- `include/cfd/boundary/boundary1d/neumann_boundary1d.hpp`
-- `src/boundary/boundary1d/neumann_boundary1d.cpp`
-- `examples/test_mesh/test_mesh1d/test_uniform_mesh1d/test_uniform_mesh1d.cpp`
-
+For the unchanged five-cell rod case, verify the reported steady-state cell temperatures are approximately `380.000`, `340.000`, `300.000`, `260.000`, and `220.000` K, and that the assembled rows retain the expected tridiagonal boundary contributions: diagonal `15, 10, 10, 10, 15`, internal off-diagonals `-5`, and right-hand side `4000, 0, 0, 0, 2000`. Also retain/add checks for base-reference dispatch, all three concrete classes, invalid mesh identity/size/side/data, overflow rejection, and unchanged matrices after rejected applications. These are proposed verification criteria; no build or driver was run for this architecture-only task.
