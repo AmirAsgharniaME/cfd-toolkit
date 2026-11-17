@@ -11,7 +11,7 @@ $$
 q_{\mathrm{conv,out}} = h (\phi_b - \phi_\infty) \qquad (1)
 $$
 
-- This holds regardless of whether the boundary is at the left ($x=0$), right ($x=L$), or on an arbitrarily oriented 3D surface.
+- In Eq. (1), $h$ is the transfer coefficient, $\phi_b$ is the boundary value, and $\phi_\infty$ is the ambient value. The relation holds regardless of whether the boundary is at the left ($x=0$), right ($x=L$), or on an arbitrarily oriented 3D surface.
 - Equating this directly to the **outward diffusive flux** from Fick's / Fourier's law:
 
 $$
@@ -24,7 +24,7 @@ $$
 -\Gamma \nabla\phi \cdot \mathbf{n}_{\mathrm{out}} = h (\phi_b - \phi_\infty) \qquad (3)
 $$
 
-
+Here, $\Gamma$ is the diffusivity, and Eq. (3) equates the outward fluxes in Eq. (1) and Eq. (2).
 
 ## 2. The Vector Paradox: Why Global Cartesian Flux Fails
 
@@ -49,7 +49,7 @@ Projecting this onto outward face normals yields contradictory signs between lef
   $$
 
 ### Physical Resolution via Boundary Layer Conduction
-Convection is microscopic conduction across the adjacent fluid boundary layer of thickness $\delta_f$:
+Convection is microscopic conduction across the adjacent fluid boundary layer of thickness $\delta_f$ and conductivity $k_f$, with $h = k_f / \delta_f$ in this approximation:
 
 $$
 \mathbf{q} = -k_f \nabla T \qquad (7)
@@ -112,7 +112,7 @@ $$
 Integrating over control volume $V_P$ and applying the Divergence Theorem:
 
 $$
-\sum_f \int_{A_f} \left(-\Gamma \nabla\phi \cdot \mathbf{n}_{\mathrm{out}}\right) dA = \int_{V_P} S \, dV \qquad (15)
+\sum_f \int_{A_f} \left(-\Gamma \nabla\phi \cdot \mathbf{n}_{\mathrm{out}}\right)\,\mathrm{d}A = \int_{V_P} S\,\mathrm{d}V \qquad (15)
 $$
 
 Let $f = b$ be an exterior boundary face with area $A_b$. The outward integrated diffusive flux leaving face $b$ is:
@@ -134,7 +134,7 @@ $$
 Q_{\mathrm{out}, b} \approx h A_b \phi_P - h A_b \phi_\infty \qquad (18)
 $$
 
-Substituting into the algebraic equation:
+Substituting Eq. (18) into the algebraic equation:
 
 $$
 a_P \phi_P - \sum_N a_N \phi_N = b_P \qquad (19)
