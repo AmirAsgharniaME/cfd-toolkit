@@ -38,15 +38,17 @@ Projecting this onto outward face normals yields contradictory signs between lef
 
 - Right boundary ($\mathbf{n}_{\mathrm{out}} = +\mathbf{i}$):
 
-  $$
-  \mathbf{q}_{\mathrm{conv}} \cdot \mathbf{n}_{\mathrm{out}} = +h (\phi_b - \phi_\infty)  \qquad (5)
-  $$
+$$
+\mathbf{q}_{\mathrm{conv}} \cdot \mathbf{n}_{\mathrm{out}} = +h (\phi_b - \phi_\infty)  \qquad (5)
+$$
 
 - Left boundary ($\mathbf{n}_{\mathrm{out}} = -\mathbf{i}$):
 
-  $$
-  \mathbf{q}_{\mathrm{conv}} \cdot \mathbf{n}_{\mathrm{out}} = -h (\phi_b - \phi_\infty) \quad \text{(Physically incorrect for outward flux)}  \qquad (6)
-  $$
+$$
+\mathbf{q}_{\mathrm{conv}} \cdot \mathbf{n}_{\mathrm{out}} = -h (\phi_b - \phi_\infty)  \qquad (6)
+$$
+
+(Physically incorrect for outward flux)
 
 ### Physical Resolution via Boundary Layer Conduction
 Convection is microscopic conduction across the adjacent fluid boundary layer of thickness $\delta_f$ and conductivity $k_f$, with $h = \frac{k_f}{\delta_f}$ in this approximation:
@@ -56,48 +58,48 @@ $$
 $$
 
 1. **At the Right Boundary** ($x = L$, fluid is at $x > L$):
-   - The temperature in the fluid drops from $T_b$ to $T_\infty$ along $+x$.
-   - Spatial gradient in fluid:
+- The temperature in the fluid drops from $T_b$ to $T_\infty$ along $+x$.
+- Spatial gradient in fluid:
 
-     $$
-     \left.\frac{\partial T}{\partial x}\right\vert_{\mathrm{fluid}} \approx \frac{T_\infty - T_b}{\delta_f} < 0  \qquad (8)
-     $$
+$$
+\left.\frac{\partial T}{\partial x}\right\vert_{\mathrm{fluid}} \approx \frac{T_\infty - T_b}{\delta_f} < 0  \qquad (8)
+$$
 
-     (if $T_b > T_\infty$).
-   - Local Cartesian flux vector:
+(if $T_b > T_\infty$).
+- Local Cartesian flux vector:
 
-     $$
-     \mathbf{q}_{\mathrm{conv,right}} = -k_f \left(\frac{T_\infty - T_b}{\delta_f}\right)\mathbf{i} = +h(T_b - T_\infty)\mathbf{i}  \qquad (9)
-     $$
+$$
+\mathbf{q}_{\mathrm{conv,right}} = -k_f \left(\frac{T_\infty - T_b}{\delta_f}\right)\mathbf{i} = +h(T_b - T_\infty)\mathbf{i}  \qquad (9)
+$$
 
 2. **At the Left Boundary** ($x = 0$, fluid is at $x < 0$):
-   - The temperature drops from $T_b$ to $T_\infty$ along $-x$.
-   - Spatial gradient in fluid:
+- The temperature drops from $T_b$ to $T_\infty$ along $-x$.
+- Spatial gradient in fluid:
 
-     $$
-     \left.\frac{\partial T}{\partial x}\right\vert_{\mathrm{fluid}} \approx \frac{T_b - T_\infty}{\delta_f} > 0  \qquad (10)
-     $$
+$$
+\left.\frac{\partial T}{\partial x}\right\vert_{\mathrm{fluid}} \approx \frac{T_b - T_\infty}{\delta_f} > 0  \qquad (10)
+$$
 
-     (if $T_b > T_\infty$).
-   - Local Cartesian flux vector:
+(if $T_b > T_\infty$).
+- Local Cartesian flux vector:
 
-     $$
-     \mathbf{q}_{\mathrm{conv,left}} = -k_f \left(\frac{T_b - T_\infty}{\delta_f}\right)\mathbf{i} = -h(T_b - T_\infty)\mathbf{i}  \qquad (11)
-     $$
+$$
+\mathbf{q}_{\mathrm{conv,left}} = -k_f \left(\frac{T_b - T_\infty}{\delta_f}\right)\mathbf{i} = -h(T_b - T_\infty)\mathbf{i}  \qquad (11)
+$$
 
 Projecting both true local vectors onto their respective outward normals ($\mathbf{n}_{\mathrm{out}}$):
 
 - **Left Face:**
 
-  $$
-  \mathbf{q}_{\mathrm{conv,left}} \cdot (-\mathbf{i}) = \left[-h(T_b - T_\infty)\mathbf{i}\right] \cdot (-\mathbf{i}) = +h(T_b - T_\infty)  \qquad (12)
-  $$
+$$
+\mathbf{q}_{\mathrm{conv,left}} \cdot (-\mathbf{i}) = \left[-h(T_b - T_\infty)\mathbf{i}\right] \cdot (-\mathbf{i}) = +h(T_b - T_\infty)  \qquad (12)
+$$
 
 - **Right Face:**
 
-  $$
-  \mathbf{q}_{\mathrm{conv,right}} \cdot (+\mathbf{i}) = \left[+h(T_b - T_\infty)\mathbf{i}\right] \cdot (+\mathbf{i}) = +h(T_b - T_\infty)  \qquad (13)
-  $$
+$$
+\mathbf{q}_{\mathrm{conv,right}} \cdot (+\mathbf{i}) = \left[+h(T_b - T_\infty)\mathbf{i}\right] \cdot (+\mathbf{i}) = +h(T_b - T_\infty)  \qquad (13)
+$$
 
 
 
@@ -142,15 +144,15 @@ $$
 
 - The implicit term containing unknown $\phi_P$ stays on the LHS:
 
-  $$
-  a_P \mathrel{+}= h A_b  \qquad (20)
-  $$
+$$
+a_P \mathrel{+}= h A_b  \qquad (20)
+$$
 
 - The known ambient term moves to the RHS source vector:
 
-  $$
-  b_P \mathrel{+}= h A_b \phi_\infty  \qquad (21)
-  $$
+$$
+b_P \mathrel{+}= h A_b \phi_\infty  \qquad (21)
+$$
 
 ### Conclusion
 

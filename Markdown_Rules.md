@@ -26,6 +26,8 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
 3. Introduce the equation with a lead-in clause that ends without a period, so the sentence continues into the display, for example `..., it states that`, `In Cartesian coordinates, the divergence is`, or `For an interval $[x_w,x_e]$ and a scalar flux component $F_x$,`.
 4. Do not end the displayed LaTeX with a period or comma.
 5. Use a display for each numbered equation. Do not number inline formulas.
+6. Never place a displayed equation inside a list item (bullet or numbered), a blockquote, or a table. If a display appears inside a list item, close the list, put the `$$` block at the top level (no indentation, blank line before and after), and then continue the list with the remaining items if there are any. The text of the list item stays unchanged.
+7. If a list item contains a label followed by an equation (for example "Right boundary ($n_{out}=+i$):" followed by a formula), keep the label as the list item and move only the equation out below it. Do not convert the label into a paragraph unless the list has no other items.
 
 ## 3. Equation numbering
 
@@ -38,6 +40,7 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
 2. Use plain integers in parentheses, in order of appearance: `(1)`, `(2)`, `(3)`, and so on. Do not skip or repeat numbers. Do not use section-based numbers such as `(2.1)` and do not use `\tag{}` or `\label{}`.
 3. Keep the number inside the `$$` block. Never put it in prose next to the display.
 4. If an equation is added, removed, or reordered, renumber all following displays and update every reference in the text.
+5. If a display already has a number (`\qquad (n)`, `\tag{}`, or similar), replace it with the `  \qquad (n)` format and renumber the whole file in order. Do not leave a duplicate number.
 
 ## 4. Referring to equations in text
 
@@ -83,11 +86,13 @@ Additional notes:
 - State sign conventions and assumptions in prose directly after the equation they belong to.
 - Explain units in words outside the math.
 - Keep the prose a normal paragraph. Do not put prose inside `$$` blocks.
+- If a displayed equation contains explanatory words (for example `\text{...}` or `\quad \text{(note)}`), move the words out of the math into the sentence right after the equation. Keep the wording unchanged. Leave `\text{}` in the math only for short units or operator names.
 
 ## 7. Procedure for applying the rules to another file
 
 1. Find every mathematical expression in the file: symbols, equations, derivatives, integrals, and plain-text pseudo-math.
 2. Classify each one. Short symbols and relations in a sentence are inline (section 1). Main results, long expressions, and anything that needs an equation number are displayed (section 2).
+2a. Detect broken displays: any `$$ ... $$` written on one line, any `$$` that is indented, or any `$$` inside a list item. Rewrite each as a top-level block with `$$` alone on the opening and closing lines.
 3. Rewrite inline items as `$...$` and displayed items as a blank-line-separated `$$` block with each delimiter alone on its line.
 4. Number the displayed equations in order with `  \qquad (n)` inside the block, starting at `(1)`.
 5. Change every textual reference to `Eq. (n)` with the matching number, and add `Eq. (n)` references where the text points to an equation.
@@ -105,3 +110,5 @@ Additional notes:
 - [ ] Vectors use `\mathbf`, differentials use `\,\mathrm{d}`, and symbols are consistent.
 - [ ] All `$` and `$$` delimiters are balanced and the LaTeX is valid.
 - [ ] No mathematical content was changed.
+- [ ] No `$$` appears inside a list item, quote, or table, and none is indented.
+- [ ] No displayed equation contains explanatory prose.
