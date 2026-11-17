@@ -1,6 +1,6 @@
 # CFD Toolkit Theory Guide
 
-CFD Toolkit is a modular finite-volume framework with a clean separation of dimensions for solving transport equations. This guide explains the mathematical ideas, conventions, and discretization choices behind the library, connecting the governing equations to their numerical representation and implementation.
+CFD Toolkit is a modular finite-volume framework that separates dimensions for solving transport equations. This guide explains the mathematical ideas, conventions, and discretization choices behind the library, connecting the governing equations to their numerical representation and implementation.
 
 The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to the library, so the theory remains connected to the code and its current capabilities.
 
@@ -32,7 +32,7 @@ The signs in Eq. (3) follow from the outward normals: $`n_w=-1`$ at the west bou
 
 # Derivation of the Conservative Scalar Transport Equation
 
-A scalar transport equation expresses the conservation of an extensive quantity carried by a fluid. Let $\phi$ be the amount of that quantity per unit mass of fluid, $\rho$ the fluid density, and $\mathbf{u}$ the fluid velocity. Thus $\rho\phi$ is the amount per unit volume. The derivation below uses a **fixed control volume** $V$ with boundary $\partial V$ and outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
+A scalar transport equation expresses the conservation of an extensive quantity carried by a fluid. Let $\phi$ be the amount of that quantity per unit mass of fluid, $\rho$ the fluid density, and $\mathbf{u}$ the fluid velocity. Thus, $\rho\phi$ is the amount per unit volume. The derivation below uses a **fixed control volume** $V$ with boundary $\partial V$ and outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
 
 ## 1. Balance over a control volume
 
