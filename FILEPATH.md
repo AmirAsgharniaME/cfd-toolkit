@@ -6,8 +6,9 @@
 
 
 # Project documentation(.md)
-MD | Project README | README.md
 MD | Repository guidelines | AGENTS.md
+MD | Markdown rules | Markdown_Rules.md
+MD | Markdown tests | TEST_Markdown.md
 MD | Numeric types cheatsheet | NUMERIC_TYPES_CHEATSHEET.md
 MD | Technical architecture audit report | AGENT_REPORT.md
 MD | Project state | STATE.md
@@ -17,11 +18,6 @@ MD | Vector memory mechanics | VECTOR_MEMORY_MECHANICS.md
 MD | Transport equation derivation | TRANSPORT_EQUATION_DERIVATION.md
 MD | FVM diffusion assembly | FVM_DIFFUSION_ASSEMBLY.md
 MD | Robin boundary derivation | ROBIN_BOUNDARY_DERIVATION.md
-MD | Domain geometry README | include/cfd/geometry/domain/README.md
-MD | mesh 1D README | include/cfd/mesh/mesh1d/README.md
-MD | field 1D README | include/cfd/field/field1d/README.md
-
-
 # Headers
 H | Field 1D header | include/cfd/field/field1d/field1d.hpp
 H | Field 1D operators header | include/cfd/field/field1d/field1d_operators.hpp
