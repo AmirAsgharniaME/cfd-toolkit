@@ -6,7 +6,7 @@ The root `FILEPATH.md` path inventory is the only Markdown file agents may modif
 
 Do not reference, read, create, modify, or otherwise write to any README file anywhere in the project unless the user explicitly instructs you to do so. This restriction applies throughout all tasks, including documentation updates, searches, and inventories.
 
-Do not access, read, create, edit, or otherwise change `Theory_Guide.md` unless the user explicitly instructs you to do so. Listing its path in `FILEPATH.md` does not grant permission to access or modify it.
+Do not create, edit, delete, or otherwise modify `Theory_Guide.md` unless the user explicitly instructs you to do so. You may read it or inspect its Git diff when needed to understand changes, prepare a commit message, or perform a user-requested commit. Reading or reviewing it does not authorize modification. Listing its path in `FILEPATH.md` does not grant permission to modify it.
 
 ## Project Structure & Module Organization
 
@@ -124,11 +124,6 @@ Checks are standalone executables; no testing framework, CTest registration, or 
 
 `test_domain1d` checks `Domain1D` contracts including invalid values, floating-point limits, containment, equality, and rejected updates. The separate 2D and 3D domain APIs are implemented but are not covered by the current domain example. `test_field1d` checks scalar and vector field allocation and arithmetic, uniform and nonuniform mesh binding, mesh identity, copy/move construction and assignment, mutable and const span access, location-specific types, checked indexing, incompatible fields, and zero division. The mesh examples check explicit and generated geometry, represented interval lengths, storage sizes, invalid faces and inputs, floating-point limits, all grading distributions, symmetric patterns, ratio-one limits, exact endpoint anchoring, center representability, and total-ratio conversion. `test_uniform_mesh1d` also checks face areas, ownership, face orientation and distances (including both boundary faces on a single-cell mesh and graded meshes), Neumann normal and coordinate gradient orientation and source assembly (start/end signs, unchanged coefficients, zero gradient, mesh mismatch, invalid diffusivity/gradient/side/type, and overflow without partial matrix modification), Robin assembly at both ends (including accessors, zero transfer, invalid inputs, mesh mismatch, overflow, and unchanged rows on rejection), internal plus Dirichlet diffusion assembly, including a linear TDMA solution and independent accumulation of the start and end boundary contributions in the single-cell case, and an analytical linear-field boundary row on a non-uniform mesh. No current standalone contract check exercises `Source1D`. These checks return nonzero on failed contracts.
 
-## Commit & Pull Request Guidelines
-
-History uses short, imperative subjects such as `Update domain1d mesh1d`; no formal prefix convention is established. Name the affected component and keep each commit focused.
-
-Pull requests should describe the behavior change, affected modules, and validation commands with results. Link relevant issues. Keep generated build output out of commits.
 
 ## Document Maintenance
 
