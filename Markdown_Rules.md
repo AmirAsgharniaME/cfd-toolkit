@@ -4,13 +4,14 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
 
 ## 1. Inline formulas (inside a sentence)
 
-1. Wrap every mathematical symbol or expression that appears in running text in single dollar signs: `$...$`. This includes a lone symbol such as `$V$`, `$A$`, or `$\partial V$`, and also short expressions such as `$n_w=-1$` or `$[x_w,x_e]$`.
+1. Wrap every mathematical symbol or expression that appears in running text in single dollar signs: `$...$` (or the GitHub-safe form in item 8). This includes a lone symbol such as `$V$`, `$A$`, or `$\partial V$`, and also short expressions such as `` $`n_w=-1`$ `` or `` $`[x_w,x_e]`$ ``.
 2. Write no space just inside the delimiters. Write `$V$`, not `$ V $`.
-3. Leave sentence punctuation outside the closing `$`: `... on a volume $V$,` and `... $A[F_x(x_e)-F_x(x_w)]$.`
+3. Leave sentence punctuation outside the closing `$`: `... on a volume $V$,` and `` ... $`A[F_x(x_e)-F_x(x_w)]`$. ``
 4. Keep an inline formula on one line. Never split it across lines.
-5. Use inline math for definitions, sign conventions, intervals, and short relations (`$\mathbf{F}=\rho\mathbf{u}$`, `$n_e=+1$`). Use a displayed equation (section 2) for a main result or a long expression.
-6. Do not write math symbols as plain text, such as `F_x`, `div F`, or `del . F`, in prose. Convert them to LaTeX inside `$...$`.
+5. Use inline math for definitions, sign conventions, intervals, and short relations (`$\mathbf{F}=\rho\mathbf{u}$`, `` $`n_e=+1`$ ``). Use a displayed equation (section 2) for a main result or a long expression.
+6. Do not write math symbols as plain text, such as `F_x`, `div F`, or `del . F`, in prose. Convert them to LaTeX inside `$...$` or the GitHub-safe form in item 8.
 7. Write words and units in plain text outside the math (`mass per unit volume per unit time`). Put only symbols inside `$...$`.
+8. GitHub can pair the `_` characters of different inline formulas in one paragraph as italic markers and break them. For every inline formula that contains `_`, write it in the GitHub-safe form `` $`...`$ `` (dollar sign, backtick, formula, backtick, dollar sign), for example `` $`\mathbf{j}_\phi`$ ``. Do not apply this to displayed `$$` blocks. Formulas without `_` stay as `$...$`.
 
 ## 2. Displayed formulas (on their own lines)
 
@@ -23,11 +24,12 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
    $$
    ```
 
-3. Introduce the equation with a lead-in clause that ends without a period, so the sentence continues into the display, for example `..., it states that`, `In Cartesian coordinates, the divergence is`, or `For an interval $[x_w,x_e]$ and a scalar flux component $F_x$,`.
+3. Introduce the equation with a lead-in clause that ends without a period, so the sentence continues into the display, for example `..., it states that`, `In Cartesian coordinates, the divergence is`, or `` For an interval $`[x_w,x_e]`$ and a scalar flux component $`F_x`$, ``.
 4. Do not end the displayed LaTeX with a period or comma.
 5. Use a display for each numbered equation. Do not number inline formulas.
 6. Never place a displayed equation inside a list item (bullet or numbered), a blockquote, or a table. If a display appears inside a list item, close the list, put the `$$` block at the top level (no indentation, blank line before and after), and then continue the list with the remaining items if there are any. The text of the list item stays unchanged.
 7. If a list item contains a label followed by an equation (for example "Right boundary ($n_{out}=+i$):" followed by a formula), keep the label as the list item and move only the equation out below it. Do not convert the label into a paragraph unless the list has no other items.
+8. Write the LaTeX of a display on a single line whenever possible. If a display must span several lines, never begin a line with `+`, `-`, `*`, `>`, `#`, `|`, or a digit followed by `.` or `)`. Break the line after the operator instead (end the previous line with `+` or `-`), or use `\begin{aligned} ... \end{aligned}`. Also never leave a blank line inside a `$$` block.
 
 ## 3. Equation numbering
 
@@ -75,7 +77,7 @@ Additional notes:
 
 - Put the thin space `\,` before every differential and between an integrand and its differential, as in `\mathbf{F}\,\mathrm{d}A`.
 - Use `\cdot` for dot products and divergence. Do not use `.` or `*`.
-- Spaces around `=`, `+`, and `-` in the source are optional. Displayed equations usually have spaces around operators, while compact inline formulas may omit them (`$n_w=-1$`). Use the same style inside one formula.
+- Spaces around `=`, `+`, and `-` in the source are optional. Displayed equations usually have spaces around operators, while compact inline formulas may omit them (`` $`n_w=-1`$ ``). Use the same style inside one formula.
 - Keep a symbol the same everywhere it appears: the same letter, the same bold or plain style, and the same subscript.
 - Use `\mathbf` for a vector wherever it appears, inline or displayed (`$\mathbf{F}$`).
 
@@ -92,8 +94,8 @@ Additional notes:
 
 1. Find every mathematical expression in the file: symbols, equations, derivatives, integrals, and plain-text pseudo-math.
 2. Classify each one. Short symbols and relations in a sentence are inline (section 1). Main results, long expressions, and anything that needs an equation number are displayed (section 2).
-2a. Detect broken displays: any `$$ ... $$` written on one line, any `$$` that is indented, or any `$$` inside a list item. Rewrite each as a top-level block with `$$` alone on the opening and closing lines.
-3. Rewrite inline items as `$...$` and displayed items as a blank-line-separated `$$` block with each delimiter alone on its line.
+2a. Detect broken displays: any `$$ ... $$` written on one line; any `$$` that is indented; any `$$` inside a list item; any line inside a `$$` block that starts with `+`, `-`, `*`, `>`, `#`, `|`, or a digit followed by `.` or `)`; any blank line inside a `$$` block; and any inline formula containing `_` that is written as plain `$...$`. Rewrite each as a top-level block with `$$` alone on the opening and closing lines, or rewrite the inline formula in the `` $`...`$ `` form.
+3. Rewrite inline items as `$...$` or, when they contain `_`, as `` $`...`$ ``, and displayed items as a blank-line-separated `$$` block with each delimiter alone on its line.
 4. Number the displayed equations in order with `  \qquad (n)` inside the block, starting at `(1)`.
 5. Change every textual reference to `Eq. (n)` with the matching number, and add `Eq. (n)` references where the text points to an equation.
 6. Apply the notation conventions (section 5): `\mathbf` for vectors, `\mathrm{d}` with `\,` for differentials, `\partial`, `\nabla`, `\cdot`, and consistent subscripts.
@@ -102,7 +104,7 @@ Additional notes:
 
 ## 8. Final checklist
 
-- [ ] Every inline formula is in `$...$` with no inner padding and with sentence punctuation outside it.
+- [ ] Every inline formula is in `$...$` or, when it contains `_`, in `` $`...`$ ``, with no inner padding and with sentence punctuation outside it.
 - [ ] Every displayed formula has a blank line before and after, and `$$` alone on both delimiter lines.
 - [ ] No displayed formula ends with a period or comma.
 - [ ] Each displayed equation ends with `  \qquad (n)` inside the block, with consecutive integers from `(1)`.
@@ -112,3 +114,7 @@ Additional notes:
 - [ ] No mathematical content was changed.
 - [ ] No `$$` appears inside a list item, quote, or table, and none is indented.
 - [ ] No displayed equation contains explanatory prose.
+- [ ] No `$$` appears inside a list item, quote, or table, and none is indented.
+- [ ] No displayed formula contains explanatory prose.
+- [ ] No line inside a `$$` block starts with `+`, `-`, `*`, `>`, `#`, or `1.`, and there is no blank line inside a block.
+- [ ] Every inline formula containing `_` is written as `` $`...`$ ``.
