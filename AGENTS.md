@@ -6,6 +6,8 @@ The root `FILEPATH.md` path inventory is the only Markdown file agents may modif
 
 Do not reference, read, create, modify, or otherwise write to any README file anywhere in the project unless the user explicitly instructs you to do so. This restriction applies throughout all tasks, including documentation updates, searches, and inventories.
 
+Do not access, read, create, edit, or otherwise change `Theory_Guide.md` unless the user explicitly instructs you to do so. Listing its path in `FILEPATH.md` does not grant permission to access or modify it.
+
 ## Project Structure & Module Organization
 
 This repository provides a C++20 library for computational fluid dynamics (CFD) research, focusing on robust Finite Volume Method (FVM) implementations. Public headers live under `include/cfd/`; implementations live under `src/` in corresponding module directories. Keep headers (`.hpp`) and implementations (`.cpp`) together by module, and add implementation files to the explicit source list in `CMakeLists.txt`. File and directory presence does not imply a usable API: much of the architecture is scaffolding.

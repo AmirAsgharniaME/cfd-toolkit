@@ -11,6 +11,7 @@ MD | Repository guidelines | AGENTS.md
 MD | Numeric types cheatsheet | NUMERIC_TYPES_CHEATSHEET.md
 MD | Technical architecture audit report | AGENT_REPORT.md
 MD | Project state | STATE.md
+MD | Theory Guide | Theory _Guide.md
 MD | Task plan | TASK_PLAN.md
 MD | Vector memory mechanics | VECTOR_MEMORY_MECHANICS.md
 MD | Transport equation derivation | TRANSPORT_EQUATION_DERIVATION.md
