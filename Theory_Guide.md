@@ -9,7 +9,7 @@ The guide begins with the general transport equation and develops its terms and 
 The divergence theorem, also known as Gauss's theorem, relates the behavior of a vector field inside a volume to its flux through the volume's boundary. For a vector field $\mathbf{F}$ defined on a volume $V$ with closed boundary $\partial V$, it states that
 
 $$
-\int_V \nabla \cdot \mathbf{F}\,\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\,\mathrm{d}A  \qquad (1)
+\int_V \nabla \cdot \mathbf{F}\mkern3mu\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\mkern3mu\mathrm{d}A  \qquad (1)
 $$
 
 In Eq. (1), $\mathbf{n}$ is the **outward unit normal to the boundary**, and $\mathbf{F} \cdot \mathbf{n}$ is the outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
@@ -22,13 +22,13 @@ $$
 
 The divergence in Eq. (2) measures the local net outward flux per unit volume. A positive divergence indicates a local excess of outward flux, while a negative divergence indicates a local excess of inward flux. Eq. (1) says that integrating this local imbalance over the volume gives the net flux across its boundary. For example, if $\mathbf{F}=\rho\mathbf{u}$ is mass flux, the surface integral is the net mass flow rate out of $V$, and $\nabla\cdot(\rho\mathbf{u})$ has units of mass per unit volume per unit time.
 
-In one dimension, the theorem reduces to the fundamental theorem of calculus. For an interval $[x_w,x_e]$ and a scalar flux component $F_x$,
+In one dimension, the theorem reduces to the fundamental theorem of calculus. For an interval $`[x_w,x_e]`$ and a scalar flux component $`F_x`$,
 
 $$
-\int_{x_w}^{x_e} \frac{\mathrm{d}F_x}{\mathrm{d}x}\,\mathrm{d}x = F_x(x_e)-F_x(x_w)  \qquad (3)
+\int_{x_w}^{x_e} \frac{\mathrm{d}F_x}{\mathrm{d}x}\mkern3mu\mathrm{d}x = F_x(x_e)-F_x(x_w)  \qquad (3)
 $$
 
-The signs in Eq. (3) follow from the outward normals: $n_w=-1$ at the west boundary and $n_e=+1$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $A[F_x(x_e)-F_x(x_w)]$.
+The signs in Eq. (3) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
 
 # Derivation of the Conservative Scalar Transport Equation
 
@@ -43,31 +43,31 @@ Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantit
 - **Accumulation:**
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\,\mathrm{d}V  \qquad (4)
+\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V  \qquad (4)
 $$
 
-- **Advection:** the quantity carried by the bulk mass flow.
+- **Advection:** the quantity carried by the bulk mass flow
 
 $$
-\oint_{\partial V}\rho\phi\,\mathbf{u}\cdot\mathbf{n}\,\mathrm{d}A  \qquad (5)
+\oint_{\partial V}\rho\phi\mkern3mu\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (5)
 $$
 
-- **Non-advective transport:** which can represent molecular diffusion or conduction, depending on the quantity and model.
+- **Non-advective transport:** which can represent molecular diffusion or conduction, depending on the quantity and model
 
 $$
-\oint_{\partial V}\mathbf{j}_\phi\cdot\mathbf{n}\,\mathrm{d}A  \qquad (6)
+\oint_{\partial V}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (6)
 $$
 
-- **Volumetric production:** positive for net generation and negative for net consumption.
+- **Volumetric production:** positive for net generation and negative for net consumption
 
 $$
-\int_V S_\phi\,\mathrm{d}V  \qquad (7)
+\int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (7)
 $$
 
 Since outward flux removes quantity from $V$, the balance is
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\,\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\,\mathrm{d}A = \int_V S_\phi\,\mathrm{d}V  \qquad (8)
+\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (8)
 $$
 
 The source must include all relevant volumetric contributions to the transported quantity, including any carried by mass injected into or removed from the control volume. Boundary inflows and outflows instead appear in the surface flux.
@@ -77,7 +77,7 @@ The source must include all relevant volumetric contributions to the transported
 For a fixed control volume, with sufficient regularity to interchange differentiation and integration, the time derivative in Eq. (8) can be taken inside the integral. Applying the divergence theorem to the surface flux gives
 
 $$
-\int_V \left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u}) + \nabla\cdot\mathbf{j}_\phi - S_\phi\right]\,\mathrm{d}V = 0  \qquad (9)
+\int_V \left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u}) + \nabla\cdot\mathbf{j}_\phi - S_\phi\right]\mkern3mu\mathrm{d}V = 0  \qquad (9)
 $$
 
 Because the balance in Eq. (9) holds for every fixed control volume, the integrand vanishes locally wherever the fields are sufficiently smooth:
@@ -104,7 +104,7 @@ $$
 
 The terms in Eq. (12) are, from left to right: transient accumulation, net outward advective transport, diffusion, and volumetric production. The diffusion term is a **net diffusive influx per unit volume** because the outward diffusive flux is $`-\Gamma_\phi\nabla\phi`$. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (11) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
 
-If $Q$ denotes the unit of the transported extensive quantity, then $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\,\mathrm{s})$, and every term in Eq. (12), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\,\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ is species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
+If $Q$ denotes the unit of the transported extensive quantity, then $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (12), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ is species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
 
 ## 4. Relationship to the material-derivative form
 
@@ -133,9 +133,9 @@ $$
 In Eq. (15), $u$ is the velocity component in the positive $x$ direction. Integrating Eq. (12) over the cell gives
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{x_w}^{x_e}\rho\phi\,A\,\mathrm{d}x + A\bigl[F_x(x_e)-F_x(x_w)\bigr] = \int_{x_w}^{x_e}S_\phi\,A\,\mathrm{d}x  \qquad (16)
+\frac{\mathrm{d}}{\mathrm{d}t}\int_{x_w}^{x_e}\rho\phi\mkern3muA\mkern3mu\mathrm{d}x + A\bigl[F_x(x_e)-F_x(x_w)\bigr] = \int_{x_w}^{x_e}S_\phi\mkern3muA\mkern3mu\mathrm{d}x  \qquad (16)
 $$
 
 The west-face contribution in Eq. (16) has a minus sign because its outward normal points in the negative $x$ direction. In a finite-volume discretization, a shared internal-face flux enters the two adjacent cell balances with opposite signs, so it cancels when the balances are summed. Boundary fluxes and sources remain in the global balance. Numerical interpolation, time integration, and boundary conditions are needed to close the discrete equations; their choices do not change the conservation statement.
 
-For the toolkit's present one-dimensional steady diffusion workflow, setting the transient and advective terms to zero gives $`-\mathrm{d}(\Gamma_\phi\,\mathrm{d}\phi/\mathrm{d}x)/\mathrm{d}x=S_\phi`$. The implemented Laplacian assembles internal-face contributions for this negative diffusion operator; boundary contributions are applied separately. The general transient and advective terms in Eq. (12) describe the theory and do not imply that those operators are currently implemented.
+For the toolkit's present one-dimensional steady diffusion workflow, setting the transient and advective terms to zero gives $`-\mathrm{d}(\Gamma_\phi\mkern3mu\mathrm{d}\phi/\mathrm{d}x)/\mathrm{d}x=S_\phi`$. The implemented Laplacian assembles internal-face contributions for this negative diffusion operator; boundary contributions are applied separately. The general transient and advective terms in Eq. (12) describe the theory and do not imply that those operators are currently implemented.

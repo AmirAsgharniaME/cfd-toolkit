@@ -75,7 +75,7 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
 
 Additional notes:
 
-- Put the thin space `\,` before every differential and between an integrand and its differential, as in `\mathbf{F}\,\mathrm{d}A`.
+- Use `\mkern3mu` instead of `\,` for the thin space before a differential (for example `\rho\phi\mkern3mu\mathrm{d}V`) and in every other formula. Do not write `\,` inside math. `\mkern3mu` has the same width as `\,` but is not stripped by Markdown, so it does not render as a comma.
 - Use `\cdot` for dot products and divergence. Do not use `.` or `*`.
 - Spaces around `=`, `+`, and `-` in the source are optional. Displayed equations usually have spaces around operators, while compact inline formulas may omit them (`` $`n_w=-1`$ ``). Use the same style inside one formula.
 - Keep a symbol the same everywhere it appears: the same letter, the same bold or plain style, and the same subscript.
