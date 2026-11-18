@@ -6,49 +6,55 @@ The guide begins with the general transport equation and develops its terms and 
 
 # Eulerian and Lagrangian Views in Fluid Mechanics
 
-Fluid motion can be described from two complementary viewpoints. The **Eulerian** viewpoint describes what happens at fixed locations in space. The **Lagrangian** viewpoint follows individual fluid particles as they move. Both describe the same physical flow; they organize the observations and the resulting equations differently.
-
-## Eulerian description
-
-In an Eulerian description, the flow variables are fields defined over space and time. A velocity field, for example, assigns a velocity to every position and time,
-
-$$
-\mathbf{u}=\mathbf{u}(\mathbf{x},t)  \qquad (1)
-$$
-
-where $\mathbf{x}$ is a spatial position. Likewise, density, pressure, temperature, and a transported scalar are represented by fields such as $\rho(\mathbf{x},t)$, $p(\mathbf{x},t)$, $T(\mathbf{x},t)$, and $\phi(\mathbf{x},t)$. The value $`\phi(\mathbf{x}_0,t_0)`$ means the value measured at the fixed location $`\mathbf{x}_0`$ at the instant $`t_0`$; it does not identify the particular fluid particle that happens to be there.
-
-This viewpoint is natural for experiments and numerical methods that use fixed probes, control volumes, or stationary meshes. A finite-volume cell is an Eulerian region: fluid crosses its faces while the cell remains associated with the same region of space. Conservation laws are therefore written as rates of accumulation inside a fixed region plus fluxes through its boundary. The conservative scalar transport equation developed later in this guide has precisely this form,
-
-$$
-\frac{\partial(\rho\phi)}{\partial t} +\nabla\cdot(\rho\mathbf{u}\phi) =\nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi  \qquad (2)
-$$
-
-The time derivative at a fixed position, $\partial\phi/\partial t$, is called the **local** or **Eulerian time derivative**. It measures how the field changes at that location. It does not, by itself, measure how the property of a particular moving fluid particle changes, because the particle generally passes through locations where the field has different values.
+Fluid motion can be described by following individual material particles or by observing what happens at locations in space. These are the **Lagrangian** and **Eulerian** viewpoints, respectively. They describe the same flow, but use different ways to identify where and when a property is observed.
 
 ## Lagrangian description
 
-In a Lagrangian description, the observer follows a material particle or a material volume. Let $\mathbf{X}$ label a particle by its position at a reference time $`t_0`$. Its current position is a trajectory,
+In solid mechanics, it is common to identify a material point in an undeformed reference configuration and follow its displacement as the body deforms. The Lagrangian description of a fluid starts with the same idea: label a fluid particle and follow it as it moves. A fluid particle here means a small material parcel, not necessarily a molecule or a suspended solid particle.
+
+Let $\mathbf{X}$ label a particle by its position at a reference time $`t_0`$. Its position at a later time is given by the motion or trajectory
 
 $$
-\mathbf{x}=\boldsymbol{\chi}(\mathbf{X},t)  \qquad (3)
+\mathbf{x}=\boldsymbol{\chi}(\mathbf{X},t)  \qquad (1)
 $$
 
-and the particle velocity is the rate of change of that trajectory,
+In Eq. (1), $`\boldsymbol{\chi}(\mathbf{X},t_0)=\mathbf{X}`$. Keeping $\mathbf{X}$ fixed follows the same particle. Its velocity is the time derivative of its position,
 
 $$
-\frac{\mathrm{d}\boldsymbol{\chi}}{\mathrm{d}t}(\mathbf{X},t) =\mathbf{u}(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (4)
+\mathbf{v}(\mathbf{X},t)=\frac{\partial\boldsymbol{\chi}}{\partial t}(\mathbf{X},t)  \qquad (2)
 $$
 
-The particle's density, temperature, or scalar value is obtained by evaluating the corresponding Eulerian field along its path. For example,
+In Eq. (2), $\mathbf{v}$ is the particle velocity. A property such as temperature can similarly be recorded as a particle history $`\phi_L(\mathbf{X},t)`$. Its time derivative at fixed $\mathbf{X}$ describes the change experienced by that particle. A material volume contains the same fluid particles as it moves and deforms, so no advective mass crosses its boundary. Heat or other quantities can still cross the boundary by non-advective processes, and sources can act within the volume.
+
+This viewpoint is useful when particle histories matter, for example, in particle tracking, droplet motion, and fluid-particle interaction. The trajectory of one particle is called a **pathline**. A **streakline** is the set of particles that have previously passed through a fixed point, such as a line produced by continuous dye injection. A **timeline** is formed by particles marked simultaneously. These descriptions identify different sets of particles and generally produce different curves.
+
+## From following particles to observing locations
+
+Fluids can undergo large, continuous motion and deformation. Instead of keeping track of every particle, we can place a probe at a fixed position and record the properties of whichever particles pass it. This change of bookkeeping leads to the Eulerian description: label the observation by its current position $\mathbf{x}$ and time $t$, rather than by the particle's reference position $\mathbf{X}$.
+
+For example, the Eulerian velocity field assigns a velocity to each position and time,
 
 $$
-\phi_{\mathrm{particle}}(t) =\phi(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (5)
+\mathbf{u}=\mathbf{u}(\mathbf{x},t)  \qquad (3)
 $$
 
-The Lagrangian derivative of this quantity is an ordinary derivative with respect to time along the trajectory. This description is useful when the history of a particle matters, such as in particle tracking, droplet and sediment motion, sprays, atmospheric transport, and fluid-particle interaction. A material volume contains the same fluid particles at every instant, so no advective mass crosses its boundary. Diffusion, heat transfer, and chemical reactions can still transfer or produce the relevant quantity within that material volume.
+In Eq. (3), $\mathbf{u}$ is the Eulerian velocity. Density, pressure, temperature, and a transported scalar are likewise fields such as $`\rho(\mathbf{x},t)`$, $`p(\mathbf{x},t)`$, $`T(\mathbf{x},t)`$, and $`\phi(\mathbf{x},t)`$. The value $`\phi(\mathbf{x}_0,t_0)`$ is observed at the fixed location $`\mathbf{x}_0`$ at the instant $`t_0`$; it is the property of whichever particle is there at that instant.
 
-The terms **pathline**, **streakline**, and **timeline** refer to different ways of visualizing a flow. A pathline is the trajectory of one particle. A streakline is the set of particles that have previously passed through a specified fixed point, such as the visible line produced by continuously injecting dye. A timeline is the line formed by particles that were marked simultaneously. In a steady flow, these three curves coincide; in an unsteady flow, they generally differ.
+The two descriptions meet at the particle's current position. Evaluating the Eulerian velocity and scalar fields along its trajectory gives the same velocity and property recorded in its Lagrangian history:
+
+$$
+\mathbf{v}(\mathbf{X},t)=\mathbf{u}(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (4)
+$$
+
+Similarly,
+
+$$
+\phi_L(\mathbf{X},t)=\phi(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (5)
+$$
+
+Eq. (4) relates the velocity descriptions, and Eq. (5) relates the scalar descriptions. A fixed probe generally observes different particles over time. Thus $\partial\phi/\partial t$, the **local** or **Eulerian time derivative**, measures the change at a fixed position; the change experienced by one moving particle also depends on how the field varies along its path. The material derivative below makes that connection precise.
+
+Fixed control volumes and stationary meshes also use the Eulerian viewpoint. Fluid crosses the faces of a finite-volume cell while the cell remains associated with the same region of space. Its conservation balance therefore accounts for accumulation inside the cell and fluxes through its boundary. The conservative scalar transport equation developed later expresses this balance in differential form; its derivation and assumptions are discussed there.
 
 ## Connecting the two descriptions: the material derivative
 
@@ -58,13 +64,13 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\phi(\mathbf{x}(t),t) =\frac{\partial\phi}{\partial t} +\frac{\mathrm{d}\mathbf{x}}{\mathrm{d}t}\cdot\nabla\phi =\frac{\partial\phi}{\partial t}+\mathbf{u}\cdot\nabla\phi  \qquad (6)
 $$
 
-The operator
+In Eq. (6), the derivative follows the particle. The operator
 
 $$
 \boxed{\frac{D}{Dt} =\frac{\partial}{\partial t}+\mathbf{u}\cdot\nabla}  \qquad (7)
 $$
 
-is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates. The two terms have distinct meanings:
+in Eq. (7) is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates. The two terms have distinct meanings:
 
 - $\partial\phi/\partial t$ is the local change observed at a fixed position.
 - $\mathbf{u}\cdot\nabla\phi$ is the change caused by the particle moving through spatial variations of $\phi$; it is the advective or convective contribution.
@@ -75,13 +81,13 @@ $$
 \frac{D\phi}{Dt}=\frac{\partial\phi}{\partial t}+u\frac{\partial\phi}{\partial x}  \qquad (8)
 $$
 
-For a vector field, the same idea applies component by component. In particular, the material acceleration is
+Eq. (8) gives this derivative in one dimension. For a vector field, the same idea applies component by component. In particular, the material acceleration is
 
 $$
 \frac{D\mathbf{u}}{Dt} =\frac{\partial\mathbf{u}}{\partial t}+\left(\mathbf{u}\cdot\nabla\right)\mathbf{u}  \qquad (9)
 $$
 
-The first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
+In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
 
 ## Material and spatial balances
 
@@ -91,19 +97,19 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V =-\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A +\int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (10)
 $$
 
-The advective flux does not appear because the boundary moves with the fluid. Applying the transport theorem and using mass conservation converts this material-volume statement into the Eulerian local form,
+In Eq. (10), the advective flux does not appear because the boundary moves with the fluid. Applying the transport theorem and using mass conservation converts this material-volume statement into the Eulerian local form,
 
 $$
 \rho\frac{D\phi}{Dt} =-\nabla\cdot\mathbf{j}_\phi+S_\phi  \qquad (11)
 $$
 
-when there is no volumetric mass source. With the diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, this becomes
+Eq. (11) holds when there is no volumetric mass source. With the diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, this becomes
 
 $$
 \rho\frac{D\phi}{Dt} =\nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi  \qquad (12)
 $$
 
-Expanding $D\phi/Dt$ recovers the familiar local-plus-advective form. The conservative Eulerian form is obtained by combining this equation with the continuity equation. The forms are mathematically equivalent when the required smoothness and mass-balance assumptions hold, but the conservative form remains the appropriate integral statement across discontinuities and is the form most directly used by finite-volume discretizations.
+Expanding $D\phi/Dt$ in Eq. (12) recovers the familiar local-plus-advective form. The conservative Eulerian form is obtained by combining this equation with the continuity equation. The forms are mathematically equivalent when the required smoothness and mass-balance assumptions hold, but the conservative form remains the appropriate integral statement across discontinuities and is the form most directly used by finite-volume discretizations.
 
 ## Comparison of the viewpoints
 
@@ -116,7 +122,7 @@ Expanding $D\phi/Dt$ recovers the familiar local-plus-advective form. The conser
 | Combined rate of change | Material derivative $`D/Dt=\partial_t+\mathbf{u}\cdot\nabla`$ | Direct time derivative of the particle property |
 | Typical applications | CFD on fixed or moving meshes, probes, control-volume balances | Particle tracking, sprays, droplets, trajectories, fluid histories |
 
-The choice is a modeling and computational choice rather than a difference in the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In this toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the fixed-cell balance to the change experienced by the moving fluid.
+The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In this toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the fixed-cell balance to the change experienced by the moving fluid.
 
 # The Divergence Theorem
 
@@ -179,7 +185,7 @@ $$
 \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (19)
 $$
 
-Since outward flux removes the quantity from $V$, the balance is
+Eq. (16), Eq. (17), Eq. (18), and Eq. (19) give accumulation, advection, non-advective transport, and volumetric production, respectively. Since outward flux removes the quantity from $V$, the balance is
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (20)
