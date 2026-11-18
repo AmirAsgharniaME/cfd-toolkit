@@ -89,28 +89,6 @@ $$
 
 In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
 
-## Material and spatial balances
-
-The distinction between the viewpoints also explains two common forms of conservation laws. A balance written for a fixed control volume is Eulerian and contains fluxes through the control surface. A balance written for a material volume follows the same fluid particles, so its boundary has no advective mass flux. For a conserved scalar with specific value $\phi$, non-advective flux $`\mathbf{j}_\phi`$, and volumetric source $`S_\phi`$, the material-volume balance can be written as
-
-$$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V =-\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A +\int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (10)
-$$
-
-In Eq. (10), the advective flux does not appear because the boundary moves with the fluid. Applying the transport theorem and using mass conservation converts this material-volume statement into the Eulerian local form,
-
-$$
-\rho\frac{D\phi}{Dt} =-\nabla\cdot\mathbf{j}_\phi+S_\phi  \qquad (11)
-$$
-
-Eq. (11) holds when there is no volumetric mass source. With the diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, this becomes
-
-$$
-\rho\frac{D\phi}{Dt} =\nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi  \qquad (12)
-$$
-
-Expanding $D\phi/Dt$ in Eq. (12) recovers the familiar local-plus-advective form. The conservative Eulerian form is obtained by combining this equation with the continuity equation. The forms are mathematically equivalent when the required smoothness and mass-balance assumptions hold, but the conservative form remains the appropriate integral statement across discontinuities and is the form most directly used by finite-volume discretizations.
-
 ## Comparison of the viewpoints
 
 | Feature | Eulerian view | Lagrangian view |
@@ -129,27 +107,49 @@ The choice concerns modeling and computation rather than the underlying physics.
 The divergence theorem, also known as Gauss's theorem, relates the behavior of a vector field inside a volume to its flux through the volume's boundary. For a vector field $\mathbf{F}$ defined on a volume $V$ with closed boundary $\partial V$, it states that
 
 $$
-\int_V \nabla \cdot \mathbf{F}\mkern3mu\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\mkern3mu\mathrm{d}A  \qquad (13)
+\int_V \nabla \cdot \mathbf{F}\mkern3mu\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\mkern3mu\mathrm{d}A  \qquad (10)
 $$
 
-In Eq. (13), $\mathbf{n}$ is the **outward unit normal to the boundary**, and $\mathbf{F} \cdot \mathbf{n}$ is the outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
+In Eq. (10), $\mathbf{n}$ is the **outward unit normal to the boundary**, and $\mathbf{F} \cdot \mathbf{n}$ is the outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
 
 In Cartesian coordinates, the divergence is
 
 $$
-\nabla \cdot \mathbf{F} = \frac{\partial F_x}{\partial x} + \frac{\partial F_y}{\partial y} + \frac{\partial F_z}{\partial z}  \qquad (14)
+\nabla \cdot \mathbf{F} = \frac{\partial F_x}{\partial x} + \frac{\partial F_y}{\partial y} + \frac{\partial F_z}{\partial z}  \qquad (11)
 $$
 
-The divergence in Eq. (14) measures the local net outward flux per unit volume. The terms on the right use the Cartesian components of the vector field and their corresponding coordinates. A positive divergence indicates a local excess of outward flux, while a negative divergence indicates a local excess of inward flux. Eq. (13) says that integrating this local imbalance over the volume gives the net flux across its boundary. For example, if $\mathbf{F}=\rho\mathbf{u}$ is mass flux, where $\rho$ is the fluid density and $\mathbf{u}$ is the fluid velocity, the surface integral is the net mass flow rate out of $V$, and $\nabla\cdot(\rho\mathbf{u})$ has units of mass per unit volume per unit time.
+The divergence in Eq. (11) measures the local net outward flux per unit volume. The terms on the right use the Cartesian components of the vector field and their corresponding coordinates. A positive divergence indicates a local excess of outward flux, while a negative divergence indicates a local excess of inward flux. Eq. (10) says that integrating this local imbalance over the volume gives the net flux across its boundary. For example, if $\mathbf{F}=\rho\mathbf{u}$ is mass flux, where $\rho$ is the fluid density and $\mathbf{u}$ is the fluid velocity, the surface integral is the net mass flow rate out of $V$, and $\nabla\cdot(\rho\mathbf{u})$ has units of mass per unit volume per unit time.
 
 In one dimension, the theorem reduces to the fundamental theorem of calculus. For an interval $`[x_w,x_e]`$ with west and east endpoints, respectively, and a scalar flux component $`F_x`$,
 
 $$
-\int_{x_w}^{x_e} \frac{\mathrm{d}F_x}{\mathrm{d}x}\mkern3mu\mathrm{d}x = F_x(x_e)-F_x(x_w)  \qquad (15)
+\int_{x_w}^{x_e} \frac{\mathrm{d}F_x}{\mathrm{d}x}\mkern3mu\mathrm{d}x = F_x(x_e)-F_x(x_w)  \qquad (12)
 $$
 
-The signs in Eq. (15) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
+The signs in Eq. (12) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
 
+
+# Material and spatial balances
+
+The distinction between the viewpoints also explains two common forms of conservation laws. A balance written for a fixed control volume is Eulerian and contains fluxes through the control surface. A balance written for a material volume follows the same fluid particles, so its boundary has no advective mass flux. For a conserved scalar with specific value $\phi$, non-advective flux $`\mathbf{j}_\phi`$, and volumetric source $`S_\phi`$, the material-volume balance can be written as
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V =-\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A +\int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (13)
+$$
+
+In Eq. (13), the advective flux does not appear because the boundary moves with the fluid. Applying the transport theorem and using mass conservation converts this material-volume statement into the Eulerian local form,
+
+$$
+\rho\frac{D\phi}{Dt} =-\nabla\cdot\mathbf{j}_\phi+S_\phi  \qquad (14)
+$$
+
+Eq. (14) holds when there is no volumetric mass source. With the diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, this becomes
+
+$$
+\rho\frac{D\phi}{Dt} =\nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi  \qquad (15)
+$$
+
+Expanding $D\phi/Dt$ in Eq. (15) recovers the familiar local-plus-advective form. The conservative Eulerian form is obtained by combining this equation with the continuity equation. The forms are mathematically equivalent when the required smoothness and mass-balance assumptions hold, but the conservative form remains the appropriate integral statement across discontinuities and is the form most directly used by finite-volume discretizations.
 
 # Derivation of the Conservative Scalar Transport Equation
 
