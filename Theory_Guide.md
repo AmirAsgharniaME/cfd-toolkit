@@ -140,28 +140,6 @@ $$
 The signs in Eq. (12) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
 
 
-# Material and spatial balances
-
-The distinction between the viewpoints also explains two common forms of conservation laws. A balance written for a fixed control volume is Eulerian and contains fluxes through the control surface. A balance written for a material volume follows the same fluid particles, so its boundary has no advective mass flux. For a conserved scalar with specific value $\phi$, non-advective flux $`\mathbf{j}_\phi`$, and volumetric source $`S_\phi`$, the material-volume balance can be written as
-
-$$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V =-\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A +\int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (13)
-$$
-
-In Eq. (13), the advective flux does not appear because the boundary moves with the fluid. Applying the transport theorem and using mass conservation converts this material-volume statement into the Eulerian local form,
-
-$$
-\rho\frac{D\phi}{Dt} =-\nabla\cdot\mathbf{j}_\phi+S_\phi  \qquad (14)
-$$
-
-Eq. (14) holds when there is no volumetric mass source. With the diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, this becomes
-
-$$
-\rho\frac{D\phi}{Dt} =\nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi  \qquad (15)
-$$
-
-Expanding $D\phi/Dt$ in Eq. (15) recovers the familiar local-plus-advective form. The conservative Eulerian form is obtained by combining this equation with the continuity equation. The forms are mathematically equivalent when the required smoothness and mass-balance assumptions hold, but the conservative form remains the appropriate integral statement across discontinuities and is the form most directly used by finite-volume discretizations.
-
 # Derivation of the Conservative Scalar Transport Equation
 
 A scalar transport equation conserves the total amount of an extensive quantity carried by a fluid; denote that total amount by $\Phi$ and the corresponding fluid mass by $m$. The field variable $\phi$ is not this total amount: it is the amount per unit mass, $\phi=\frac{\Phi}{m}$, so it is a specific quantity and is intensive with respect to the amount of fluid. Let $\rho$ be the fluid density and $\mathbf{u}$ the fluid velocity. Their product $\rho\phi$ is the transported amount per unit volume. In terms of units, if $M$, $L$, and $Q$ denote units of mass, length, and transported quantity, then $[\rho]=M/L^3$, $[\phi]=Q/M$, and $[\rho\phi]=Q/L^3$. This volumetric density is used because, in a **fixed control volume** $V$, the total amount is obtained by integrating over volume, while transport through its boundary $\partial V$ is expressed using the same amount per unit volume. The boundary has outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
@@ -174,53 +152,75 @@ Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantit
 
 - **Accumulation:**
 
-$$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V  \qquad (16)
-$$
-
 - **Advection:** the quantity carried by the bulk mass flow
 
-$$
-\oint_{\partial V}\rho\phi\mkern3mu\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (17)
-$$
-
 - **Non-advective transport:** transport that can represent molecular diffusion or conduction, depending on the quantity and model
-
-$$
-\oint_{\partial V}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (18)
-$$
 
 - **Volumetric production:** positive for net generation and negative for net consumption
 
 $$
-\int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (19)
+\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V  \qquad (13)
 $$
 
-Eq. (16), Eq. (17), Eq. (18), and Eq. (19) give accumulation, advection, non-advective transport, and volumetric production, respectively. Since outward flux removes the quantity from $V$, the balance is
+$$
+\oint_{\partial V}\rho\phi\mkern3mu\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (14)
+$$
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (20)
+\oint_{\partial V}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (15)
+$$
+
+$$
+\int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (16)
+$$
+
+Eq. (13), Eq. (14), Eq. (15), and Eq. (16) give accumulation, advection, non-advective transport, and volumetric production, respectively. Since outward flux removes the quantity from $V$, the balance is
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (17)
 $$
 
 The source must include all relevant volumetric contributions to the transported quantity, including any carried by mass injected into or removed from the control volume. Boundary inflows and outflows instead appear in the surface flux.
 
 ## 2. Differential conservation law
 
-For a fixed control volume, with sufficient regularity to interchange differentiation and integration, the time derivative in Eq. (20) can be taken inside the integral. Applying the divergence theorem to the surface flux gives
+For a fixed control volume, with sufficient regularity to interchange differentiation and integration, the time derivative in Eq. (17) can be taken inside the integral. Applying the **divergence theorem** to the surface flux gives
 
 $$
-\int_V \left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u}) + \nabla\cdot\mathbf{j}_\phi - S_\phi\right]\mkern3mu\mathrm{d}V = 0  \qquad (21)
+\int_V \left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u}) + \nabla\cdot\mathbf{j}_\phi - S_\phi\right]\mkern3mu\mathrm{d}V = 0  \qquad (18)
 $$
 
-Because the balance in Eq. (21) holds for every fixed control volume, the integrand vanishes locally wherever the fields are sufficiently smooth:
+Because the balance in Eq. (18) holds for every fixed control volume, the integrand vanishes locally wherever the fields are sufficiently smooth:
 
 $$
-\boxed{\frac{\partial}{\partial t}(\rho\phi) + \nabla\cdot(\rho\mathbf{u}\phi) = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (22)
+\boxed{\frac{\partial}{\partial t}(\rho\phi) + \nabla\cdot(\rho\mathbf{u}\phi) = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (19)
 $$
 
-Eq. (22) is the conservative scalar transport law before specifying a constitutive model for the non-advective flux. Its defining feature is that storage and transport are written in terms of the conserved density $\rho\phi$ and its fluxes. Eq. (20) remains the appropriate balance across discontinuities, where the pointwise differential form requires additional care.
+Eq. (19) is the conservative scalar transport law before specifying a constitutive model for the non-advective flux. Its defining feature is that storage and transport are written in terms of the conserved density $\rho\phi$ and its fluxes. Eq. (17) remains the appropriate balance across discontinuities, where the pointwise differential form requires additional care.
 
-## 3. Gradient-diffusion model
+## 3. Material and fixed-volume viewpoints
+
+A material volume $V(t)$ follows the same fluid particles as it moves and deforms. Its boundary moves with the local fluid velocity, so there is no advective mass flux relative to that boundary. Non-advective transport can still cross it. With the same outward-normal and source conventions as Eq. (17), its balance is
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V = -\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A + \int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (20)
+$$
+
+The transport theorem expresses the left-hand side as the volume integral of $`\partial(\rho\phi)/\partial t+\nabla\cdot(\rho\phi\mathbf{u})`$. The product rule gives
+
+$$
+\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \rho\frac{D\phi}{Dt} + \phi\left[\frac{\partial\rho}{\partial t}+\nabla\cdot(\rho\mathbf{u})\right]  \qquad (21)
+$$
+
+For source-free mass conservation, the bracket in Eq. (21) vanishes. Applying the divergence theorem to Eq. (20) and localizing the balance therefore gives the material-derivative form
+
+$$
+\boxed{\rho\frac{D\phi}{Dt} = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (22)
+$$
+
+Here $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle, although the fields are expressed in spatial coordinates. Equation (21) proves that Eq. (22) and the Eulerian conservative law, Eq. (19), are equivalent for sufficiently smooth fields when mass has no volumetric source. The fixed-volume integral balance, Eq. (17), also applies across discontinuities and is preferred for finite-volume discretization: fluxes through a shared face enter adjacent cells with opposite signs and cancel in their combined balance.
+
+## 4. Gradient-diffusion model
 
 For an isotropic medium, a common constitutive approximation is
 
@@ -228,7 +228,7 @@ $$
 \mathbf{j}_\phi = -\Gamma_\phi\nabla\phi, \qquad \Gamma_\phi \geq 0  \qquad (23)
 $$
 
-In Eq. (23), $`\Gamma_\phi`$ is the effective diffusion coefficient for the chosen scalar. The minus sign makes the diffusive flux point down the scalar gradient. Substitution into Eq. (22) gives the conservative scalar transport equation
+In Eq. (23), $`\Gamma_\phi`$ is the effective diffusion coefficient for the chosen scalar. The minus sign makes the diffusive flux point down the scalar gradient. Substitution into Eq. (19) gives the conservative scalar transport equation
 
 $$
 \boxed{\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \nabla\cdot(\Gamma_\phi\nabla\phi) + S_\phi}  \qquad (24)
@@ -238,36 +238,28 @@ The terms in Eq. (24) are transient accumulation, net outward advective transpor
 
 If $Q$ denotes the unit of the transported extensive quantity, then $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (24), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ is species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
 
-## 4. Relationship to the material-derivative form
-
-The product rule relates the conservative left-hand side to the material derivative $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$:
+If mass has a volumetric source $S_m$, so that $`\partial\rho/\partial t+\nabla\cdot(\rho\mathbf{u})=S_m`$, Eq. (21) instead converts Eq. (24) to
 
 $$
-\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \rho\frac{D\phi}{Dt} + \phi\left[\frac{\partial\rho}{\partial t}+\nabla\cdot(\rho\mathbf{u})\right]  \qquad (25)
+\rho\frac{D\phi}{Dt} = \nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi-\phi S_m  \qquad (25)
 $$
 
-In Eq. (25), $D\phi/Dt$ is the material derivative. If mass satisfies $`\partial\rho/\partial t+\nabla\cdot(\rho\mathbf{u})=S_m`$, where the right-hand side is the mass source, then Eq. (24) becomes
-
-$$
-\rho\frac{D\phi}{Dt} = \nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi-\phi S_m  \qquad (26)
-$$
-
-Only when $`S_m=0`$ does the last term in Eq. (26) vanish. In particular, for constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and the accumulation and advection terms reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
+The last term vanishes when $S_m=0$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
 ## 5. One-dimensional finite-volume balance
 
 For a cell bounded by $`x_w`$ and $`x_e`$, with constant cross-sectional area $A$, define the total flux in the positive $x$ direction as
 
 $$
-F_x = \rho u\phi - \Gamma_\phi\frac{\partial\phi}{\partial x}  \qquad (27)
+F_x = \rho u\phi - \Gamma_\phi\frac{\partial\phi}{\partial x}  \qquad (26)
 $$
 
-In Eq. (27), $u$ is the velocity component in the positive $x$ direction. Integrating Eq. (24) over the cell gives
+In Eq. (26), $u$ is the velocity component in the positive $x$ direction. Integrating Eq. (24) over the cell gives
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{x_w}^{x_e}\rho\phi\mkern3muA\mkern3mu\mathrm{d}x + A\bigl[F_x(x_e)-F_x(x_w)\bigr] = \int_{x_w}^{x_e}S_\phi\mkern3muA\mkern3mu\mathrm{d}x  \qquad (28)
+\frac{\mathrm{d}}{\mathrm{d}t}\int_{x_w}^{x_e}\rho\phi\mkern3muA\mkern3mu\mathrm{d}x + A\bigl[F_x(x_e)-F_x(x_w)\bigr] = \int_{x_w}^{x_e}S_\phi\mkern3muA\mkern3mu\mathrm{d}x  \qquad (27)
 $$
 
-The west-face contribution in Eq. (28) has a minus sign because its outward normal points in the negative $x$ direction. In a finite-volume discretization, a shared internal-face flux enters the two adjacent cell balances with opposite signs, so it cancels when the balances are summed. Boundary fluxes and sources remain in the global balance. Numerical interpolation, time integration, and boundary conditions are needed to close the discrete equations; their choices do not change the conservation statement.
+The west-face contribution in Eq. (27) has a minus sign because its outward normal points in the negative $x$ direction. In a finite-volume discretization, a shared internal-face flux enters the two adjacent cell balances with opposite signs, so it cancels when the balances are summed. Boundary fluxes and sources remain in the global balance. Numerical interpolation, time integration, and boundary conditions are needed to close the discrete equations; their choices do not change the conservation statement.
 
 For the toolkit's present one-dimensional steady diffusion workflow, setting the transient and advective terms to zero gives $`-\mathrm{d}(\Gamma_\phi\mkern3mu\mathrm{d}\phi/\mathrm{d}x)/\mathrm{d}x=S_\phi`$. The implemented Laplacian assembles internal-face contributions for this negative diffusion operator; boundary contributions are applied separately. The general transient and advective terms in Eq. (24) describe the theory and do not imply that those operators are currently implemented.
