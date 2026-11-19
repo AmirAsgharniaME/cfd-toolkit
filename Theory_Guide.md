@@ -26,7 +26,14 @@ $$
 
 In Eq. (2), $\mathbf{v}$ is the particle velocity. A property such as temperature can similarly be recorded as a particle history $`\phi_L(\mathbf{X},t)`$. Its time derivative at fixed $\mathbf{X}$ describes the change experienced by that particle. A material volume contains the same fluid particles as it moves and deforms, so no advective mass crosses its boundary. Heat or other quantities can still cross the boundary by non-advective processes, and sources can act within the volume.
 
-This viewpoint is useful when particle histories matter, for example, in particle tracking, droplet motion, and fluid-particle interaction. The trajectory of one particle is called a **pathline**. A **streakline** is the set of particles that have previously passed through a fixed point, such as a line produced by continuous dye injection. A **timeline** is formed by particles marked simultaneously. These descriptions identify different sets of particles and generally produce different curves.
+This viewpoint is useful when particle histories matter, for example, in particle tracking, droplet motion, and fluid-particle interaction. Four related flow-visualization curves answer different questions:
+
+- **Streamline:** What direction is the velocity field pointing along at this instant? A streamline is a curve everywhere tangent to the instantaneous velocity field. It is a snapshot of the field, so in an unsteady flow it is not generally the trajectory of any one particle.
+- **Pathline:** Where has this particular particle traveled? A pathline is the actual trajectory traced over time by one identified fluid particle, found by following that particle as it moves.
+- **Streakline:** Where are the particles now that passed through this fixed point? At a specified instant, a streakline is the locus of all particles that previously passed through the same fixed point in space. Continuous dye or smoke injection from a fixed source produces a streakline and records particles released at different times.
+- **Timeline:** Where are the particles now that were marked along this line earlier? A timeline is formed by marking, at one instant, a set of particles that all lay on the same line at an earlier instant. The marked particles then move and deform that line; this is distinct from tracking one particle or continuously injecting tracer at one fixed point.
+
+In steady flow, streamlines, pathlines, and streaklines coincide under the usual assumptions because the velocity field does not change with time. In unsteady flow, they generally differ. A timeline does not generally coincide with any of these three; its shape depends on how the marked particles move after the marking.
 
 ## From following particles to observing locations
 
@@ -70,7 +77,11 @@ $$
 \boxed{\frac{D}{Dt} =\frac{\partial}{\partial t}+\mathbf{u}\cdot\nabla}  \qquad (7)
 $$
 
-in Eq. (7) is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates. The two terms have distinct meanings:
+in Eq. (7) is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates.
+
+Here, $\mathbf{u}\cdot\nabla$ is one differential operator, the directional or convective derivative operator, not an ordinary product whose factors can be freely rearranged. It acts on the quantity written after it. For a two-dimensional velocity $\mathbf{u}=(u,v)$, $\mathbf{u}\cdot\nabla = u\frac{\partial}{\partial x}+v\frac{\partial}{\partial y}$. Thus, for a scalar $\phi$, $\mathbf{u}\cdot\nabla\phi = u\frac{\partial\phi}{\partial x}+v\frac{\partial\phi}{\partial y}$, which is a scalar. For a vector $`\mathbf{a}=(a_1,a_2)`$, the same operator acts componentwise: $`\mathbf{u}\cdot\nabla\mathbf{a}=(\mathbf{u}\cdot\nabla a_1,\mathbf{u}\cdot\nabla a_2)`$, which is a vector. The operand's type determines the result's type; in particular, $\mathbf{u}\cdot\nabla\mathbf{u}$ means that the operator acts on each component of the velocity vector. This is distinct from $\nabla\cdot\mathbf{u}$, which is the divergence of the velocity field. When learning the notation, it is helpful to read $\mathbf{u}\cdot\nabla\phi$ as “the operator $\mathbf{u}\cdot\nabla$ acting on $\phi$.”
+
+The two terms have distinct meanings:
 
 - $\partial\phi/\partial t$ is the local change observed at a fixed position.
 - $\mathbf{u}\cdot\nabla\phi$ is the change caused by the particle moving through spatial variations of $\phi$; it is the advective or convective contribution.
