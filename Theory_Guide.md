@@ -1,8 +1,8 @@
 # CFD Toolkit Theory Guide
 
-CFD Toolkit is a modular finite-volume framework that separates dimensions when solving transport equations. This guide explains the mathematical ideas, conventions, and discretization choices behind the library, connecting the governing equations to their numerical representation and implementation.
+CFD Toolkit is a modular finite-volume framework that separates dimensions when solving transport equations. This guide explains the mathematical ideas, conventions, and discretization choices behind CFD Toolkit, connecting the governing equations to their numerical representation and implementation.
 
-The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to the library, so the theory remains connected to the code and its current capabilities.
+The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to CFD Toolkit, so the theory remains connected to CFD Toolkit and its current capabilities.
 
 # Eulerian and Lagrangian Views in Fluid Mechanics
 
@@ -26,7 +26,7 @@ $$
 
 In Eq. (2), $\mathbf{v}$ is the particle velocity. A property such as temperature can similarly be recorded as a particle history $`\phi_L(\mathbf{X},t)`$. Its time derivative at fixed $\mathbf{X}$ describes the change experienced by that particle. A material volume contains the same fluid particles as it moves and deforms, so no advective mass crosses its boundary. Heat or other quantities can still cross the boundary by non-advective processes, and sources can act within the volume.
 
-This viewpoint is useful when particle histories matter, for example in particle tracking, droplet motion, and fluid-particle interaction. Four related flow-visualization curves answer different questions:
+This viewpoint is useful when particle histories matter, for example, in particle tracking, droplet motion, and fluid-particle interaction. Four related flow-visualization curves answer different questions:
 
 - **Streamline:** What direction does the velocity field point in at this instant? A streamline is a curve everywhere tangent to the instantaneous velocity field. It is a snapshot of the field, so in an unsteady flow it is not generally the trajectory of any one particle.
 - **Pathline:** Where has this particular particle traveled? A pathline is the actual trajectory traced over time by one identified fluid particle, found by following that particle as it moves.
@@ -47,7 +47,7 @@ $$
 
 In Eq. (3), $\mathbf{u}$ is the Eulerian velocity. Density, pressure, temperature, and a transported scalar are likewise fields such as $`\rho(\mathbf{x},t)`$, $`p(\mathbf{x},t)`$, $`T(\mathbf{x},t)`$, and $`\phi(\mathbf{x},t)`$. The value $`\phi(\mathbf{x}_0,t_0)`$ is observed at the fixed location $`\mathbf{x}_0`$ at the instant $`t_0`$; it is the property of whichever particle is there at that instant.
 
-The two descriptions meet at the particle's current position. Evaluating the Eulerian velocity and scalar fields along its trajectory gives the same velocity and property recorded in its Lagrangian history:
+The two descriptions meet at the particle's current position. Evaluating the Eulerian velocity and scalar fields along its trajectory gives the same velocity and property recorded in its Lagrangian history
 
 $$
 \mathbf{v}(\mathbf{X},t)=\mathbf{u}(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (4)
@@ -111,7 +111,7 @@ In Eq. (9), the first term is the local acceleration at a fixed point. The secon
 | Combined rate of change | Material derivative $`D/Dt=\partial_t+\mathbf{u}\cdot\nabla`$ | Direct time derivative of the particle property |
 | Typical applications | CFD on fixed or moving meshes, probes, control-volume balances | Particle tracking, sprays, droplets, trajectories, fluid histories |
 
-The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In this toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the balance over a fixed cell to the change experienced by the moving fluid.
+The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In CFD Toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the balance over a fixed cell to the change experienced by the moving fluid.
 
 # The Divergence Theorem
 
@@ -121,7 +121,7 @@ $$
 \int_V \nabla \cdot \mathbf{F}\mkern3mu\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\mkern3mu\mathrm{d}A  \qquad (10)
 $$
 
-In Eq. (10), $\mathbf{n}$ is the **outward unit normal to the boundary**, and $\mathbf{F} \cdot \mathbf{n}$ is the outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
+In Eq. (10), $\mathbf{n}$ is the **outward unit normal to the boundary being considered**, and $\mathbf{F} \cdot \mathbf{n}$ is the signed outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
 
 In Cartesian coordinates, the divergence is
 
@@ -244,7 +244,7 @@ $$
 \boxed{\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \nabla\cdot(\Gamma_\phi\nabla\phi) + S_\phi}  \qquad (25)
 $$
 
-The terms in Eq. (25) are transient accumulation, net outward advective transport, diffusion, and volumetric production, from left to right. The diffusion term is a **net diffusive influx per unit volume** because the outward diffusive flux is $`-\Gamma_\phi\nabla\phi`$. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
+The terms in Eq. (25) are transient accumulation, net outward advective transport, diffusion, and volumetric production, from left to right. The diffusion term is a **net diffusive influx per unit volume** because the diffusive flux vector is $`-\Gamma_\phi\nabla\phi`$, whose dot product with the outward normal gives the signed outward flux. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
 
 Using $Q$ for the unit dimension of the transported quantity, $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (25), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ denotes the dimension of species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
 
@@ -282,53 +282,53 @@ The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\
 
 # Discretization of Surface Integrals
 
-The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in ApexFVM. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
+The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in CFD Toolkit. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
 
 $$
-\oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (36)
+\oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (30)
 $$
 
-In Eq. (36), $`\mathbf{F}_f`$ is the representative flux at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. The **face area vector** for cell $P$ is defined by
+In Eq. (30), $`\mathbf{F}_f`$ is the representative flux vector at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. Their dot product is the signed flux through the face, positive when the transported quantity leaves cell $P$. These outward contributions appear on the left of the balance in Eq. (29). The **face area vector** for cell $P$ is defined by
 
 $$
-\mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (37)
+\mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (31)
 $$
 
-In Eq. (37), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, the library's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its owner. Shared face contributions therefore have opposite signs in the two cell balances.
+In Eq. (31), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its owner.
 
 Using outward face vectors for cell $P$, the advective flux is discretized as
 
 $$
-\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (38)
+\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (32)
 $$
 
-In Eq. (38), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
+In Eq. (32), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
 
 The non-advective flux is likewise approximated using outward face vectors:
 
 $$
-\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (39)
+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (33)
 $$
 
-Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (39) gives
+Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (33) gives
 
 $$
--\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (40)
+-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (34)
 $$
 
-The minus sign in Eq. (40) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
+The minus sign in Eq. (34) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
 
 # Owner and Neighbor Cells
 
 An internal face is shared by two cells. In the mesh's face-connectivity convention, one adjacent cell is designated the **Owner** and the other the **Neighbor**. These names identify the cells adjacent to that face; they do not indicate which cell is physically upstream or imply a particular flow direction. Their identities do not change when writing the balance for the other cell.
 
-When a face orientation is needed, the face area vector is chosen to point from Owner to Neighbor. At the shared face, the Owner cell's outward normal points along this orientation, while the Neighbor cell's outward normal points in the opposite direction. Thus, the same signed face flux contributes with opposite signs to the two cells' outward-flux balances.
+When a face orientation is needed, the global face area vector is chosen to point from Owner to Neighbor. At the shared face, the Owner cell's outward normal points along this orientation, while the Neighbor cell's outward normal points in the opposite direction. Their outward face area vectors are therefore opposite, so the dot product of the same physical flux vector with each gives equal and opposite contributions to the two cells' outward-flux balances.
 
 A boundary face has an Owner cell but no Neighbor cell inside the computational domain.
 
 # Cell-Based and Face-Based Viewpoints
 
-The library uses a **colocated grid**, as does OpenFOAM: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
+CFD Toolkit uses a **colocated grid**, as does OpenFOAM: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
 
 The terms **cell-based** and **face-based** describe how the code iterates and organizes assembly of the global system of equations, not where the primary variables are stored. Either approach can be used with a colocated grid.
 
@@ -336,4 +336,4 @@ In a **cell-based** or **cell-centric** approach, the code loops over cells and,
 
 In a **face-based** approach, the code loops over faces. For each internal face, it calculates the shared flux contribution using one chosen face orientation and adds the corresponding contributions to both the Owner and Neighbor equations. The cells' outward normals at the shared face point in opposite directions, so the outward flux contributions have opposite signs. Boundary faces contribute to their Owner equation according to the boundary condition.
 
-Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. The library's implemented 1D Laplacian assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
+Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. CFD Toolkit's implemented 1D Laplacian assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
