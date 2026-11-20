@@ -79,7 +79,7 @@ $$
 
 in Eq. (7) is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates.
 
-Here, $\mathbf{u}\cdot\nabla$ is one differential operator, the directional or convective derivative operator, not an ordinary product whose factors can be freely rearranged. It acts on the quantity written after it. For a two-dimensional velocity $\mathbf{u}=(u,v)$, $\mathbf{u}\cdot\nabla = u\frac{\partial}{\partial x}+v\frac{\partial}{\partial y}$. Thus, for a scalar $\phi$, $\mathbf{u}\cdot\nabla\phi = u\frac{\partial\phi}{\partial x}+v\frac{\partial\phi}{\partial y}$, which is a scalar. For a vector $`\mathbf{a}=(a_1,a_2)`$, the same operator acts componentwise: $`\mathbf{u}\cdot\nabla\mathbf{a}=(\mathbf{u}\cdot\nabla a_1,\mathbf{u}\cdot\nabla a_2)`$, which is a vector. The operand's type determines the result's type; in particular, $\mathbf{u}\cdot\nabla\mathbf{u}$ means that the operator acts on each component of the velocity vector. This is distinct from $\nabla\cdot\mathbf{u}$, which is the divergence of the velocity field. When learning the notation, it is helpful to read $\mathbf{u}\cdot\nabla\phi$ as “the operator $\mathbf{u}\cdot\nabla$ acting on $\phi$.”
+Here, $\mathbf{u}\cdot\nabla$ is a single directional (or convective) derivative operator, not an ordinary product whose factors can be freely rearranged. It acts on the quantity written after it. For a two-dimensional velocity $\mathbf{u}=(u,v)$, $\mathbf{u}\cdot\nabla = u\frac{\partial}{\partial x}+v\frac{\partial}{\partial y}$. Thus, for a scalar $\phi$, $\mathbf{u}\cdot\nabla\phi = u\frac{\partial\phi}{\partial x}+v\frac{\partial\phi}{\partial y}$, which is a scalar. For a vector $`\mathbf{a}=(a_1,a_2)`$, the same operator acts componentwise: $`\mathbf{u}\cdot\nabla\mathbf{a}=(\mathbf{u}\cdot\nabla a_1,\mathbf{u}\cdot\nabla a_2)`$, which is a vector. The operand's type determines the result's type; in particular, $\mathbf{u}\cdot\nabla\mathbf{u}$ means that the operator acts on each component of the velocity vector. This is distinct from $\nabla\cdot\mathbf{u}$, which is the divergence of the velocity field. When learning the notation, it is helpful to read $\mathbf{u}\cdot\nabla\phi$ as “the operator $\mathbf{u}\cdot\nabla$ acting on $\phi$.”
 
 The two terms have distinct meanings:
 
@@ -148,7 +148,7 @@ A scalar transport equation describes the balance of an extensive property carri
 
 The scalar transport equation expresses a physical balance law for the property $\phi$ per unit mass. For the fixed control volume, the rate of accumulation in $V$ equals the net rate entering through $\partial V$ plus the net rate generated within $V$.
 
-Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantity, measured relative to the mass-averaged fluid motion, and let $`S_\phi`$ be its net volumetric production rate. The following terms use an outward-flux convention:
+Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantity, measured relative to the mass-averaged fluid motion, and let $`S_\phi`$ denote its net volumetric production rate. The following terms use an outward-flux convention:
 
 - **Accumulation:**
 
@@ -230,7 +230,7 @@ The roles are distinct: the divergence theorem converts surface fluxes to volume
 
 The fixed-volume integral balance, Eq. (17), remains the preferred starting point for the finite-volume method: fluxes through a shared face enter neighboring cells with opposite signs and cancel in their combined balance. The integral conservation law also applies in situations with discontinuities, where the pointwise smooth-field manipulations above may not be valid.
 
-## 4. Gradient-diffusion model
+# Gradient-diffusion model
 
 For an isotropic medium, a common constitutive approximation is
 
@@ -256,7 +256,7 @@ $$
 
 The last term vanishes when $S_m=0$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
-## Integral Form of the Scalar Transport Equation
+# Integral Form of the Scalar Transport Equation
 
 Rearranging the general scalar transport equation in Eq. (19) places the non-advective flux divergence on the left:
 
@@ -276,7 +276,50 @@ $$
 \boxed{\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A + \oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_{V_P}S_\phi\mkern3mu\mathrm{d}V}  \qquad (29)
 $$
 
-Eq. (29) is the conservation law in its **integral form** and the starting point for the finite volume method (FVM). Its left side contains accumulation and net outward advective and non-advective fluxes; its right side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
+Eq. (29) is the conservation law in its **integral form** and the starting point for the finite-volume method (FVM). Its left side contains accumulation and net outward advective and non-advective fluxes; its right side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
 
 The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
 
+# Discretization of Surface Integrals
+
+The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in ApexFVM. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
+
+$$
+\oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (36)
+$$
+
+In Eq. (36), $`\mathbf{F}_f`$ is the representative flux at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. The **face area vector** is defined by
+
+$$
+\mathbf{S}_f = A_f\mathbf{n}_f  \qquad (37)
+$$
+
+In Eq. (37), $`A_f`$ is the face area and $`\mathbf{n}_f`$ is the unit normal. The library convention directs $`\mathbf{S}_f`$ from the Owner to the Neighbor for an internal face. Thus $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. A boundary face vector points outward from its owner. Shared face contributions therefore have opposite signs in the two cell balances.
+
+Using outward face vectors for cell $P$, the advective flux is discretized as
+
+$$
+\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f} \equiv \sum_{f\in\mathrm{faces}(P)}F_{P,f}\phi_f  \qquad (38)
+$$
+
+In Eq. (38), the equivalence symbol defines the face-based numerical scheme factorization, with face scalar value $`\phi_f`$ and mass flux from cell $P$'s perspective defined by
+
+$$
+F_{P,f} = (\rho\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (39)
+$$
+
+The mass flux in Eq. (39) is positive for flow out of cell $P$. Relative to the global face orientation $`F_f=(\rho\mathbf{u})_f\cdot\mathbf{S}_f`$, it equals $`F_f`$ for the owner and reverses sign for the neighbor. The face values are supplied by the chosen numerical scheme.
+
+The non-advective flux is likewise approximated using outward face vectors:
+
+$$
+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (40)
+$$
+
+Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into Eq. (40) gives
+
+$$
+-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (41)
+$$
+
+The minus sign in Eq. (41) comes from the constitutive diffusion law, not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
