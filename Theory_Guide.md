@@ -6,7 +6,7 @@ The guide begins with the general transport equation and develops its terms and 
 
 # Eulerian and Lagrangian Views in Fluid Mechanics
 
-Fluid motion can be described by following individual material particles or by observing what happens at locations in space. These are the **Lagrangian** and **Eulerian** viewpoints, respectively. They describe the same flow, but use different ways to identify where and when a property is observed.
+Fluid motion can be described by following individual material particles or by observing what happens at locations in space. These are the **Lagrangian** and **Eulerian** viewpoints, respectively. They describe the same flow but use different ways to identify where and when a property is observed.
 
 ## Lagrangian description
 
@@ -30,8 +30,8 @@ This viewpoint is useful when particle histories matter, for example in particle
 
 - **Streamline:** What direction does the velocity field point in at this instant? A streamline is a curve everywhere tangent to the instantaneous velocity field. It is a snapshot of the field, so in an unsteady flow it is not generally the trajectory of any one particle.
 - **Pathline:** Where has this particular particle traveled? A pathline is the actual trajectory traced over time by one identified fluid particle, found by following that particle as it moves.
-- **Streakline:** Where are the particles now that passed through this fixed point? At a specified instant, a streakline is the locus of all particles that previously passed through the same fixed point in space. Continuous dye or smoke injection from a fixed source produces a streakline and records particles released at different times.
-- **Timeline:** Where are the particles now that were marked along this line earlier? A timeline is formed by marking a set of particles that lie on the same line at one instant. The marked particles then move and deform that line; this is distinct from tracking one particle or continuously injecting a tracer at one fixed point.
+- **Streakline:** Where are the particles that passed through this fixed point now? At a specified instant, a streakline is the locus of all particles that previously passed through the same fixed point in space. Continuous dye or smoke injection from a fixed source produces a streakline and records particles released at different times.
+- **Timeline:** Where are the particles that were marked along this line earlier now? A timeline is formed by marking a set of particles that lie on the same line at one instant. The marked particles then move and deform that line; this is distinct from tracking one particle or continuously injecting a tracer at one fixed point.
 
 In steady flow, streamlines, pathlines, and streaklines coincide under the usual assumptions because the velocity field does not change with time. In unsteady flow, they generally differ. A timeline does not generally coincide with any of these three; its shape depends on how the marked particles move after the marking.
 
@@ -317,3 +317,23 @@ $$
 $$
 
 The minus sign in Eq. (40) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
+
+# Owner and Neighbor Cells
+
+An internal face is shared by two cells. In the mesh's face-connectivity convention, one adjacent cell is designated the **Owner** and the other the **Neighbor**. These names identify the cells adjacent to that face; they do not indicate which cell is physically upstream or imply a particular flow direction. Their identities do not change when writing the balance for the other cell.
+
+When a face orientation is needed, the face area vector is chosen to point from Owner to Neighbor. At the shared face, the Owner cell's outward normal points along this orientation, while the Neighbor cell's outward normal points in the opposite direction. Thus, the same signed face flux contributes with opposite signs to the two cells' outward-flux balances.
+
+A boundary face has an Owner cell but no Neighbor cell inside the computational domain.
+
+# Cell-Based and Face-Based Viewpoints
+
+The library uses a **colocated grid**, as does OpenFOAM: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
+
+The terms **cell-based** and **face-based** describe how the code iterates and organizes assembly of the global system of equations, not where the primary variables are stored. Either approach can be used with a colocated grid.
+
+In a **cell-based** or **cell-centric** approach, the code loops over cells and, for each cell, visits its surrounding faces to collect their contributions to that cell's equation. The flux contributions are taken with each face's outward normal. For a steady balance, the net outward flux equals the integrated source; in an unsteady balance, accumulation is included as well.
+
+In a **face-based** approach, the code loops over faces. For each internal face, it calculates the shared flux contribution using one chosen face orientation and adds the corresponding contributions to both the Owner and Neighbor equations. The cells' outward normals at the shared face point in opposite directions, so the outward flux contributions have opposite signs. Boundary faces contribute to their Owner equation according to the boundary condition.
+
+Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. The library's implemented 1D Laplacian assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
