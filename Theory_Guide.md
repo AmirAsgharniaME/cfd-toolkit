@@ -111,7 +111,7 @@ In Eq. (9), the first term is the local acceleration at a fixed point. The secon
 | Combined rate of change | Material derivative $`D/Dt=\partial_t+\mathbf{u}\cdot\nabla`$ | Direct time derivative of the particle property |
 | Typical applications | CFD on fixed or moving meshes, probes, control-volume balances | Particle tracking, sprays, droplets, trajectories, fluid histories |
 
-The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In this toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the fixed-cell balance to the change experienced by the moving fluid.
+The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In this toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the balance over a fixed cell to the change experienced by the moving fluid.
 
 # The Divergence Theorem
 
@@ -218,7 +218,7 @@ $$
 \boxed{\rho\frac{D\phi}{Dt} = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (22)
 $$
 
-Here $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle, although the fields are expressed in spatial coordinates. Equation (21) proves that Eq. (22) and the Eulerian conservative law, Eq. (19), are equivalent for sufficiently smooth fields when mass has no volumetric source. The fixed-volume integral balance, Eq. (17), also applies across discontinuities and is preferred for finite-volume discretization: fluxes through a shared face enter adjacent cells with opposite signs and cancel in their combined balance.
+Here $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle, although the fields are expressed in spatial coordinates. Eq. (21) shows that Eq. (22) and the Eulerian conservative law, Eq. (19), are equivalent for sufficiently smooth fields when mass has no volumetric source. The integral balance for a fixed control volume, Eq. (17), also applies across discontinuities and is preferred for finite-volume discretization: fluxes through a shared face enter adjacent cells with opposite signs and cancel in their combined balance.
 
 ## 4. Gradient-diffusion model
 
