@@ -288,38 +288,32 @@ $$
 \oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (36)
 $$
 
-In Eq. (36), $`\mathbf{F}_f`$ is the representative flux at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. The **face area vector** is defined by
+In Eq. (36), $`\mathbf{F}_f`$ is the representative flux at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. The **face area vector** for cell $P$ is defined by
 
 $$
-\mathbf{S}_f = A_f\mathbf{n}_f  \qquad (37)
+\mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (37)
 $$
 
-In Eq. (37), $`A_f`$ is the face area and $`\mathbf{n}_f`$ is the unit normal. The library convention directs $`\mathbf{S}_f`$ from the Owner to the Neighbor for an internal face. Thus $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. A boundary face vector points outward from its owner. Shared face contributions therefore have opposite signs in the two cell balances.
+In Eq. (37), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, the library's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its owner. Shared face contributions therefore have opposite signs in the two cell balances.
 
 Using outward face vectors for cell $P$, the advective flux is discretized as
 
 $$
-\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f} \equiv \sum_{f\in\mathrm{faces}(P)}F_{P,f}\phi_f  \qquad (38)
+\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (38)
 $$
 
-In Eq. (38), the equivalence symbol defines the face-based numerical scheme factorization, with face scalar value $`\phi_f`$ and mass flux from cell $P$'s perspective defined by
-
-$$
-F_{P,f} = (\rho\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (39)
-$$
-
-The mass flux in Eq. (39) is positive for flow out of cell $P$. Relative to the global face orientation $`F_f=(\rho\mathbf{u})_f\cdot\mathbf{S}_f`$, it equals $`F_f`$ for the owner and reverses sign for the neighbor. The face values are supplied by the chosen numerical scheme.
+In Eq. (38), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
 
 The non-advective flux is likewise approximated using outward face vectors:
 
 $$
-\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (40)
+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (39)
 $$
 
-Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into Eq. (40) gives
+Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (39) gives
 
 $$
--\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (41)
+-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (40)
 $$
 
-The minus sign in Eq. (41) comes from the constitutive diffusion law, not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
+The minus sign in Eq. (40) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
