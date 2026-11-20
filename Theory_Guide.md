@@ -26,12 +26,12 @@ $$
 
 In Eq. (2), $\mathbf{v}$ is the particle velocity. A property such as temperature can similarly be recorded as a particle history $`\phi_L(\mathbf{X},t)`$. Its time derivative at fixed $\mathbf{X}$ describes the change experienced by that particle. A material volume contains the same fluid particles as it moves and deforms, so no advective mass crosses its boundary. Heat or other quantities can still cross the boundary by non-advective processes, and sources can act within the volume.
 
-This viewpoint is useful when particle histories matter, for example, in particle tracking, droplet motion, and fluid-particle interaction. Four related flow-visualization curves answer different questions:
+This viewpoint is useful when particle histories matter, for example in particle tracking, droplet motion, and fluid-particle interaction. Four related flow-visualization curves answer different questions:
 
-- **Streamline:** What direction is the velocity field pointing along at this instant? A streamline is a curve everywhere tangent to the instantaneous velocity field. It is a snapshot of the field, so in an unsteady flow it is not generally the trajectory of any one particle.
+- **Streamline:** What direction does the velocity field point in at this instant? A streamline is a curve everywhere tangent to the instantaneous velocity field. It is a snapshot of the field, so in an unsteady flow it is not generally the trajectory of any one particle.
 - **Pathline:** Where has this particular particle traveled? A pathline is the actual trajectory traced over time by one identified fluid particle, found by following that particle as it moves.
 - **Streakline:** Where are the particles now that passed through this fixed point? At a specified instant, a streakline is the locus of all particles that previously passed through the same fixed point in space. Continuous dye or smoke injection from a fixed source produces a streakline and records particles released at different times.
-- **Timeline:** Where are the particles now that were marked along this line earlier? A timeline is formed by marking, at one instant, a set of particles that all lay on the same line at an earlier instant. The marked particles then move and deform that line; this is distinct from tracking one particle or continuously injecting tracer at one fixed point.
+- **Timeline:** Where are the particles now that were marked along this line earlier? A timeline is formed by marking a set of particles that lie on the same line at one instant. The marked particles then move and deform that line; this is distinct from tracking one particle or continuously injecting a tracer at one fixed point.
 
 In steady flow, streamlines, pathlines, and streaklines coincide under the usual assumptions because the velocity field does not change with time. In unsteady flow, they generally differ. A timeline does not generally coincide with any of these three; its shape depends on how the marked particles move after the marking.
 
@@ -142,7 +142,7 @@ The signs in Eq. (12) follow from the outward normals: $`n_w=-1`$ at the west bo
 
 # Derivation of the Conservative Scalar Transport Equation
 
-A scalar transport equation conserves the total amount of an extensive quantity carried by a fluid; denote that total amount by $\Phi$ and the corresponding fluid mass by $m$. The field variable $\phi$ is not this total amount: it is the amount per unit mass, $\phi=\frac{\Phi}{m}$, so it is a specific quantity and is intensive with respect to the amount of fluid. Let $\rho$ be the fluid density and $\mathbf{u}$ the fluid velocity. Their product $\rho\phi$ is the transported amount per unit volume. In terms of units, if $M$, $L$, and $Q$ denote units of mass, length, and transported quantity, then $[\rho]=M/L^3$, $[\phi]=Q/M$, and $[\rho\phi]=Q/L^3$. This volumetric density is used because, in a **fixed control volume** $V$, the total amount is obtained by integrating over volume, while transport through its boundary $\partial V$ is expressed using the same amount per unit volume. The boundary has outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
+A scalar transport equation describes the balance of an extensive property carried by a fluid. Denote the total extensive property of a fluid volume by uppercase $\Phi$ and its fluid mass by $m$. The corresponding specific property is lowercase $\phi=\frac{\Phi}{m}$: it is the intensive property per unit mass. For a nonuniform fluid volume, this ratio is the mass-averaged specific property; the field $\phi$ gives its local value. Let $\rho$ be the fluid density and $\mathbf{u}$ the fluid velocity. The product $\rho\phi$ is the transported amount per unit volume. In terms of units, if $M$ and $L$ denote dimensions of mass and length, and $Q$ denotes the unit dimension of the transported quantity itself (for example, energy in joules or amount of substance in moles), then $[\rho]=M/L^3$, $[\phi]=Q/M$, and $[\rho\phi]=Q/L^3$. The unit symbol $Q$ is distinct from the extensive property symbol $\Phi$. This volumetric density is used because, in a **fixed control volume** $V$, the total extensive property $\Phi$ is obtained by integrating $\rho\phi$ over volume, while transport through its boundary $\partial V$ is expressed using the same amount per unit volume. The boundary has outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
 
 ## 1. Balance over a control volume
 
@@ -212,7 +212,7 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V = \int_{V(t)}\left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u})\right]\mkern3mu\mathrm{d}V  \qquad (21)
 $$
 
-Eq. (21) is a mathematical identity for differentiating an integral over a moving domain, not another transport or conservation law. Applied to Eq. (20), it gives the same time-derivative-plus-advective-divergence expression found in Eq. (19). The divergence term accounts for the moving boundary when expressing the rate in spatial coordinates; it does not mean fluid crosses the material boundary. Fluid motion and its advective effect have not disappeared.
+Eq. (21) is a mathematical identity for differentiating an integral over a moving domain, not another transport or conservation law. Applied to Eq. (20), it gives the same time derivative and advective divergence expression found in Eq. (19). The divergence term accounts for the moving boundary when expressing the rate in spatial coordinates; it does not mean fluid crosses the material boundary. Fluid motion and its advective effect have not disappeared.
 
 For sufficiently smooth fields, the product rule gives
 
@@ -228,7 +228,7 @@ $$
 
 The roles are distinct: the divergence theorem converts surface fluxes to volume divergences; the Reynolds transport theorem rewrites the rate of an integral over a moving volume; the product rule gives Eq. (22); and the continuity equation removes its residual when mass has no volumetric source. Under that assumption and sufficient smoothness, Eq. (23) is an equivalent rewriting of the Eulerian conservative law, Eq. (19). The name **non-conservative form** describes its algebraic form, not a physical failure of conservation.
 
-The fixed-volume integral balance, Eq. (17), remains the preferred starting point for the finite volume method: fluxes through a shared face enter neighboring cells with opposite signs and cancel in their combined balance. The integral conservation law also applies in situations with discontinuities, where the pointwise smooth-field manipulations above may not be valid.
+The fixed-volume integral balance, Eq. (17), remains the preferred starting point for the finite-volume method: fluxes through a shared face enter neighboring cells with opposite signs and cancel in their combined balance. The integral conservation law also applies in situations with discontinuities, where the pointwise smooth-field manipulations above may not be valid.
 
 ## 4. Gradient-diffusion model
 
@@ -246,7 +246,7 @@ $$
 
 The terms in Eq. (25) are transient accumulation, net outward advective transport, diffusion, and volumetric production, from left to right. The diffusion term is a **net diffusive influx per unit volume** because the outward diffusive flux is $`-\Gamma_\phi\nabla\phi`$. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
 
-If $Q$ denotes the unit of the transported extensive quantity, then $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (25), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ is species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
+Using $Q$ for the unit dimension of the transported quantity, $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (25), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ denotes the dimension of species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
 
 If mass has a volumetric source $S_m$, so that $`\partial\rho/\partial t+\nabla\cdot(\rho\mathbf{u})=S_m`$, Eq. (22) instead converts Eq. (25) to
 
@@ -256,20 +256,27 @@ $$
 
 The last term vanishes when $S_m=0$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
-## 5. One-dimensional finite-volume balance
+## Integral Form of the Scalar Transport Equation
 
-For a cell bounded by $`x_w`$ and $`x_e`$, with constant cross-sectional area $A$, define the total flux in the positive $x$ direction as
-
-$$
-F_x = \rho u\phi - \Gamma_\phi\frac{\partial\phi}{\partial x}  \qquad (27)
-$$
-
-In Eq. (27), $u$ is the velocity component in the positive $x$ direction. Integrating Eq. (25) over the cell gives
+Rearranging the general scalar transport equation in Eq. (19) places the non-advective flux divergence on the left:
 
 $$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{x_w}^{x_e}\rho\phi\mkern3muA\mkern3mu\mathrm{d}x + A\bigl[F_x(x_e)-F_x(x_w)\bigr] = \int_{x_w}^{x_e}S_\phi\mkern3muA\mkern3mu\mathrm{d}x  \qquad (28)
+\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) + \nabla\cdot\mathbf{j}_\phi = S_\phi  \qquad (27)
 $$
 
-The west-face contribution in Eq. (28) has a minus sign because its outward normal points in the negative $x$ direction. In a finite-volume discretization, a shared internal-face flux enters the two adjacent cell balances with opposite signs, so it cancels when the balances are summed. Boundary fluxes and sources remain in the global balance. Numerical interpolation, time integration, and boundary conditions are needed to close the discrete equations; their choices do not change the conservation statement.
+Integrating Eq. (27) over an arbitrary fixed three-dimensional control volume $`V_P`$ gives
 
-For the toolkit's present one-dimensional steady diffusion workflow, setting the transient and advective terms to zero gives $`-\mathrm{d}(\Gamma_\phi\mkern3mu\mathrm{d}\phi/\mathrm{d}x)/\mathrm{d}x=S_\phi`$. The implemented Laplacian assembles internal-face contributions for this negative diffusion operator; boundary contributions are applied separately. The general transient and advective terms in Eq. (25) describe the theory and do not imply that those operators are currently implemented.
+$$
+\int_{V_P}\frac{\partial(\rho\phi)}{\partial t}\mkern3mu\mathrm{d}V + \int_{V_P}\nabla\cdot(\rho\mathbf{u}\phi)\mkern3mu\mathrm{d}V + \int_{V_P}\nabla\cdot\mathbf{j}_\phi\mkern3mu\mathrm{d}V = \int_{V_P}S_\phi\mkern3mu\mathrm{d}V  \qquad (28)
+$$
+
+Let $`\partial V_P`$ be the closed boundary of $`V_P`$ and $\mathbf{n}$ its outward unit normal. Applying the Gauss divergence theorem to both divergence terms in Eq. (28), and interchanging the time derivative and volume integral for sufficiently smooth fields, gives
+
+$$
+\boxed{\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A + \oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_{V_P}S_\phi\mkern3mu\mathrm{d}V}  \qquad (29)
+$$
+
+Eq. (29) is the conservation law in its **integral form** and the starting point for the finite volume method (FVM). Its left side contains accumulation and net outward advective and non-advective fluxes; its right side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
+
+The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
+
