@@ -148,7 +148,7 @@ A scalar transport equation describes the balance of an extensive property carri
 
 The scalar transport equation expresses a physical balance law for the property $\phi$ per unit mass. For the fixed control volume, the rate of accumulation in $V$ equals the net rate entering through $\partial V$ plus the net rate generated within $V$.
 
-Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantity, measured relative to the mass-averaged fluid motion, and let $`S_\phi`$ denote its net volumetric production rate. The following terms use an outward-flux convention:
+Let $`\mathbf{j}_\phi`$ denote the non-advective flux of the transported quantity, measured relative to the mass-averaged fluid motion, and let $`S_\phi`$ denote its net volumetric source in the conservative balance. It includes all volumetric production or consumption of the transported quantity, including the amount carried by any volumetric mass injection or removal. The following terms use an outward-flux convention:
 
 - **Accumulation:**
 
@@ -180,7 +180,7 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (17)
 $$
 
-The source must include all relevant volumetric contributions to the transported quantity, including any carried by mass injected into or removed from the control volume. Boundary inflows and outflows instead appear in the surface flux.
+Thus, $S_\phi$ includes the transported quantity carried by volumetric mass injection or removal once in the conservative balance. Inflow and outflow across the control-volume boundary remain represented by the surface fluxes, not by $S_\phi$.
 
 ## 2. Differential conservation law
 
@@ -220,7 +220,7 @@ $$
 \frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \rho\frac{D\phi}{Dt} + \phi\left[\frac{\partial\rho}{\partial t}+\nabla\cdot(\rho\mathbf{u})\right]  \qquad (22)
 $$
 
-In Eq. (22), $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle; the second term shows the advective effect of moving through spatial variations. The bracket is the continuity-equation residual, which vanishes under source-free mass conservation. Applying the divergence theorem to the non-advective flux in Eq. (20) and localizing the balance then gives the material-derivative form, provided the fields are sufficiently smooth
+In Eq. (22), $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle, and $\mathbf{u}\cdot\nabla\phi$ is the advective or convective change caused by motion through spatial variations of $\phi$. The bracketed quantity is the continuity-equation residual, which vanishes for source-free mass conservation. If the mass equation contains a volumetric mass source $S_m$, the bracketed quantity equals $S_m$, producing the term $-\phi S_m$ on the right-hand side when the conservative equation is converted to material-derivative form. This conversion does not add the property carried by injected or removed mass to $S_\phi$ again; that contribution is already included once in the conservative source defined in Eq. (17). Applying the divergence theorem to the non-advective flux in Eq. (20) and localizing the balance then gives the material-derivative form, provided the fields are sufficiently smooth
 
 $$
 \boxed{\rho\frac{D\phi}{Dt} = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (23)
@@ -254,7 +254,7 @@ $$
 \rho\frac{D\phi}{Dt} = \nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi-\phi S_m  \qquad (26)
 $$
 
-The last term vanishes when $S_m=0$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
+The term $-\phi S_m$ is the correction from expanding the conservative accumulation and advection terms using Eq. (22); it is distinct from the volumetric transported-quantity source $S_\phi$, which already includes any property carried by the mass source. For example, if injected mass carries a specific transported quantity, its contribution is included in $S_\phi$ once, while conversion to material-derivative form still contributes $-\phi S_m$. The term vanishes when $S_m=0$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
 # Integral Form of the Scalar Transport Equation
 
