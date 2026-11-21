@@ -4,11 +4,11 @@ CFD Toolkit is a modular finite-volume framework that separates dimensions when 
 
 The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to CFD Toolkit, so the theory remains connected to CFD Toolkit and its current capabilities.
 
-# Eulerian and Lagrangian Views in Fluid Mechanics
+# 1. Eulerian and Lagrangian Views in Fluid Mechanics
 
 Fluid motion can be described by following individual material particles or by observing what happens at locations in space. These are the **Lagrangian** and **Eulerian** viewpoints, respectively. They describe the same flow but use different ways to identify where and when a property is observed.
 
-## Lagrangian description
+## 1.1 Lagrangian description
 
 In solid mechanics, it is common to identify a material point in an undeformed reference configuration and follow its displacement as the body deforms. The Lagrangian description of a fluid starts with the same idea: label a fluid particle and follow it as it moves. A fluid particle here means a small material parcel, not necessarily a molecule or a suspended solid particle.
 
@@ -35,7 +35,7 @@ This viewpoint is useful when particle histories matter, for example, in particl
 
 In steady flow, streamlines, pathlines, and streaklines coincide under the usual assumptions because the velocity field does not change with time. In unsteady flow, they generally differ. A timeline does not generally coincide with any of these three; its shape depends on how the marked particles move after the marking.
 
-## From following particles to observing locations
+## 1.2 From following particles to observing locations
 
 Fluids can undergo large, continuous motion and deformation. Instead of keeping track of every particle, we can place a probe at a fixed position and record the properties of whichever particles pass it. This change of bookkeeping leads to the Eulerian description: label the observation by its current position $\mathbf{x}$ and time $t$, rather than by the particle's reference position $\mathbf{X}$.
 
@@ -63,7 +63,7 @@ Eq. (4) relates the velocity descriptions, and Eq. (5) relates the scalar descri
 
 Fixed control volumes and stationary meshes also use the Eulerian viewpoint. Fluid crosses the faces of a finite-volume cell while the cell remains associated with the same region of space. Its conservation balance therefore accounts for accumulation inside the cell and fluxes through its boundary. The conservative scalar transport equation developed later expresses this balance in differential form; its derivation and assumptions are discussed there.
 
-## Connecting the two descriptions: the material derivative
+## 1.3 Connecting the two descriptions: the material derivative
 
 The Eulerian and Lagrangian descriptions are connected by the chain rule. Let $\phi(\mathbf{x},t)$ be any differentiable scalar field and let a particle follow $\mathbf{x}(t)$. Along that particle,
 
@@ -100,7 +100,7 @@ $$
 
 In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
 
-## Comparison of the viewpoints
+## 1.4 Comparison of the viewpoints
 
 | Feature | Eulerian view | Lagrangian view |
 |---|---|---|
@@ -113,7 +113,7 @@ In Eq. (9), the first term is the local acceleration at a fixed point. The secon
 
 The choice concerns modeling and computation rather than the underlying physics. A flow solver may use Eulerian fields for pressure and velocity while also integrating Lagrangian particles through those fields. Conversely, particle measurements can be converted into Eulerian estimates by averaging observations over spatial cells. In CFD Toolkit, the finite-volume mesh and its cell-centered fields use the Eulerian viewpoint: each cell stores field values for a spatial region, and transport between cells is represented by face fluxes. The material derivative remains essential for interpreting the equations and for relating the balance over a fixed cell to the change experienced by the moving fluid.
 
-# The Divergence Theorem
+# 2. The Divergence Theorem
 
 The divergence theorem, also known as Gauss's theorem, relates the behavior of a vector field inside a volume to its flux through the volume's boundary. For a vector field $\mathbf{F}$ defined on a volume $V$ with closed boundary $\partial V$, it states that
 
@@ -140,11 +140,11 @@ $$
 The signs in Eq. (12) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
 
 
-# Derivation of the Conservative Scalar Transport Equation
+# 3. Derivation of the Conservative Scalar Transport Equation
 
 A scalar transport equation describes the balance of an extensive property carried by a fluid. Denote the total extensive property of a fluid volume by uppercase $\Phi$ and its fluid mass by $m$. The corresponding specific property is lowercase $\phi=\frac{\Phi}{m}$: it is the intensive property per unit mass. For a nonuniform fluid volume, this ratio is the mass-averaged specific property; the field $\phi$ gives its local value. Let $\rho$ be the fluid density and $\mathbf{u}$ the fluid velocity. The product $\rho\phi$ is the transported amount per unit volume. In terms of units, if $M$ and $L$ denote dimensions of mass and length, and $Q$ denotes the unit dimension of the transported quantity itself (for example, energy in joules or amount of substance in moles), then $[\rho]=M/L^3$, $[\phi]=Q/M$, and $[\rho\phi]=Q/L^3$. The unit symbol $Q$ is distinct from the extensive property symbol $\Phi$. This volumetric density is used because, in a **fixed control volume** $V$, the total extensive property $\Phi$ is obtained by integrating $\rho\phi$ over volume, while transport through its boundary $\partial V$ is expressed using the same amount per unit volume. The boundary has outward unit normal $\mathbf{n}$. The volume need not coincide with a fluid parcel: fluid and the quantity it carries may cross its boundary.
 
-## 1. Balance over a control volume
+## 3.1 Balance over a control volume
 
 The scalar transport equation expresses a physical balance law for the property $\phi$ per unit mass. For the fixed control volume, the rate of accumulation in $V$ equals the net rate entering through $\partial V$ plus the net rate generated within $V$.
 
@@ -182,7 +182,7 @@ $$
 
 Thus, $`S_\phi`$ includes the transported quantity carried by volumetric mass injection or removal once in the conservative balance. Inflow and outflow across the control-volume boundary remain represented by the surface fluxes, not by $`S_\phi`$.
 
-## 2. Differential conservation law
+## 3.2 Differential conservation law
 
 For a fixed control volume, with sufficient regularity to interchange differentiation and integration, the time derivative in Eq. (17) can be taken inside the integral. Applying the **divergence theorem** to the surface flux gives
 
@@ -198,7 +198,7 @@ $$
 
 Eq. (19) is the conservative scalar transport law before specifying a constitutive model for the non-advective flux. Its defining feature is that storage and transport are written in terms of the conserved density $\rho\phi$ and its fluxes. The fixed-volume balance and its derivation here do not require the Reynolds transport theorem. Eq. (17) remains the appropriate balance across discontinuities, where the pointwise differential form requires additional care.
 
-## 3. Material and fixed-volume viewpoints
+## 3.3 Material and fixed-volume viewpoints
 
 The same physical law can be applied to a material volume $V(t)$, which follows the same fluid particles as it moves and deforms. Its boundary moves with the local fluid velocity, so the advective flux relative to that boundary is zero, although non-advective transport can still cross it. With the same outward-normal and source conventions as Eq. (17), its balance is
 
@@ -230,7 +230,7 @@ The roles are distinct: the divergence theorem converts surface fluxes to volume
 
 The fixed-volume integral balance, Eq. (17), remains the preferred starting point for the finite-volume method: fluxes through a shared face enter neighboring cells with opposite signs and cancel in their combined balance. The integral conservation law also applies in situations with discontinuities, where the pointwise smooth-field manipulations above may not be valid.
 
-# Gradient-diffusion model
+# 4. Gradient-diffusion model
 
 For an isotropic medium, a common constitutive approximation is
 
@@ -256,7 +256,7 @@ $$
 
 The term $`-\phi S_m`$ is the correction from expanding the conservative accumulation and advection terms using Eq. (22); it is distinct from the volumetric transported-quantity source $`S_\phi`$, which already includes any property carried by the mass source. For example, if injected mass carries a specific transported quantity, its contribution is included in $`S_\phi`$ once, while conversion to material-derivative form still contributes $`-\phi S_m`$. The term vanishes when $`S_m=0`$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
-# Integral Form of the Scalar Transport Equation
+# 5. Integral Form of the Scalar Transport Equation
 
 Rearranging the general scalar transport equation in Eq. (19) places the non-advective flux divergence on the left:
 
@@ -280,7 +280,7 @@ Eq. (29) is the conservation law in its **integral form** and the starting point
 
 The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
 
-# Temporal Discretization of the Accumulation Term
+# 6. Temporal Discretization of the Accumulation Term
 
 For cell $P$, assume its volume $`V_P`$ is fixed over the time step and use cell-centered representative values. Let $t^n$ denote the previous time level and $t^{n+1}$ the new time level, with time-step size
 
@@ -306,7 +306,7 @@ $$
 \frac{\rho_P V_P}{\Delta t}\left(\phi_P^{n+1}-\phi_P^n\right)  \qquad (33)
 $$
 
-# Discretization of Surface Integrals
+# 7. Discretization of Surface Integrals
 
 The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in CFD Toolkit. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
 
@@ -344,7 +344,7 @@ $$
 
 The minus sign in Eq. (38) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
 
-# Discretization of the Volumetric Source
+# 8. Discretization of the Volumetric Source
 
 For cell $P$, assume the source is constant within that cell and represented by its cell value $`S_{\phi,P}`$. The source integral is then approximated as
 
@@ -354,7 +354,7 @@ $$
 
 Here, $`S_{\phi,P}`$ is the representative volumetric source value for cell $P$, and $`V_P`$ is its volume. Being constant within each cell does not require the source to have the same value in every cell: $`S_{\phi,P}`$ may vary from cell to cell. The product $`S_{\phi,P}V_P`$ is the total source contribution to the finite-volume balance of cell $P$.
 
-# Owner and Neighbor Cells
+# 9. Owner and Neighbor Cells
 
 An internal face is shared by two cells. In the mesh's face-connectivity convention, one adjacent cell is designated the **Owner** and the other the **Neighbor**. These names identify the cells adjacent to that face; they do not indicate which cell is physically upstream or imply a particular flow direction. Their identities do not change when writing the balance for the other cell.
 
@@ -362,7 +362,7 @@ When a face orientation is needed, the global face area vector is chosen to poin
 
 A boundary face has an Owner cell but no Neighbor cell inside the computational domain.
 
-# Cell-Based and Face-Based Viewpoints
+# 10. Cell-Based and Face-Based Viewpoints
 
 CFD Toolkit uses a **colocated grid**, as does OpenFOAM: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
 
@@ -373,3 +373,31 @@ In a **cell-based** or **cell-centric** approach, the code loops over cells and,
 In a **face-based** approach, the code loops over faces. For each internal face, it calculates the shared flux contribution using one chosen face orientation and adds the corresponding contributions to both the Owner and Neighbor equations. The cells' outward normals at the shared face point in opposite directions, so the outward flux contributions have opposite signs. Boundary faces contribute to their Owner equation according to the boundary condition.
 
 Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. CFD Toolkit's implemented 1D Laplacian assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
+
+
+
+# 11. Discretization of Term Implementation
+
+Following the face-based assembly viewpoint established in the previous section, the discrete algebraic equations for individual control volumes are constructed term by term.
+
+## 11.1 Diffusion Term Discretization
+For a general scalar $\phi$ governed by a diffusion process ($\nabla \cdot (\Gamma \nabla \phi)$), application of the divergence theorem over a control volume $V_P$ yields a surface integral over all faces bounding the cell:
+
+$$\int_{V_P} \nabla \cdot (\Gamma \nabla \phi) \, dV = \sum_{f} (\Gamma \nabla \phi)_f \cdot \vec{S}_f$$
+
+For a typical internal face $f$ shared between an Owner ($P$) and a Neighbor ($N$), the diffusive flux component is approximated as:
+
+$$(\Gamma \nabla \phi)_f \cdot \vec{S}_f \approx \Gamma_f (\nabla \phi)_f \cdot \vec{S}_f$$
+
+### 11.1.1 Face Gradient and Interpolation
+To compute this face flux, two distinct numerical operations are required:
+1. **Property Interpolation ($\Gamma_f$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations properly).
+2. **Gradient Approximation ($\nabla \phi_f \cdot \vec{S}_f$):** Approximating the normal derivative at the face. In our current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
+   $$(\nabla \phi)_f \cdot \vec{S}_f \approx \frac{\phi_N - \phi_P}{d_{PN}} |\vec{S}_f|$$
+
+## 11.2 Convection Term Discretization (Advection)
+For convective transport ($\nabla \cdot (\rho \vec{u} \phi)$), the face value $\phi_f$ must be interpolated from the adjacent cell centers based on the local flow direction.
+
+- **Upwind Differencing Scheme (UDS):** To ensure numerical stability and boundedness (preventing unphysical oscillations), the convection scheme evaluates $\phi_f$ based on the upstream condition:
+  $$\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \\ \phi_N & \text{if } F_f < 0 \end{cases}$$
+  where $F_f = (\rho \vec{u} \cdot \vec{S})_f$ is the mass flux through the face.
