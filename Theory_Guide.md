@@ -107,7 +107,7 @@ $$
 $$
 
 
-In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
+In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration. A particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
 
 ## 1.4 Comparison of the viewpoints
 
@@ -269,7 +269,7 @@ $$
 $$
 
 
-The terms in Eq. (25) are transient accumulation, net outward advective transport, diffusion, and volumetric production, from left to right. The diffusion term is a **net diffusive influx per unit volume** because the diffusive flux vector is $`-\Gamma_\phi\nabla\phi`$, whose dot product with the outward normal gives the signed outward flux. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
+The terms in Eq. (25) are, from left to right, transient accumulation, net outward advective transport, diffusion, and volumetric production. The diffusion term is a **net diffusive influx per unit volume** because the diffusive flux vector is $`-\Gamma_\phi\nabla\phi`$, whose dot product with the outward normal gives the signed outward flux. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
 
 Using $Q$ for the unit dimension of the transported quantity, $\rho\phi$ has units $Q/\mathrm{m}^3$, each flux has units $Q/(\mathrm{m}^2\mkern3mu\mathrm{s})$, and every term in Eq. (25), including $`S_\phi`$, has units $Q/(\mathrm{m}^3\mkern3mu\mathrm{s})$. The units of $`\Gamma_\phi`$ depend on the definition of $\phi$. For a species mass fraction, for example, $Q$ denotes the dimension of species mass and a common model is $`\Gamma_\phi=\rho D`$, where $D$ is a mass diffusivity.
 
@@ -305,7 +305,7 @@ $$
 $$
 
 
-Eq. (29) is the conservation law in its **integral form** and the starting point for the finite-volume method (FVM). Its left side contains accumulation and net outward advective and non-advective fluxes; its right side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
+Eq. (29) is the conservation law in its **integral form** and the starting point for the finite-volume method (FVM). Its left-hand side contains accumulation and net outward advective and non-advective fluxes; its right-hand side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
 
 The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
 
@@ -355,7 +355,7 @@ $$
 $$
 
 
-In Eq. (35), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its owner.
+In Eq. (35), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the Owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the Neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its Owner.
 
 Using outward face vectors for cell $P$, the advective flux is discretized as
 
@@ -380,7 +380,7 @@ $$
 $$
 
 
-The minus sign in Eq. (38) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
+The minus sign in Eq. (38) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multidimensional framework.
 
 # 8. Discretization of the Volumetric Source
 
@@ -436,8 +436,8 @@ $$
 
 ### 11.1.1 Face Gradient and Interpolation
 To compute this face flux, two distinct numerical operations are required:
-1. **Property Interpolation ($`\Gamma_f`$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations properly).
-2. **Gradient Approximation ($`\nabla \phi_f \cdot \mathbf{S}_f`$):** Approximating the normal derivative at the face. In our current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
+1. **Property Interpolation ($`\Gamma_f`$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations).
+2. **Gradient Approximation ($`\nabla \phi_f \cdot \mathbf{S}_f`$):** Approximating the normal derivative at the face. In the current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
    
 $$
 (\nabla \phi)_f \cdot \mathbf{S}_f \approx \frac{\phi_N - \phi_P}{d_{PN}} |\mathbf{S}_f|  \qquad (42)
