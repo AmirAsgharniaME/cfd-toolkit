@@ -280,6 +280,34 @@ Eq. (29) is the conservation law in its **integral form** and the starting point
 
 The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
 
+# Temporal Discretization of the Accumulation Term
+
+For cell $P$, assume its volume $V_P$ is fixed over the time step and use cell-centered representative values. Let $t^n$ denote the previous time level and $t^{n+1}$ the new time level, with time-step size
+
+$$
+\Delta t=t^{n+1}-t^n
+$$
+
+The transient accumulation term integrated over cell $P$ is
+
+$$
+\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\,\mathrm{d}V
+$$
+
+Using the Backward Euler method, its approximation at the new time level is
+
+$$
+\left.\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\,\mathrm{d}V\right|^{n+1}
+\approx
+\frac{(\rho\phi)_P^{n+1}V_P-(\rho\phi)_P^nV_P}{\Delta t}
+$$
+
+Backward Euler evaluates the time derivative using the new time level $n+1$. This general expression does not require constant density. If density is constant over the time step for cell $P$, it simplifies to
+
+$$
+\frac{\rho_P V_P}{\Delta t}\left(\phi_P^{n+1}-\phi_P^n\right)
+$$
+
 # Discretization of Surface Integrals
 
 The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in CFD Toolkit. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
@@ -317,6 +345,16 @@ $$
 $$
 
 The minus sign in Eq. (34) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
+
+# Discretization of the Volumetric Source
+
+For cell $P$, assume the source is constant within that cell and represented by its cell value $`S_{\phi,P}`$. The source integral is then approximated as
+
+$$
+\int_{V_P} S_\phi \, \mathrm{d}V \approx S_{\phi,P}V_P
+$$
+
+Here, $`S_{\phi,P}`$ is the representative volumetric source value for cell $P$, and $`V_P`$ is its volume. Constant within each cell does not require the source to have the same value in every cell: $`S_{\phi,P}`$ may vary from cell to cell. The product $`S_{\phi,P}V_P`$ is the total source contribution to the finite-volume balance of cell $P$.
 
 # Owner and Neighbor Cells
 
