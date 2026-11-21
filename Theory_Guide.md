@@ -18,11 +18,13 @@ $$
 \mathbf{x}=\boldsymbol{\chi}(\mathbf{X},t)  \qquad (1)
 $$
 
+
 In Eq. (1), $`\boldsymbol{\chi}(\mathbf{X},t_0)=\mathbf{X}`$. Keeping $\mathbf{X}$ fixed follows the same particle. Its velocity is the time derivative of its position,
 
 $$
 \mathbf{v}(\mathbf{X},t)=\frac{\partial\boldsymbol{\chi}}{\partial t}(\mathbf{X},t)  \qquad (2)
 $$
+
 
 In Eq. (2), $\mathbf{v}$ is the particle velocity. A property such as temperature can similarly be recorded as a particle history $`\phi_L(\mathbf{X},t)`$. Its time derivative at fixed $\mathbf{X}$ describes the change experienced by that particle. A material volume contains the same fluid particles as it moves and deforms, so no advective mass crosses its boundary. Heat or other quantities can still cross the boundary by non-advective processes, and sources can act within the volume.
 
@@ -45,6 +47,7 @@ $$
 \mathbf{u}=\mathbf{u}(\mathbf{x},t)  \qquad (3)
 $$
 
+
 In Eq. (3), $\mathbf{u}$ is the Eulerian velocity. Density, pressure, temperature, and a transported scalar are likewise fields such as $`\rho(\mathbf{x},t)`$, $`p(\mathbf{x},t)`$, $`T(\mathbf{x},t)`$, and $`\phi(\mathbf{x},t)`$. The value $`\phi(\mathbf{x}_0,t_0)`$ is observed at the fixed location $`\mathbf{x}_0`$ at the instant $`t_0`$; it is the property of whichever particle is there at that instant.
 
 The two descriptions meet at the particle's current position. Evaluating the Eulerian velocity and scalar fields along its trajectory gives the same velocity and property recorded in its Lagrangian history
@@ -53,11 +56,13 @@ $$
 \mathbf{v}(\mathbf{X},t)=\mathbf{u}(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (4)
 $$
 
+
 Similarly,
 
 $$
 \phi_L(\mathbf{X},t)=\phi(\boldsymbol{\chi}(\mathbf{X},t),t)  \qquad (5)
 $$
+
 
 Eq. (4) relates the velocity descriptions, and Eq. (5) relates the scalar descriptions. A fixed probe generally observes different particles over time. Thus $\partial\phi/\partial t$, the **local** or **Eulerian time derivative**, measures the change at a fixed position; the change experienced by one moving particle also depends on how the field varies along its path. The material derivative below makes that connection precise.
 
@@ -71,11 +76,13 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\phi(\mathbf{x}(t),t) =\frac{\partial\phi}{\partial t} +\frac{\mathrm{d}\mathbf{x}}{\mathrm{d}t}\cdot\nabla\phi =\frac{\partial\phi}{\partial t}+\mathbf{u}\cdot\nabla\phi  \qquad (6)
 $$
 
+
 In Eq. (6), the derivative follows the particle. The operator
 
 $$
 \boxed{\frac{D}{Dt} =\frac{\partial}{\partial t}+\mathbf{u}\cdot\nabla}  \qquad (7)
 $$
+
 
 in Eq. (7) is the **material derivative**, also called the **substantial derivative**. It gives the rate of change experienced by a fluid particle while the fields are represented in Eulerian coordinates.
 
@@ -92,11 +99,13 @@ $$
 \frac{D\phi}{Dt}=\frac{\partial\phi}{\partial t}+u\frac{\partial\phi}{\partial x}  \qquad (8)
 $$
 
+
 Eq. (8) gives this derivative in one dimension. For a vector field, the same idea applies component by component. In particular, the material acceleration is
 
 $$
 \frac{D\mathbf{u}}{Dt} =\frac{\partial\mathbf{u}}{\partial t}+\left(\mathbf{u}\cdot\nabla\right)\mathbf{u}  \qquad (9)
 $$
+
 
 In Eq. (9), the first term is the local acceleration at a fixed point. The second is convective acceleration: a particle can accelerate even in a steady Eulerian flow if it moves into a region with a different velocity. For example, fluid moving through a converging channel can have $\partial\mathbf{u}/\partial t=0$ while $D\mathbf{u}/Dt\ne0$.
 
@@ -121,6 +130,7 @@ $$
 \int_V \nabla \cdot \mathbf{F}\mkern3mu\mathrm{d}V = \oint_{\partial V} \mathbf{F} \cdot \mathbf{n}\mkern3mu\mathrm{d}A  \qquad (10)
 $$
 
+
 In Eq. (10), $\mathbf{n}$ is the **outward unit normal to the boundary being considered**, and $\mathbf{F} \cdot \mathbf{n}$ is the signed outward flux per unit area. The theorem applies, for example, when $V$ has a piecewise smooth boundary and $\mathbf{F}$ has continuous first derivatives on a region containing $V$. Flux leaving the volume is positive; flux entering it is negative. The surface integral therefore measures the **net outward flux**, accounting for both inflow and outflow.
 
 In Cartesian coordinates, the divergence is
@@ -129,6 +139,7 @@ $$
 \nabla \cdot \mathbf{F} = \frac{\partial F_x}{\partial x} + \frac{\partial F_y}{\partial y} + \frac{\partial F_z}{\partial z}  \qquad (11)
 $$
 
+
 The divergence in Eq. (11) measures the local net outward flux per unit volume. The terms on the right use the Cartesian components of the vector field and their corresponding coordinates. A positive divergence indicates a local excess of outward flux, while a negative divergence indicates a local excess of inward flux. Eq. (10) says that integrating this local imbalance over the volume gives the net flux across its boundary. For example, if $\mathbf{F}=\rho\mathbf{u}$ is mass flux, where $\rho$ is the fluid density and $\mathbf{u}$ is the fluid velocity, the surface integral is the net mass flow rate out of $V$, and $\nabla\cdot(\rho\mathbf{u})$ has units of mass per unit volume per unit time.
 
 In one dimension, the theorem reduces to the fundamental theorem of calculus. For an interval $`[x_w,x_e]`$ with west and east endpoints, respectively, and a scalar flux component $`F_x`$,
@@ -136,6 +147,7 @@ In one dimension, the theorem reduces to the fundamental theorem of calculus. Fo
 $$
 \int_{x_w}^{x_e} \frac{\mathrm{d}F_x}{\mathrm{d}x}\mkern3mu\mathrm{d}x = F_x(x_e)-F_x(x_w)  \qquad (12)
 $$
+
 
 The signs in Eq. (12) follow from the outward normals: $`n_w=-1`$ at the west boundary and $`n_e=+1`$ at the east boundary. With a constant cross-sectional area $A$, the corresponding volume integral is $`A[F_x(x_e)-F_x(x_w)]`$.
 
@@ -162,23 +174,28 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V  \qquad (13)
 $$
 
+
 $$
 \oint_{\partial V}\rho\phi\mkern3mu\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (14)
 $$
+
 
 $$
 \oint_{\partial V}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A  \qquad (15)
 $$
 
+
 $$
 \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (16)
 $$
+
 
 Eq. (13), Eq. (14), Eq. (15), and Eq. (16) give accumulation, advection relative to the stationary boundary, non-advective transport, and volumetric production, respectively. Since outward flux removes the quantity from $V$, the balance is
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_V \rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V}(\rho\phi\mathbf{u}+\mathbf{j}_\phi)\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_V S_\phi\mkern3mu\mathrm{d}V  \qquad (17)
 $$
+
 
 Thus, $`S_\phi`$ includes the transported quantity carried by volumetric mass injection or removal once in the conservative balance. Inflow and outflow across the control-volume boundary remain represented by the surface fluxes, not by $`S_\phi`$.
 
@@ -190,11 +207,13 @@ $$
 \int_V \left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u}) + \nabla\cdot\mathbf{j}_\phi - S_\phi\right]\mkern3mu\mathrm{d}V = 0  \qquad (18)
 $$
 
+
 Because the balance in Eq. (18) holds for every fixed control volume, the integrand vanishes locally wherever the fields are sufficiently smooth:
 
 $$
 \boxed{\frac{\partial}{\partial t}(\rho\phi) + \nabla\cdot(\rho\mathbf{u}\phi) = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (19)
 $$
+
 
 Eq. (19) is the conservative scalar transport law before specifying a constitutive model for the non-advective flux. Its defining feature is that storage and transport are written in terms of the conserved density $\rho\phi$ and its fluxes. The fixed-volume balance and its derivation here do not require the Reynolds transport theorem. Eq. (17) remains the appropriate balance across discontinuities, where the pointwise differential form requires additional care.
 
@@ -206,11 +225,13 @@ $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V = -\oint_{\partial V(t)}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A + \int_{V(t)}S_\phi\mkern3mu\mathrm{d}V  \qquad (20)
 $$
 
+
 The derivative on the left of Eq. (20) already includes the motion and deformation of $V(t)$. To rewrite it using spatial fields, the **Reynolds transport theorem** gives
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_{V(t)}\rho\phi\mkern3mu\mathrm{d}V = \int_{V(t)}\left[\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\phi\mathbf{u})\right]\mkern3mu\mathrm{d}V  \qquad (21)
 $$
+
 
 Eq. (21) is a mathematical identity for differentiating an integral over a moving domain, not another transport or conservation law. Applied to Eq. (20), it gives the same time derivative and advective divergence expression found in Eq. (19). The divergence term accounts for the moving boundary when expressing the rate in spatial coordinates; it does not mean fluid crosses the material boundary. Fluid motion and its advective effect have not disappeared.
 
@@ -220,11 +241,13 @@ $$
 \frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \rho\frac{D\phi}{Dt} + \phi\left[\frac{\partial\rho}{\partial t}+\nabla\cdot(\rho\mathbf{u})\right]  \qquad (22)
 $$
 
+
 In Eq. (22), $D\phi/Dt=\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi$ follows a fluid particle, and $\mathbf{u}\cdot\nabla\phi$ is the advective or convective change caused by motion through spatial variations of $\phi$. The bracketed quantity is the continuity-equation residual, which vanishes for source-free mass conservation. If the mass equation contains a volumetric mass source $`S_m`$, the bracketed quantity equals $`S_m`$, producing the term $`-\phi S_m`$ on the right-hand side when the conservative equation is converted to material-derivative form. This conversion does not add the property carried by injected or removed mass to $`S_\phi`$ again; that contribution is already included once in the conservative source defined in Eq. (17). Applying the divergence theorem to the non-advective flux in Eq. (20) and localizing the balance then gives the material-derivative form, provided the fields are sufficiently smooth
 
 $$
 \boxed{\rho\frac{D\phi}{Dt} = -\nabla\cdot\mathbf{j}_\phi + S_\phi}  \qquad (23)
 $$
+
 
 The roles are distinct: the divergence theorem converts surface fluxes to volume divergences; the Reynolds transport theorem rewrites the rate of an integral over a moving volume; the product rule gives Eq. (22); and the continuity equation removes its residual when mass has no volumetric source. Under that assumption and sufficient smoothness, Eq. (23) is an equivalent rewriting of the Eulerian conservative law, Eq. (19). The name **non-conservative form** describes its algebraic form, not a physical failure of conservation.
 
@@ -238,11 +261,13 @@ $$
 \mathbf{j}_\phi = -\Gamma_\phi\nabla\phi, \qquad \Gamma_\phi \geq 0  \qquad (24)
 $$
 
+
 In Eq. (24), $`\Gamma_\phi`$ is the effective diffusion coefficient for the chosen scalar. The minus sign makes the diffusive flux point down the scalar gradient. Substitution into Eq. (19) gives the conservative scalar transport equation
 
 $$
 \boxed{\frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) = \nabla\cdot(\Gamma_\phi\nabla\phi) + S_\phi}  \qquad (25)
 $$
+
 
 The terms in Eq. (25) are transient accumulation, net outward advective transport, diffusion, and volumetric production, from left to right. The diffusion term is a **net diffusive influx per unit volume** because the diffusive flux vector is $`-\Gamma_\phi\nabla\phi`$, whose dot product with the outward normal gives the signed outward flux. The coefficient may vary in space or time; it must remain inside the divergence in general. Eq. (24) is a model, not a consequence of conservation, and more general transport can require a tensor coefficient or additional flux terms.
 
@@ -254,6 +279,7 @@ $$
 \rho\frac{D\phi}{Dt} = \nabla\cdot(\Gamma_\phi\nabla\phi)+S_\phi-\phi S_m  \qquad (26)
 $$
 
+
 The term $`-\phi S_m`$ is the correction from expanding the conservative accumulation and advection terms using Eq. (22); it is distinct from the volumetric transported-quantity source $`S_\phi`$, which already includes any property carried by the mass source. For example, if injected mass carries a specific transported quantity, its contribution is included in $`S_\phi`$ once, while conversion to material-derivative form still contributes $`-\phi S_m`$. The term vanishes when $`S_m=0`$. For constant density and source-free mass conservation, $\nabla\cdot\mathbf{u}=0$ and accumulation and advection reduce to $\rho(\partial\phi/\partial t+\mathbf{u}\cdot\nabla\phi)$. Constant density alone does not justify discarding a mass source.
 
 # 5. Integral Form of the Scalar Transport Equation
@@ -264,17 +290,20 @@ $$
 \frac{\partial(\rho\phi)}{\partial t} + \nabla\cdot(\rho\mathbf{u}\phi) + \nabla\cdot\mathbf{j}_\phi = S_\phi  \qquad (27)
 $$
 
+
 Integrating Eq. (27) over an arbitrary fixed three-dimensional control volume $`V_P`$ gives
 
 $$
 \int_{V_P}\frac{\partial(\rho\phi)}{\partial t}\mkern3mu\mathrm{d}V + \int_{V_P}\nabla\cdot(\rho\mathbf{u}\phi)\mkern3mu\mathrm{d}V + \int_{V_P}\nabla\cdot\mathbf{j}_\phi\mkern3mu\mathrm{d}V = \int_{V_P}S_\phi\mkern3mu\mathrm{d}V  \qquad (28)
 $$
 
+
 Let $`\partial V_P`$ be the closed boundary of $`V_P`$ and $\mathbf{n}$ its outward unit normal. Applying the Gauss divergence theorem to both divergence terms in Eq. (28), and interchanging the time derivative and volume integral for sufficiently smooth fields, gives
 
 $$
 \boxed{\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V + \oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A + \oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A = \int_{V_P}S_\phi\mkern3mu\mathrm{d}V}  \qquad (29)
 $$
+
 
 Eq. (29) is the conservation law in its **integral form** and the starting point for the finite-volume method (FVM). Its left side contains accumulation and net outward advective and non-advective fluxes; its right side is the integrated source. The quantity $`\mathbf{j}_\phi\cdot\mathbf{n}`$ is the outward non-advective flux, so fluxes through a shared face enter neighboring cells with opposite signs.
 
@@ -288,11 +317,13 @@ $$
 \Delta t=t^{n+1}-t^n  \qquad (30)
 $$
 
+
 The transient accumulation term integrated over cell $P$ is
 
 $$
 \frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V  \qquad (31)
 $$
+
 
 Using the Backward Euler method, its approximation at the new time level is
 
@@ -300,11 +331,13 @@ $$
 \left.\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V\right|^{n+1} \approx \frac{(\rho\phi)_P^{n+1}V_P-(\rho\phi)_P^nV_P}{\Delta t}  \qquad (32)
 $$
 
+
 Backward Euler evaluates the time derivative using the new time level $n+1$. This general expression does not require constant density. If density is constant over the time step for cell $P$, it simplifies to
 
 $$
 \frac{\rho_P V_P}{\Delta t}\left(\phi_P^{n+1}-\phi_P^n\right)  \qquad (33)
 $$
+
 
 # 7. Discretization of Surface Integrals
 
@@ -314,11 +347,13 @@ $$
 \oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (34)
 $$
 
+
 In Eq. (34), $`\mathbf{F}_f`$ is the representative flux vector at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. Their dot product is the signed flux through the face, positive when the transported quantity leaves cell $P$. These outward contributions appear on the left of the balance in Eq. (29). The **face area vector** for cell $P$ is defined by
 
 $$
 \mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (35)
 $$
+
 
 In Eq. (35), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its owner.
 
@@ -328,6 +363,7 @@ $$
 \oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (36)
 $$
 
+
 In Eq. (36), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
 
 The non-advective flux is likewise approximated using outward face vectors:
@@ -336,11 +372,13 @@ $$
 \oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (37)
 $$
 
+
 Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (37) gives
 
 $$
 {}-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (38)
 $$
+
 
 The minus sign in Eq. (38) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multi-dimensional framework.
 
@@ -351,6 +389,7 @@ For cell $P$, assume the source is constant within that cell and represented by 
 $$
 \int_{V_P} S_\phi\mkern3mu\mathrm{d}V \approx S_{\phi,P}V_P  \qquad (39)
 $$
+
 
 Here, $`S_{\phi,P}`$ is the representative volumetric source value for cell $P$, and $`V_P`$ is its volume. Being constant within each cell does not require the source to have the same value in every cell: $`S_{\phi,P}`$ may vary from cell to cell. The product $`S_{\phi,P}V_P`$ is the total source contribution to the finite-volume balance of cell $P$.
 
@@ -381,23 +420,34 @@ Using one shared flux makes these equal-and-opposite contributions explicit and 
 Following the face-based assembly viewpoint established in the previous section, the discrete algebraic equations for individual control volumes are constructed term by term.
 
 ## 11.1 Diffusion Term Discretization
-For a general scalar $\phi$ governed by a diffusion process ($\nabla \cdot (\Gamma \nabla \phi)$), application of the divergence theorem over a control volume $V_P$ yields a surface integral over all faces bounding the cell:
+For a general scalar $\phi$ governed by a diffusion process ($\nabla \cdot (\Gamma \nabla \phi)$), application of the divergence theorem over a control volume $`V_P`$ yields a surface integral over all faces bounding the cell:
 
-$$\int_{V_P} \nabla \cdot (\Gamma \nabla \phi) \, dV = \sum_{f} (\Gamma \nabla \phi)_f \cdot \vec{S}_f$$
+$$
+\int_{V_P} \nabla \cdot (\Gamma \nabla \phi) \mkern3mu\mathrm{d}V = \sum_{f} (\Gamma \nabla \phi)_f \cdot \mathbf{S}_f  \qquad (40)
+$$
+
 
 For a typical internal face $f$ shared between an Owner ($P$) and a Neighbor ($N$), the diffusive flux component is approximated as:
 
-$$(\Gamma \nabla \phi)_f \cdot \vec{S}_f \approx \Gamma_f (\nabla \phi)_f \cdot \vec{S}_f$$
+$$
+(\Gamma \nabla \phi)_f \cdot \mathbf{S}_f \approx \Gamma_f (\nabla \phi)_f \cdot \mathbf{S}_f  \qquad (41)
+$$
+
 
 ### 11.1.1 Face Gradient and Interpolation
 To compute this face flux, two distinct numerical operations are required:
-1. **Property Interpolation ($\Gamma_f$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations properly).
-2. **Gradient Approximation ($\nabla \phi_f \cdot \vec{S}_f$):** Approximating the normal derivative at the face. In our current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
-   $$(\nabla \phi)_f \cdot \vec{S}_f \approx \frac{\phi_N - \phi_P}{d_{PN}} |\vec{S}_f|$$
-
+1. **Property Interpolation ($`\Gamma_f`$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations properly).
+2. **Gradient Approximation ($`\nabla \phi_f \cdot \mathbf{S}_f`$):** Approximating the normal derivative at the face. In our current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
+   
+$$
+(\nabla \phi)_f \cdot \mathbf{S}_f \approx \frac{\phi_N - \phi_P}{d_{PN}} |\mathbf{S}_f|  \qquad (42)
+$$
 ## 11.2 Convection Term Discretization (Advection)
-For convective transport ($\nabla \cdot (\rho \vec{u} \phi)$), the face value $\phi_f$ must be interpolated from the adjacent cell centers based on the local flow direction.
+For convective transport ($\nabla \cdot (\rho \mathbf{u} \phi)$), the face value $`\phi_f`$ must be interpolated from the adjacent cell centers based on the local flow direction.
+- **Upwind Differencing Scheme (UDS):** To ensure numerical stability and boundedness (preventing unphysical oscillations), the convection scheme evaluates $`\phi_f`$ based on the upstream condition:
+  
+$$
+\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \\ \phi_N & \text{if } F_f < 0 \end{cases}  \qquad (43)
+$$
 
-- **Upwind Differencing Scheme (UDS):** To ensure numerical stability and boundedness (preventing unphysical oscillations), the convection scheme evaluates $\phi_f$ based on the upstream condition:
-  $$\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \\ \phi_N & \text{if } F_f < 0 \end{cases}$$
-  where $F_f = (\rho \vec{u} \cdot \vec{S})_f$ is the mass flux through the face.
+  where $`F_f = (\rho \mathbf{u} \cdot \mathbf{S})_f`$ is the mass flux through the face.
