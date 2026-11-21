@@ -447,7 +447,7 @@ For convective transport ($\nabla \cdot (\rho \mathbf{u} \phi)$), the face value
 - **Upwind Differencing Scheme (UDS):** To ensure numerical stability and boundedness (preventing unphysical oscillations), the convection scheme evaluates $`\phi_f`$ based on the upstream condition:
   
 $$
-\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \\ \phi_N & \text{if } F_f < 0 \end{cases}  \qquad (43)
+\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \cr \phi_N & \text{if } F_f < 0 \end{cases} \qquad (43)
 $$
 
   where $`F_f = (\rho \mathbf{u} \cdot \mathbf{S})_f`$ is the mass flux through the face.
