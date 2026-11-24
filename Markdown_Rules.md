@@ -30,6 +30,12 @@ These rules describe how mathematical formulas are written in `Theory_Guide.md`.
 6. Never place a displayed equation inside a list item (bullet or numbered), a blockquote, or a table. If a display appears inside a list item, close the list, put the `$$` block at the top level (no indentation, blank line before and after), and then continue the list with the remaining items if there are any. The text of the list item stays unchanged.
 7. If a list item contains a label followed by an equation (for example "Right boundary ($n_{out}=+i$):" followed by a formula), keep the label as the list item and move only the equation out below it. Do not convert the label into a paragraph unless the list has no other items.
 8. Write the LaTeX of a display on a single line whenever possible. If a display must span several lines, never begin a line with `+`, `-`, `*`, `>`, `#`, `|`, or a digit followed by `.` or `)`. Break the line after the operator instead (end the previous line with `+` or `-`), or use `\begin{aligned} ... \end{aligned}`. Also never leave a blank line inside a `$$` block.
+9. Line breaks inside math environments (cases, aligned, array, matrix, etc.): never write `\\`, because GitHub's Markdown strips one backslash and the line break is lost. Write `\cr` instead. Change nothing else in the environment. Apply this to every `\\` inside `$$ ... $$` and `$ ... $`.
+
+   Example of the correct form:
+   $$
+   \phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \cr \phi_N & \text{if } F_f < 0 \end{cases} \qquad (43)
+   $$
 
 ## 3. Equation numbering
 
@@ -118,3 +124,4 @@ Additional notes:
 - [ ] No displayed formula contains explanatory prose.
 - [ ] No line inside a `$$` block starts with `+`, `-`, `*`, `>`, `#`, or `1.`, and there is no blank line inside a block.
 - [ ] Every inline formula containing `_` is written as `` $`...`$ ``.
+- [ ] Line breaks inside math environments (cases, aligned, array, matrix, etc.): never write `\\`, because GitHub's Markdown strips one backslash and the line break is lost. Write `\cr` instead. Change nothing else in the environment. Apply this to every `\\` inside `$$ ... $$` and `$ ... $`.

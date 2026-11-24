@@ -415,39 +415,46 @@ Using one shared flux makes these equal-and-opposite contributions explicit and 
 
 
 
-# 11. Discretization of Term Implementation
+# 11. Discretization of Terms in Face-Based Assembly
 
-Following the face-based assembly viewpoint established in the previous section, the discrete algebraic equations for individual control volumes are constructed term by term.
+Following the face-based assembly viewpoint established in the previous section, the discrete algebraic equations for individual control volumes are constructed term by term on the left-hand side (LHS) of the conservation equation. In accordance with the topological conventions of CFD Toolkit (matching OpenFOAM), each internal face has a defined orientation: the face area vector $\vec{S}_f$ points outward from the **Owner** cell ($O$) into the **Neighbor** cell ($N$).
 
 ## 11.1 Diffusion Term Discretization
-For a general scalar $\phi$ governed by a diffusion process ($\nabla \cdot (\Gamma \nabla \phi)$), application of the divergence theorem over a control volume $`V_P`$ yields a surface integral over all faces bounding the cell:
+From Fick's (or Fourier's) law, the diffusive flux density is physically directed down the gradient:
 
-$$
-\int_{V_P} \nabla \cdot (\Gamma \nabla \phi) \mkern3mu\mathrm{d}V = \sum_{f} (\Gamma \nabla \phi)_f \cdot \mathbf{S}_f  \qquad (40)
-$$
+$$\vec{J}^{\text{diff}} = -\Gamma \nabla \phi$$
 
+When cast in the general transport equation on the LHS, the diffusion term enters as the divergence of this flux, $-\nabla \cdot (\Gamma \nabla \phi) = \nabla \cdot \vec{J}^{\text{diff}}$. Integrating over a control volume $V$ and applying the divergence theorem yields:
 
-For a typical internal face $f$ shared between an Owner ($P$) and a Neighbor ($N$), the diffusive flux component is approximated as:
+$$\int_{V} -\nabla \cdot (\Gamma \nabla \phi) \, dV = \int_{V} \nabla \cdot \vec{J}^{\text{diff}} \, dV = \sum_{f} \vec{J}_f^{\text{diff}} \cdot \vec{S}_f = \sum_{f} \left( -\Gamma_f (\nabla \phi)_f \cdot \vec{S}_f \right)$$
 
-$$
-(\Gamma \nabla \phi)_f \cdot \mathbf{S}_f \approx \Gamma_f (\nabla \phi)_f \cdot \mathbf{S}_f  \qquad (41)
-$$
+For an internal face $f$ oriented from Owner ($O$) to Neighbor ($N$), the outward diffusive flux leaving the Owner is:
 
+$$J_{f, O \to N}^{\text{diff}} = -\Gamma_f (\nabla \phi)_f \cdot \vec{S}_f$$
 
-### 11.1.1 Face Gradient and Interpolation
-To compute this face flux, two distinct numerical operations are required:
-1. **Property Interpolation ($`\Gamma_f`$):** Evaluating the diffusion coefficient at the face using either **Arithmetic Mean** or **Harmonic Mean** (to handle abrupt property variations).
-2. **Gradient Approximation ($`\nabla \phi_f \cdot \mathbf{S}_f`$):** Approximating the normal derivative at the face. In the current implementation, this is evaluated using a Central Difference scheme based on the distance between the cell centers $P$ and $N$:
-   
-$$
-(\nabla \phi)_f \cdot \mathbf{S}_f \approx \frac{\phi_N - \phi_P}{d_{PN}} |\mathbf{S}_f|  \qquad (42)
-$$
-## 11.2 Convection Term Discretization (Advection)
-For convective transport ($\nabla \cdot (\rho \mathbf{u} \phi)$), the face value $`\phi_f`$ must be interpolated from the adjacent cell centers based on the local flow direction.
-- **Upwind Differencing Scheme (UDS):** To ensure numerical stability and boundedness (preventing unphysical oscillations), the convection scheme evaluates $`\phi_f`$ based on the upstream condition:
-  
-$$
-\phi_f = \begin{cases} \phi_P & \text{if } F_f > 0 \cr \phi_N & \text{if } F_f < 0 \end{cases} \qquad (43)
-$$
+#### Face Gradient and Property Evaluation
+Evaluating this face flux requires two distinct numerical steps:
+1. **Diffusion Coefficient at Face ($\Gamma_f$):** Evaluated from cell values using geometric weighting:
+   - **Arithmetic Mean:** Suitable for smooth variations:
+     $$\Gamma_f = w_O \Gamma_O + w_N \Gamma_N$$
+   - **Harmonic Mean:** Physically consistent for abrupt conductivity jumps across adjacent cells:
+     $$\Gamma_f = \frac{\Gamma_O \Gamma_N}{w_O \Gamma_N + w_N \Gamma_O}$$
 
-  where $`F_f = (\rho \mathbf{u} \cdot \mathbf{S})_f`$ is the mass flux through the face.
+2. **Normal Face Gradient ($(\nabla \phi)_f \cdot \vec{S}_f$):** Evaluated via a Central Difference approximation along the line connecting cell centers:
+   $$(\nabla \phi)_f \cdot \vec{S}_f \approx \frac{\phi_N - \phi_O}{d_{ON}} |\vec{S}_f|$$
+   where $d_{ON} = \|\vec{x}_N - \vec{x}_O\|$ is the centroid-to-centroid distance, supporting non-uniform 1D meshes directly.
+
+Substituting the gradient into the flux expression:
+
+$$J_{f, O \to N}^{\text{diff}} = -\Gamma_f \left( \frac{\phi_N - \phi_O}{d_{ON}} \right) |\vec{S}_f| = \frac{\Gamma_f |\vec{S}_f|}{d_{ON}} (\phi_O - \phi_N)$$
+
+#### Face-Based Assembly Contributions
+Let $D_f = \frac{\Gamma_f |\vec{S}_f|}{d_{ON}}$ be the face diffusive conductance. Because $\vec{S}_f$ points outward for $O$ and inward for $N$:
+- **Owner equation ($O$):** Receives an outward flux $+J_{f, O \to N}^{\text{diff}}$:
+  $$+D_f \phi_O - D_f \phi_N$$
+  This adds $+D_f$ to the diagonal coefficient $a_O$ and $-D_f$ to the off-diagonal coefficient $a_N$.
+- **Neighbor equation ($N$):** Receives the opposing inward flux $-J_{f, O \to N}^{\text{diff}}$:
+  $$+D_f \phi_N - D_f \phi_O$$
+  This adds $+D_f$ to the diagonal coefficient $a_N$ and $-D_f$ to the off-diagonal coefficient $a_O$.
+
+Both equations strictly maintain diagonal dominance and guarantee local and global conservation.
