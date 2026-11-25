@@ -314,91 +314,9 @@ Eq. (29) is the conservation law in its **integral form** and the starting point
 
 The gradient-diffusion model in Eq. (24) defines $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$, where $`\Gamma_\phi`$ is the effective diffusion coefficient for the scalar $\phi$. Substituting Eq. (24) into the non-advective surface integral in Eq. (29) gives $`+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A=-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A`$. The minus sign comes from the constitutive law for the diffusive flux; it is not a separate sign convention for outward flux.
 
-# 6. Temporal Discretization of the Accumulation Term
+To numerically evaluate these surface integrals, it is essential first to establish consistent definitions of mesh connectivity and face orientation, as addressed in the following sections.
 
-For cell $P$, assume its volume $`V_P`$ is fixed over the time step and use cell-centered representative values. Let $t^n$ denote the previous time level and $t^{n+1}$ the new time level, with time-step size
-
-$$
-\Delta t=t^{n+1}-t^n  \qquad (30)
-$$
-
-
-The transient accumulation term integrated over cell $P$ is
-
-$$
-\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V  \qquad (31)
-$$
-
-
-Using the Backward Euler method, its approximation at the new time level is
-
-$$
-\left.\frac{\mathrm{d}}{\mathrm{d}t}\int_{V_P}\rho\phi\mkern3mu\mathrm{d}V\right|^{n+1} \approx \frac{(\rho\phi)_P^{n+1}V_P-(\rho\phi)_P^nV_P}{\Delta t}  \qquad (32)
-$$
-
-
-Backward Euler evaluates the time derivative using the new time level $n+1$. This general expression does not require constant density. If density is constant over the time step for cell $P$, it simplifies to
-
-$$
-\frac{\rho_P V_P}{\Delta t}\left(\phi_P^{n+1}-\phi_P^n\right)  \qquad (33)
-$$
-
-
-# 7. Discretization of Surface Integrals
-
-The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in CFD Toolkit. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
-
-$$
-\oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (34)
-$$
-
-
-In Eq. (34), $`\mathbf{F}_f`$ is the representative flux vector at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. Their dot product is the signed flux through the face, positive when the transported quantity leaves cell $P$. These outward contributions appear on the left of the balance in Eq. (29). The **face area vector** for cell $P$ is defined by
-
-$$
-\mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (35)
-$$
-
-
-In Eq. (35), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the Owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the Neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its Owner.
-
-Using outward face vectors for cell $P$, the advective flux is discretized as
-
-$$
-\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (36)
-$$
-
-
-In Eq. (36), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
-
-The non-advective flux is likewise approximated using outward face vectors:
-
-$$
-\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (37)
-$$
-
-
-Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (37) gives
-
-$$
-{}-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (38)
-$$
-
-
-The minus sign in Eq. (38) comes from the constitutive diffusion law in Eq. (24), not a separate outward-normal sign convention. These discrete face contributions, combined with accumulation and source terms, form the algebraic system for cell $P$ and connect the continuous theory to the multidimensional framework.
-
-# 8. Discretization of the Volumetric Source
-
-For cell $P$, assume the source is constant within that cell and represented by its cell value $`S_{\phi,P}`$. The source integral is then approximated as
-
-$$
-\int_{V_P} S_\phi\mkern3mu\mathrm{d}V \approx S_{\phi,P}V_P  \qquad (39)
-$$
-
-
-Here, $`S_{\phi,P}`$ is the representative volumetric source value for cell $P$, and $`V_P`$ is its volume. Being constant within each cell does not require the source to have the same value in every cell: $`S_{\phi,P}`$ may vary from cell to cell. The product $`S_{\phi,P}V_P`$ is the total source contribution to the finite-volume balance of cell $P$.
-
-# 9. Owner and Neighbor Cells
+# 6. Owner and Neighbor Cells
 
 An internal face is shared by two cells. In the mesh's face-connectivity convention, one adjacent cell is designated the **Owner** and the other the **Neighbor**. These names identify the cells adjacent to that face; they do not indicate which cell is physically upstream or imply a particular flow direction. Their identities do not change when writing the balance for the other cell.
 
@@ -406,7 +324,7 @@ When a face orientation is needed, the global face area vector is chosen to poin
 
 A boundary face has an Owner cell but no Neighbor cell inside the computational domain.
 
-# 10. Cell-Based and Face-Based Viewpoints
+# 7. Cell-Based and Face-Based Viewpoints
 
 CFD Toolkit's intended grid is **colocated**, as is OpenFOAM's: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
 
@@ -418,51 +336,120 @@ In a **face-based** approach, the code loops over faces. For each internal face,
 
 Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. CFD Toolkit's current 1D Laplacian implementation assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
 
+# 8. Discretization of Surface Integrals
+
+This framework establishes a shared face-based representation for both convective and diffusive surface integrals. Detailed numerical schemes for approximating the face values of these fluxes will be developed step by step in subsequent sections.
+
+The **face-based approach** connects the continuous surface integrals in Eq. (29) to face contributions in CFD Toolkit. For a vector flux $\mathbf{F}$, the closed surface integral over the boundary of cell $P$ is approximated by
+
+$$
+\oint_{\partial V_P}\mathbf{F}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}\mathbf{F}_f\cdot\mathbf{S}_{P,f}  \qquad (30)
+$$
 
 
-# 11. Discretization of Terms in Face-Based Assembly
+In Eq. (30), $`\mathbf{F}_f`$ is the representative flux vector at face $f$, and $`\mathbf{S}_{P,f}`$ is the face area vector directed outward from cell $P$. Their dot product is the signed flux through the face, positive when the transported quantity leaves cell $P$. These outward contributions appear on the left of the balance in Eq. (29). The **face area vector** for cell $P$ is defined by
 
-Following the face-based assembly viewpoint established in the previous section, the discrete algebraic equations for individual control volumes are constructed term by term on the left-hand side (LHS) of the conservation equation. In accordance with the topological conventions of CFD Toolkit (matching OpenFOAM), each internal face has a defined orientation: the face area vector $\vec{S}_f$ points outward from the **Owner** cell ($O$) into the **Neighbor** cell ($N$).
+$$
+\mathbf{S}_{P,f} = A_f\mathbf{n}_{P,f}  \qquad (31)
+$$
 
-## 11.1 Diffusion Term Discretization
-From Fick's (or Fourier's) law, the diffusive flux density is physically directed down the gradient:
 
-$$\vec{J}^{\text{diff}} = -\Gamma \nabla \phi$$
+In Eq. (31), $`A_f`$ is the face area and $`\mathbf{n}_{P,f}`$ is the outward unit normal from cell $P$ through face $f$. For an internal face, CFD Toolkit's global face orientation is from the Owner to the Neighbor: $`\mathbf{S}_{P,f}=\mathbf{S}_f`$ for the Owner cell and $`\mathbf{S}_{P,f}=-\mathbf{S}_f`$ for the Neighbor cell. The cells therefore use opposite outward face area vectors, and the same face flux vector gives equal and opposite contributions to their balances. At a boundary face, $`\mathbf{S}_{P,f}`$ points outward from its Owner.
 
-When cast in the general transport equation on the LHS, the diffusion term enters as the divergence of this flux, $-\nabla \cdot (\Gamma \nabla \phi) = \nabla \cdot \vec{J}^{\text{diff}}$. Integrating over a control volume $V$ and applying the divergence theorem yields:
+Using outward face vectors for cell $P$, the advective flux is discretized as
 
-$$\int_{V} -\nabla \cdot (\Gamma \nabla \phi) \, dV = \int_{V} \nabla \cdot \vec{J}^{\text{diff}} \, dV = \sum_{f} \vec{J}_f^{\text{diff}} \cdot \vec{S}_f = \sum_{f} \left( -\Gamma_f (\nabla \phi)_f \cdot \vec{S}_f \right)$$
+$$
+\oint_{\partial V_P}\rho\phi\mathbf{u}\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\rho\phi\mathbf{u})_f\cdot\mathbf{S}_{P,f}  \qquad (32)
+$$
 
-For an internal face $f$ oriented from Owner ($O$) to Neighbor ($N$), the outward diffusive flux leaving the Owner is:
 
-$$J_{f, O \to N}^{\text{diff}} = -\Gamma_f (\nabla \phi)_f \cdot \vec{S}_f$$
+In Eq. (32), $`(\rho\phi\mathbf{u})_f`$ denotes the representative advective flux at face $`f`$. Its evaluation is determined by the numerical discretization scheme, which is specified separately.
 
-#### Face Gradient and Property Evaluation
-Evaluating this face flux requires two distinct numerical steps:
-1. **Diffusion Coefficient at Face ($\Gamma_f$):** Evaluated from cell values using geometric weighting:
-   - **Arithmetic Mean:** Suitable for smooth variations:
-     $$\Gamma_f = w_O \Gamma_O + w_N \Gamma_N$$
-   - **Harmonic Mean:** Physically consistent for abrupt conductivity jumps across adjacent cells:
-     $$\Gamma_f = \frac{\Gamma_O \Gamma_N}{w_O \Gamma_N + w_N \Gamma_O}$$
+The non-advective flux is likewise approximated using outward face vectors:
 
-2. **Normal Face Gradient ($(\nabla \phi)_f \cdot \vec{S}_f$):** Evaluated via a Central Difference approximation along the line connecting cell centers:
-   $$(\nabla \phi)_f \cdot \vec{S}_f \approx \frac{\phi_N - \phi_O}{d_{ON}} |\vec{S}_f|$$
-   where $d_{ON} = \|\vec{x}_N - \vec{x}_O\|$ is the centroid-to-centroid distance. The current 1D Laplacian implementation uses this distance on non-uniform meshes.
+$$
+\oint_{\partial V_P}\mathbf{j}_\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx \sum_{f\in\mathrm{faces}(P)}(\mathbf{j}_\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (33)
+$$
 
-Substituting the gradient into the flux expression:
 
-$$J_{f, O \to N}^{\text{diff}} = -\Gamma_f \left( \frac{\phi_N - \phi_O}{d_{ON}} \right) |\vec{S}_f| = \frac{\Gamma_f |\vec{S}_f|}{d_{ON}} (\phi_O - \phi_N)$$
+Substituting the gradient-diffusion model $`\mathbf{j}_\phi=-\Gamma_\phi\nabla\phi`$ from Eq. (24) into the discrete face contributions in Eq. (33) gives
 
-#### Face-Based Assembly Contributions
-Let $D_f = \frac{\Gamma_f |\vec{S}_f|}{d_{ON}}$ be the face diffusive conductance. Because $\vec{S}_f$ points outward for $O$ and inward for $N$:
-- **Owner equation ($O$):** Receives an outward flux $+J_{f, O \to N}^{\text{diff}}$:
-  $$+D_f \phi_O - D_f \phi_N$$
-  This adds $+D_f$ to the diagonal coefficient $a_O$ and $-D_f$ to the off-diagonal coefficient $a_N$.
-- **Neighbor equation ($N$):** Receives the opposing inward flux $-J_{f, O \to N}^{\text{diff}}$:
-  $$+D_f \phi_N - D_f \phi_O$$
-  This adds $+D_f$ to the diagonal coefficient $a_N$ and $-D_f$ to the off-diagonal coefficient $a_O$.
+$$
+{}-\oint_{\partial V_P}\Gamma_\phi\nabla\phi\cdot\mathbf{n}\mkern3mu\mathrm{d}A \approx -\sum_{f\in\mathrm{faces}(P)}(\Gamma_\phi\nabla\phi)_f\cdot\mathbf{S}_{P,f}  \qquad (34)
+$$
 
-Both equations strictly maintain diagonal dominance and guarantee local and global conservation.
+
+The minus sign in Eq. (38) arises from the constitutive diffusion law in Eq. (24), rather than a separate outward-normal sign convention. These discrete face contributions, once combined with accumulation and source terms, form the core of the algebraic system for cell $P$. However, these expressions remain abstract until the face-centered values are defined. Therefore, the subsequent sections will detail the numerical discretization schemes required to approximate these properties—such as interpolation methods for $\phi_f$ and $\Gamma_f$, and gradient schemes for $\nabla\phi_f$—thereby fully connecting this continuous theoretical framework to the computational solver.
+
+# 9. Discretization of the Diffusion Term
+
+Following the face-based framework established in Section 8, the discrete contribution of the diffusion term for control volume $P$ is evaluated by summing over its bounding faces:
+
+$$
+-\int_{\partial V_P} \Gamma \nabla \phi \cdot \mathbf{n} \, \mathrm{d}A \approx -\sum_{f \in \text{faces}(P)} (\Gamma \nabla \phi)_f \cdot \mathbf{S}_{P,f}
+\qquad (35)
+$$
+
+As established by the constitutive diffusion law in Eq. (24), the diffusive flux density is directed down the gradient ($\mathbf{j}^{\text{diff}} = -\Gamma \nabla \phi$), meaning the minus sign in Eq. (35) stems directly from this physical law rather than an arbitrary surface-normal convention.
+
+To compute the face-centered flux vector in Eq. (35), two distinct quantities must be evaluated at the face center ($f$):
+1. **The Diffusion Coefficient ($\Gamma_f$):** Evaluated using appropriate interpolation schemes (such as harmonic or arithmetic means) based on the thermophysical properties of the adjacent cells.
+2. **The Gradient Vector ($(\nabla\phi)_f$):** Evaluated using dedicated gradient reconstruction schemes (such as central difference or Gauss-Green methods) across the face connecting the Owner ($O$) and Neighbor ($N$) cells.
+
+For an internal face oriented globally from Owner ($O$) to Neighbor ($N$), the discrete diffusive flux contribution is explicitly formulated to ensure conservation and bounded neighbor interaction in the algebraic system.
+
+## 9.1 Selection of Numerical Schemes for Diffusion
+
+In general finite-volume frameworks, numerical schemes are categorized based on the terms they discretize:
+- **Gradient Schemes:** Approximate spatial derivatives at cell faces or cell centers.
+- **Interpolation Schemes:** Reconstruct face-centered values of transported fields or material properties from adjacent cell-center data.
+- **Convection Schemes:** Discretize the advective transport using directional upwinding based on the flow velocity field.
+
+For pure diffusion, advective schemes are not involved. Evaluating the discrete diffusive flux in Eq. (35) requires only two components: an **Interpolation Scheme** for the face diffusion coefficient $\Gamma_f$, and a **Gradient Scheme** for the face-normal gradient $(\nabla \phi)_f \cdot \mathbf{S}_f$.
+
+## 9.2 Face Diffusion Coefficient: Interpolation Schemes
+
+To evaluate $\Gamma_f$ at the interface between the Owner ($O$) and Neighbor ($N$) cells, CFD Toolkit supports two primary weighted averaging formulations based on the face-to-cell geometric weighting factor $f_x$:
+
+$$
+f_x = \frac{\|\mathbf{x}_f - \mathbf{x}_O\|}{\|\mathbf{x}_N - \mathbf{x}_O\|}
+\qquad (36)
+$$
+
+### 1. Weighted Arithmetic Mean (Linear Interpolation)
+The weighted arithmetic average treats the variation of the diffusion coefficient linearly between cell centers:
+
+$$
+\Gamma_f = (1 - f_x) \Gamma_O + f_x \Gamma_N
+\qquad (37)
+$$
+
+For a uniform mesh where the face lies symmetrically between cell centroids ($f_x = 0.5$), this simplifies to the standard arithmetic mean:
+
+$$
+\Gamma_f = \frac{\Gamma_O + \Gamma_N}{2}
+\qquad (38)
+$$
+
+This scheme is suitable for smoothly varying material properties and single-phase diffusion.
+
+### 2. Weighted Harmonic Mean
+When simulating heterogeneous materials or interfaces with sharp jumps in diffusion coefficients (analogous to thermal contact resistance or electrical resistors in series), the arithmetic mean fails to preserve the continuous physical flux across the interface. In such cases, the weighted harmonic mean is applied:
+
+$$
+\frac{1}{\Gamma_f} = \frac{1 - f_x}{\Gamma_O} + \frac{f_x}{\Gamma_N} \quad \implies \quad \Gamma_f = \frac{\Gamma_O \Gamma_N}{(1 - f_x)\Gamma_N + f_x \Gamma_O}
+\qquad (39)
+$$
+
+For a symmetric interface ($f_x = 0.5$), this reduces to the classical harmonic mean:
+
+$$
+\Gamma_f = \frac{2 \Gamma_O \Gamma_N}{\Gamma_O + \Gamma_N}
+\qquad (40)
+$$
+
+The harmonic mean enforces continuous flux across sharp material discontinuities, ensuring that a low-conductivity layer correctly limits diffusion.
+
 
 ## Acknowledgements
 
