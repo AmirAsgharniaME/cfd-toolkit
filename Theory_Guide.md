@@ -1,8 +1,13 @@
 # CFD Toolkit Theory Guide
 
-CFD Toolkit is a modular finite-volume framework that separates dimensions when solving transport equations. This guide explains the mathematical ideas, conventions, and discretization choices behind CFD Toolkit, connecting the governing equations to their numerical representation and implementation.
+**Project:** CFD Toolkit  
+**Document:** Theory Guide  
+**Prepared and maintained by:** Amir Mahmoud Asgharnia  
+**Scope:** Theoretical foundations, numerical conventions, and discretization principles for the CFD Toolkit finite-volume library.
 
-The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to CFD Toolkit, so the theory remains connected to CFD Toolkit and its current capabilities.
+CFD Toolkit is a modular finite-volume framework intended to support transport problems in one, two, and three dimensions. Its intended mesh framework uses structured meshes, which may be uniform or non-uniform; the grid is colocated, with primary solution variables stored at cell centers; and equation assembly is face-based, with each internal-face contribution assembled into the Owner and Neighbor cell equations. This guide explains the mathematical ideas, conventions, and discretization choices behind CFD Toolkit, connecting the governing equations to their numerical representation and implementation.
+
+The guide begins with the general transport equation and develops its terms and discretization step by step. Each topic is introduced as it becomes relevant to CFD Toolkit's conventions and, where applicable, its current implementations.
 
 # 1. Eulerian and Lagrangian Views in Fluid Mechanics
 
@@ -403,7 +408,7 @@ A boundary face has an Owner cell but no Neighbor cell inside the computational 
 
 # 10. Cell-Based and Face-Based Viewpoints
 
-CFD Toolkit uses a **colocated grid**, as does OpenFOAM: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
+CFD Toolkit's intended grid is **colocated**, as is OpenFOAM's: primary solution variables such as $\phi$ are stored at cell centers, rather than on faces. Face values and fluxes can be calculated or stored as auxiliary quantities; their presence does not make the grid staggered. On a staggered grid, by contrast, different primary variables are stored at different locations.
 
 The terms **cell-based** and **face-based** describe how the code iterates and organizes assembly of the global system of equations, not where the primary variables are stored. Either approach can be used with a colocated grid.
 
@@ -411,7 +416,7 @@ In a **cell-based** or **cell-centric** approach, the code loops over cells and,
 
 In a **face-based** approach, the code loops over faces. For each internal face, it calculates the shared flux contribution using one chosen face orientation and adds the corresponding contributions to both the Owner and Neighbor equations. The cells' outward normals at the shared face point in opposite directions, so the outward flux contributions have opposite signs. Boundary faces contribute to their Owner equation according to the boundary condition.
 
-Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. CFD Toolkit's implemented 1D Laplacian assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
+Using one shared flux makes these equal-and-opposite contributions explicit and supports conservation across the face. This applies to both diffusive and advective fluxes. The two approaches organize the same finite-volume balance; they do not represent different physical laws. CFD Toolkit's current 1D Laplacian implementation assembles internal-face contributions in a face-based loop, and OpenFOAM likewise uses shared face fluxes in neighboring cell balances.
 
 
 
@@ -442,7 +447,7 @@ Evaluating this face flux requires two distinct numerical steps:
 
 2. **Normal Face Gradient ($(\nabla \phi)_f \cdot \vec{S}_f$):** Evaluated via a Central Difference approximation along the line connecting cell centers:
    $$(\nabla \phi)_f \cdot \vec{S}_f \approx \frac{\phi_N - \phi_O}{d_{ON}} |\vec{S}_f|$$
-   where $d_{ON} = \|\vec{x}_N - \vec{x}_O\|$ is the centroid-to-centroid distance, supporting non-uniform 1D meshes directly.
+   where $d_{ON} = \|\vec{x}_N - \vec{x}_O\|$ is the centroid-to-centroid distance. The current 1D Laplacian implementation uses this distance on non-uniform meshes.
 
 Substituting the gradient into the flux expression:
 
@@ -458,3 +463,7 @@ Let $D_f = \frac{\Gamma_f |\vec{S}_f|}{d_{ON}}$ be the face diffusive conductanc
   This adds $+D_f$ to the diagonal coefficient $a_N$ and $-D_f$ to the off-diagonal coefficient $a_O$.
 
 Both equations strictly maintain diagonal dominance and guarantee local and global conservation.
+
+## Acknowledgements
+
+This document was prepared and technically reviewed by Amir Mahmoud Asgharnia as part of the CFD Toolkit project. AI-assisted tools were used for drafting, language refinement, formatting, and iterative clarification of selected explanations. The technical direction, numerical conventions, implementation decisions, and final review remain the responsibility of the author.
